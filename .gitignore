@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+
+/build/**
+/plugins_install/**
+/peasoup_executable*/**
+/stuff/**
+.vscode/**
+
+*.os
+init.sh
+.sconsign.dblite
