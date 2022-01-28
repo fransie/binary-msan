@@ -27,7 +27,7 @@ irdb_env=env.Clone()
 #
 irdb_env.Append(CXXFLAGS=" -Wall -Werror -fmax-errors=2 "           ) # be strict about syntax/warnings
 irdb_env.Append(LIBS=    Split("irdb-core irdb-transform"          )) # link against core and transform libraries
-irdb_env.Append(CPPPATH= " $IRDB_SDK/include "                      ) # be able to include the SDK files
+irdb_env.Append(CPPPATH= " $IRDB_SDK/include:$CAPSTONE"             ) # be able to include the SDK and capstone files
 irdb_env.Append(LIBPATH= Split(" $IRDB_LIBS "                      )) # this is where the libraries are.
 irdb_env.Replace(INSTALL_PATH=os.environ['PWD']+"/plugins_install"  ) # this is where to place plugins.
 

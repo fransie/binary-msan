@@ -9,3 +9,7 @@ export COOKBOOK_HOME=$PWD
 #  Tell pszr where to search for plugins
 #
 export PSPATH=$PSPATH:$COOKBOOK_HOME/plugins_install
+
+#
+# Export location to capstone
+export CAPSTONE=/home/franzi/zipr/irdb-libs/third_party/capstone/include/capstone

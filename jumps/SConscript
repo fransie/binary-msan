@@ -31,7 +31,7 @@ pgm="libjumps.so"
 #
 # override the default libs as we need more libraries for this transform
 # 
-libs=Split("irdb-core  irdb-transform irdb-deep irdb-util ") 
+libs=Split("irdb-core irdb-transform irdb-deep irdb-util capstone") 
 
 #
 # build and install the transform, by default

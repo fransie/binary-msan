@@ -32,7 +32,7 @@ env=Environment()
 env.Replace(COOKBOOK_HOME=os.environ['COOKBOOK_HOME']) # add cookbook home var to env. for other scons files
 env.Replace(IRDB_SDK=     os.environ['IRDB_SDK']     ) # IRDB_SDK and IRDB_LIB by convention to find headers and libraries.
 env.Replace(IRDB_LIBS=    os.environ['IRDB_LIBS']    ) 
-
+env.Replace(CAPSTONE=     os.environ['CAPSTONE'])      # make CAPSTONE env variable available as well
 
 #
 # Check for "debug=1" on the scons command line
