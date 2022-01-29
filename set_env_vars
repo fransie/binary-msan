@@ -12,4 +12,4 @@ export PSPATH=$PSPATH:$COOKBOOK_HOME/plugins_install
 
 #
 # Export location to capstone
-export CAPSTONE=/home/franzi/zipr/irdb-libs/third_party/capstone/include/capstone
+export CAPSTONE=${PEASOUP_HOME}/irdb-libs/third_party/capstone/include/capstone
