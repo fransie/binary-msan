@@ -38,5 +38,4 @@
 .vscode/**
 
 *.os
-init.sh
 .sconsign.dblite
