@@ -15,7 +15,6 @@
 */
 
 #include <iostream>
-#include <capstone.h>
 #include "jumps.hpp"
 #include "eflags_access.hpp"
 
@@ -37,14 +36,17 @@ bool JumpsPass::execute() {
     for(auto const &instruction : instructions){
         const auto decodedInstruction = DecodedInstruction_t::factory(instruction);        
         if(decodedInstruction->isConditionalBranch()){
-            cout << "new conditional inst: ";
 			const auto databits = instruction->getDataBits().c_str();
             const uint8_t* opcode = reinterpret_cast<const uint8_t*>(databits);
 			auto flags = ea.get_read_flag(opcode);
-			for (auto i : flags){
-				cout << static_cast<int>(i);		
-			}
-			cout << endl;
+
+            cout << "Instruction " << instruction->getDisassembly() << " has flags: ";
+            for (auto i : flags){
+               cout << (int) i << " ";   
+            }
+            cout << endl;
+
+            // check if flags are poisoned
         }
     }
     // success!
