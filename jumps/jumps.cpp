@@ -1,38 +1,29 @@
-/*
-   Copyright 2017-2019 University of Virginia
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-*/
-
 #include <iostream>
+#include <irdb-elfdep>
+#include <irdb-cfg>
 #include "jumps.hpp"
 #include "eflags_access.hpp"
 
 using namespace IRDB_SDK;
 
 
-// constructor
-JumpsPass::JumpsPass(FileIR_t *p_variantIR) : Transform_t(p_variantIR)
-{
+std::string JumpsPass::getStepName(void) const{
+    return "jumps_pass";
 }
 
-bool JumpsPass::execute() {
+int JumpsPass::parseArgs(const std::vector<std::string> step_args){
+    return 0;
+}
+
+int JumpsPass::executeStep() {
+    FileIR_t *ir = getMainFileIR();
+
     // log start
     cout << "Starting jump pass." << endl;
     Eflags::EflagsAccess ea = Eflags::EflagsAccess();
 
 	// get read eflags for conditional branches
-	const auto instructions = getFileIR()->getInstructions();
+	const auto instructions = ir->getInstructions();
     for(auto const &instruction : instructions){
         const auto decodedInstruction = DecodedInstruction_t::factory(instruction);        
         if(decodedInstruction->isConditionalBranch()){
@@ -45,10 +36,16 @@ bool JumpsPass::execute() {
                cout << (int) i << " ";   
             }
             cout << endl;
-
             // check if flags are poisoned
         }
     }
     // success!
-	return true;
+	return 0;
+}
+
+void JumpsPass::registerDependencies()
+{
+    auto elfDeps = ElfDependencies_t::factory(getMainFileIR());
+    elfDeps->prependLibraryDepedencies("libgcc_s.so.1");
+    getMainFileIR()->assembleRegistry();
 }
