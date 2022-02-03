@@ -8,7 +8,7 @@ using namespace IRDB_SDK;
 
 
 std::string JumpsPass::getStepName(void) const{
-    return "jumps_pass";
+    return "msan";
 }
 
 int JumpsPass::parseArgs(const std::vector<std::string> step_args){

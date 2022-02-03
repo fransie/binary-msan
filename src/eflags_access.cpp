@@ -1,5 +1,5 @@
 #include "eflags_access.hpp"
-#include "capstone.h"
+#include <capstone.h>
 #include <iostream>
 
 
