@@ -11,6 +11,7 @@ This tool is a binary-only implementation of Google's Memory Sanitizer ([their p
         cd binary-msan
         export ZIPR_PATH=<YOUR/PATH/TO/ZIPR>
         source init.sh
-        scons
+        cmake .
+        make
    ```
-3. Use binary-msan as follows: ```./run.sh <input-file> <output-file>```
+3. Use binary-msan as follows: ```./run.sh <input-file> <output-file>```, for example ```./run.sh /bin/ls ls-instrumented```
