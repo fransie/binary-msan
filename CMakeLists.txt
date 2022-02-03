@@ -1,0 +1,58 @@
+cmake_minimum_required(VERSION 3.11.0)
+project(binary-msan)
+enable_testing()
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG(-std=c++17 HAVE_C17)
+if (NOT HAVE_C17)
+    message(FATAL_ERROR "Your compiler does not understand -std=c++17, consider updating your compiler")
+endif()
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+SET(CMAKE_CXX_STANDARD 17)
+SET(CMAKE_CXX_STANDARD_REQUIRED YES)
+SET(CMAKE_CXX_EXTENSIONS ON)
+
+if(NOT CMAKE_BUILD_TYPE)
+    message(STATUS "Setting build type to Release")
+    set(CMAKE_BUILD_TYPE "Release")
+endif()
+
+set(PLUGIN_PATH ${CMAKE_SOURCE_DIR}/plugins_install)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PLUGIN_PATH})
+
+if(NOT DEFINED ENV{ZIPR_PATH})
+    message(FATAL_ERROR "Please provide a valid zipr location: $ export ZIPR_PATH=<your/path/to/zipr>")
+endif()
+
+# configure scripts
+#configure_file(${CMAKE_SOURCE_DIR}/scripts/thread-sanitizer.sh.in ${CMAKE_BINARY_DIR}/thread-sanitizer.sh)
+
+# create libraries for the irdb sdk
+set(IRDBLIB_LOCATION "$ENV{ZIPR_PATH}/irdb-libs/lib/")
+
+add_library(_irdb-sdk SHARED IMPORTED)
+target_include_directories(_irdb-sdk INTERFACE "$ENV{ZIPR_PATH}/irdb-sdk/include/")
+target_include_directories(_irdb-sdk INTERFACE "$ENV{ZIPR_PATH}/irdb-libs/third_party/capstone/include/capstone/")
+
+# just select a library
+set_property(TARGET _irdb-sdk PROPERTY IMPORTED_LOCATION
+        "${IRDBLIB_LOCATION}/${CMAKE_SHARED_LIBRARY_PREFIX}irdb-core${CMAKE_SHARED_LIBRARY_SUFFIX}"
+        )
+set_property(TARGET _irdb-sdk PROPERTY INTERFACE_LINK_LIBRARIES
+        "${IRDBLIB_LOCATION}/${CMAKE_SHARED_LIBRARY_PREFIX}irdb-core${CMAKE_SHARED_LIBRARY_SUFFIX}"
+        "${IRDBLIB_LOCATION}/${CMAKE_SHARED_LIBRARY_PREFIX}irdb-cfg${CMAKE_SHARED_LIBRARY_SUFFIX}"
+        "${IRDBLIB_LOCATION}/${CMAKE_SHARED_LIBRARY_PREFIX}irdb-deep${CMAKE_SHARED_LIBRARY_SUFFIX}"
+        "${IRDBLIB_LOCATION}/${CMAKE_SHARED_LIBRARY_PREFIX}irdb-elfdep${CMAKE_SHARED_LIBRARY_SUFFIX}"
+        "${IRDBLIB_LOCATION}/${CMAKE_SHARED_LIBRARY_PREFIX}irdb-syscall${CMAKE_SHARED_LIBRARY_SUFFIX}"
+        "${IRDBLIB_LOCATION}/${CMAKE_SHARED_LIBRARY_PREFIX}irdb-transform${CMAKE_SHARED_LIBRARY_SUFFIX}"
+        "${IRDBLIB_LOCATION}/${CMAKE_SHARED_LIBRARY_PREFIX}irdb-util${CMAKE_SHARED_LIBRARY_SUFFIX}"
+        "${IRDBLIB_LOCATION}/${CMAKE_SHARED_LIBRARY_PREFIX}capstone${CMAKE_SHARED_LIBRARY_SUFFIX}"
+        )
+
+add_library(irdb-sdk INTERFACE)
+target_link_libraries(irdb-sdk
+        INTERFACE _irdb-sdk
+        )
+
+
+add_subdirectory(src)

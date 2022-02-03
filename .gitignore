@@ -36,6 +36,8 @@
 /peasoup_executable*/**
 /stuff/**
 .vscode/**
+/cmake-build-debug/**
+/cmake-build-debug-remote/**
 
 *.os
 .sconsign.dblite
