@@ -29,7 +29,7 @@ namespace Eflags {
 			 * @return std::vector<Flag> contains all Flags that have been read by the instruction.
 			 * 			If the instruction is not a conditional branch, Flag::Else might be contained once or multiple times.
 			 */
-			std::vector<Flag> get_read_flag(const uint8_t* opcode);
+			std::vector<Flag> get_read_flag(const uint8_t* opcode) const;
 
 		private:
 			csh handle;

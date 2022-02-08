@@ -10,7 +10,7 @@ Eflags::EflagsAccess::EflagsAccess(){
 	cs_option(handle, CS_OPT_DETAIL, CS_OPT_ON);
 }
 
-std::vector<Eflags::Flag> Eflags::EflagsAccess::get_read_flag(const uint8_t* opcode){
+std::vector<Eflags::Flag> Eflags::EflagsAccess::get_read_flag(const uint8_t* opcode) const{
     cs_insn *insn;
 	//TODO: error handling of cs_disasm
     size_t count = cs_disasm(handle, opcode, sizeof(opcode)-1, 0x1000, 0, &insn);
