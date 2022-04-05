@@ -22,16 +22,16 @@ class JumpsPass : public IRDB_SDK::TransformStep_t {
 	private:
 		void registerDependencies();
 
-        //IRDB_SDK::Instruction_t* msan_init;
+        IRDB_SDK::Instruction_t* msan_check;
         const int64_t eflagShadowOffset = 0x1000;
 };
 
 /**
  * Required interface for thanos: a factory for creating the interface object for this transform.
  */
-extern "C" std::shared_ptr<IRDB_SDK::TransformStep_t> getTransformStep(void)
-{
-	return std::shared_ptr<IRDB_SDK::TransformStep_t>(new JumpsPass());
-}
+//extern "C" std::shared_ptr<IRDB_SDK::TransformStep_t> getTransformStep(void)
+//{
+//	return std::shared_ptr<IRDB_SDK::TransformStep_t>(new JumpsPass());
+//}
 
 #endif

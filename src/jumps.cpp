@@ -5,8 +5,8 @@
 using namespace IRDB_SDK;
 
 
-std::string JumpsPass::getStepName(void) const{
-    return "msan";
+std::string JumpsPass::getStepName() const{
+    return "jumps";
 }
 
 int JumpsPass::parseArgs(const std::vector<std::string> step_args){
@@ -15,7 +15,7 @@ int JumpsPass::parseArgs(const std::vector<std::string> step_args){
 
 int JumpsPass::executeStep() {
     FileIR_t *ir = getMainFileIR();
-    //registerDependencies();
+    registerDependencies();
 
     // log start
     cout << "Starting jump pass." << endl;
@@ -30,28 +30,34 @@ int JumpsPass::executeStep() {
             const auto opcode = reinterpret_cast<const uint8_t*>(databits);
 			auto flags = ea.get_read_flag(opcode);
             cout << "Instruction " << instruction->getDisassembly() << ": ";
-            insertEFlagsCheckInstrumentation(flags, instruction, ir);
+            //insertEFlagsCheckInstrumentation(flags, instruction, ir);
+            //insertAssemblyBefore(ir, instruction, "call 0\n", msan_check);
         }
+//        if(instruction->getDisassembly().find("syscall") != -1){
+//            //find out which params are given to the syscall and check their shadow memory
+//        }
+        // dereferencing uninitialised pointers
     }
     // success!
 	return 0;
 }
 
-void JumpsPass::registerDependencies()
-{
+void JumpsPass::registerDependencies(){
     auto elfDeps = ElfDependencies_t::factory(getMainFileIR());
-    elfDeps->prependLibraryDepedencies("libgcc_s.so.1");
+    // TODO: make sure this work independently of local machine
+    elfDeps->appendLibraryDepedencies("/home/franzi/Documents/binary-msan2/sharedlibrary/libmsan_c.so");
+    elfDeps->appendLibraryDepedencies("/home/franzi/Documents/binary-msan2/sharedlibrary/libmsan_cxx.so");
+    //msan_check = elfDeps->appendPltEntry("__msan_check_mem_is_initialized");
     getMainFileIR()->assembleRegistry();
 }
 
 void JumpsPass::insertEFlagsCheckInstrumentation(const std::vector<Eflags::Flag>& flags, Instruction_t* instruction, FileIR_t* fileIR) const{
+    //TODO: probably store shadow as one byte to read it more easily that one bit
     // check if flags are poisoned
     for (auto i : flags){
         cout << (int) i << "" ;
-        //TODO: probably store shadow as one byte to read it more easily that one bit
 
-        std::string instrumentation = std::string();
-        instrumentation.append(
+        std::string instrumentation = std::string() +
                 "pushf\n"        // save eflags
                 "push   rax\n"      // save rax
                 "mov    al, %%1\n"  // load shadow
@@ -59,8 +65,7 @@ void JumpsPass::insertEFlagsCheckInstrumentation(const std::vector<Eflags::Flag>
                 "pop    rax\n"      // restore rax
                 "je     0\n"        // skip warning if shadow is zero TODO: verify that this jump here isn't instrumented
 //                "call   msan_warning\n"      // TODO: replace with correct function
-                "popf\n"            // restore eflags
-        );
+                "popf\n";           // restore eflags
         const long flag_address {eflagShadowOffset + ((int) i * 8)};
         vector<basic_string<char>> instrumentationParams {to_string(flag_address)};
 

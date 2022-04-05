@@ -8,7 +8,7 @@ myenv=irdb_env.Clone()
 # set the files to build and the output file name
 #
 files=Glob( Dir('.').srcnode().abspath+"/*.cpp")
-pgm="libjumps.so"
+pgm="libmsan.so"
 
 
 #
