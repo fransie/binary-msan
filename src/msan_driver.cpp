@@ -40,7 +40,7 @@ public:
             auto firp = getMainFileIR();
 
             // create a transform object and execute a transform
-            auto success = MSan(firp).execute(firp);
+            auto success = MSan(firp).execute();
 
             // check for success
             if (success)

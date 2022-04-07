@@ -39,7 +39,7 @@ Export('irdb_env')
 #
 # include the children sconscript files.
 #
-dirs=Split("jumps")
+dirs=Split("src")
 libs = list() 
 for dir in dirs:
 	libs = libs + irdb_env.SConscript(dir+"/SConscript")

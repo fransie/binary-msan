@@ -9,17 +9,21 @@
 #include <irdb-transform>
 #include <irdb-deep>
 
+
 class MSan : protected IRDB_SDK::Transform_t
 {
 public:
     MSan(IRDB_SDK::FileIR_t *p_variantIR);
 
+    bool execute();
+    void moveHandler(IRDB_SDK::Instruction_t *instruction);
+    void regToRegMove(int dest, int source);
+    std::string getPushCallerSavedRegistersInstrumentation();
+    std::string getPopCallerSavedRegistersInstrumentation();
 
-    bool execute(IRDB_SDK::FileIR_t *);
-    void reserveMemoryForRegisters();
 
-public:
-    std::vector<int64_t> shadowRegisters;
+        public:
+    std::vector<uint64_t> shadowRegisters;
 };
 
 #endif
