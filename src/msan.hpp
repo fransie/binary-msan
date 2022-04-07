@@ -20,10 +20,11 @@ public:
     void regToRegMove(int dest, int source);
     std::string getPushCallerSavedRegistersInstrumentation();
     std::string getPopCallerSavedRegistersInstrumentation();
+    void registerDependencies();
 
-
-        public:
+public:
     std::vector<uint64_t> shadowRegisters;
+    IRDB_SDK::Instruction_t *regToRegMoveFunction;
 };
 
 #endif

@@ -3,6 +3,7 @@
 //
 
 #include "msan.hpp"
+#include <irdb-elfdep>
 
 using namespace IRDB_SDK;
 using namespace std;
@@ -42,7 +43,8 @@ MSan::MSan(FileIR_t *p_variantIR)
 
 bool MSan::execute()
 {
-    cout << "Starting msan step.";
+    cout << "Starting msan step." << endl;
+    registerDependencies();
     // get main function (for starters)
     Function_t* mainFunction = nullptr;
     auto functions = getFileIR()->getFunctions();
@@ -51,6 +53,9 @@ bool MSan::execute()
             mainFunction = function;
             break;
         }
+    }
+    if(!mainFunction){
+        cout << "No main function detected." << endl;
     }
 
     // loop over instructions and add handlers to common functions
@@ -86,7 +91,7 @@ void MSan::moveHandler(Instruction_t *instruction){
             // reg to reg
             auto dest = static_cast<Registers::Register>(operands[0]->getRegNumber());
             auto source = static_cast<Registers::Register>(operands[1]->getRegNumber());
-            cout << "Destination register: " << (int) dest << " and source: " << (int) source << endl;
+            cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << (int) dest << " and source: " << (int) source << endl;
 
             // place them in argument registers according to calling conventions
             // add call to reg_to_reg_mov
@@ -96,12 +101,14 @@ void MSan::moveHandler(Instruction_t *instruction){
                               getPushCallerSavedRegistersInstrumentation() +
                               "mov rdi, %%1\n" +    // first argument
                               "mov rsi, %%2\n" +    // second argument
-                              //"call regToRegMove"
+                              "call 0\n" +
                               getPopCallerSavedRegistersInstrumentation() +
                               "popf\n";             // restore eflags
             vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string((int)source)};
             const auto new_instr = ::insertAssemblyInstructionsBefore(getFileIR(), instruction, instrumentation, instrumentationParams);
-            cout << "Inserted the following instrumentation after instruction " << instruction->getDisassembly() << " at virtual address " << instruction->getAddress()->getVirtualOffset() << ":\n" << instrumentation << endl;
+            // set target of "call 0"
+            new_instr[12]->setTarget(regToRegMoveFunction);
+            cout << "Inserted the following instrumentation: " << instrumentation << endl;
         }
         else {
             // mem to reg
@@ -118,11 +125,13 @@ void MSan::moveHandler(Instruction_t *instruction){
  */
 void MSan::regToRegMove(const int dest, const int source){
     shadowRegisters[dest] = shadowRegisters[source];
+    cout << "This is a test." << endl;
 }
 
 /**
  * Returns a string containing pushes to all caller-saved general purpose registers, namely
  *  RAX, RCX, RDX, RSI, RDI, R8, R9, R10 , R11.
+ *  Number of instructions: 9.
  * @return string of assembly push instructions
  */
 string MSan::getPushCallerSavedRegistersInstrumentation(){
@@ -141,6 +150,7 @@ string MSan::getPushCallerSavedRegistersInstrumentation(){
 /**
  * Returns a string containing pops into all general purpose registers, namely
  *  RAX, RCX, RDX, RSI, RDI, R8, R9, R10 , R11 to restore caller-saved registers.
+ *  Number of instructions: 9.
  * @return string of assembly pop instructions
  */
 string MSan::getPopCallerSavedRegistersInstrumentation(){
@@ -154,4 +164,11 @@ string MSan::getPopCallerSavedRegistersInstrumentation(){
             "pop   rdx\n" +
             "pop   rcx\n" +
             "pop   rax\n";
+}
+
+void MSan::registerDependencies(){
+    auto elfDeps = ElfDependencies_t::factory(getFileIR());
+    elfDeps->prependLibraryDepedencies("/home/franzi/Documents/binary-msan2/plugins_install/libmsan.so");
+    regToRegMoveFunction = elfDeps->appendPltEntry("interface::testing");
+    getFileIR()->assembleRegistry();
 }
