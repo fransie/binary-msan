@@ -92,13 +92,13 @@ void MSan::moveHandler(Instruction_t *instruction){
                               getPushCallerSavedRegistersInstrumentation() +
                               "mov rdi, %%1\n" +    // first argument
                               "mov rsi, %%2\n" +    // second argument
-                              //"call 0\n" +
+                              "call 0\n" +
                               getPopCallerSavedRegistersInstrumentation() +
                               "popf\n";             // restore eflags
             vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string((int)source)};
             const auto new_instr = ::insertAssemblyInstructionsBefore(getFileIR(), instruction, instrumentation, instrumentationParams);
             // set target of "call 0"
-            //new_instr[12]->setTarget(regToRegMoveFunction);
+            new_instr[12]->setTarget(regToRegMoveFunction);
             cout << "Inserted the following instrumentation: " << instrumentation << endl;
         }
         else {
@@ -159,8 +159,8 @@ string MSan::getPopCallerSavedRegistersInstrumentation(){
 
 void MSan::registerDependencies(){
     auto elfDeps = ElfDependencies_t::factory(getFileIR());
-    elfDeps->prependLibraryDepedencies("/home/franzi/Documents/binary-msan2/plugins_install/libmsan.so");
-    regToRegMoveFunction = elfDeps->appendPltEntry("interface::testing");
+    elfDeps->prependLibraryDepedencies("/home/franzi/Documents/binary-msan2/plugins_install/libinterface.so");
+    regToRegMoveFunction = elfDeps->appendPltEntry("testing");
     getFileIR()->assembleRegistry();
 }
 

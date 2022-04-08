@@ -1,3 +1,8 @@
+add_library(interface SHARED
+        interface.h
+        interface.cpp
+        )
+
 add_executable(msan
         eflags_access.cpp
         eflags_access.hpp
@@ -16,4 +21,3 @@ target_link_libraries(
 
 # the .exe postfix is required by the zipr framework
 set_target_properties(msan PROPERTIES OUTPUT_NAME "msan.exe")
-
