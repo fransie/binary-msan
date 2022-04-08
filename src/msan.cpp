@@ -68,16 +68,7 @@ bool MSan::executeStep()
             moveHandler(instruction);
         }
     }
-//    std::string instrumentation = std::string() +
-//                                  "pushf\n"           // save eflags
-//                                  "push   rax\n"      // save rax
-//                                  "mov    al, %%1\n"  // load shadow
-//                                  "pop    rax\n"      // restore rax
-//                                  "popf\n";           // restore eflags
-//    vector<basic_string<char>> instrumentationParams {to_string(shadowRegisters[1])};
-//    const auto new_instr = ::insertAssemblyInstructionsAfter(fileIr, instruction, instrumentation, instrumentationParams);
-//    cout << "ÏMSan step was executed.\n";
-    return 0; //success
+    return true; //success
 }
 
 /**

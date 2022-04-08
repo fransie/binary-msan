@@ -4,7 +4,8 @@
 
 #include <iostream>
 #include <irdb-core>
-#include "msan_driver.cpp"
+#include "msan.hpp"
+
 
 int main(int argc, char* argv[]) {
     std::cout << "Hello\n";
@@ -47,9 +48,7 @@ int main(int argc, char* argv[]) {
         MSan msan(firp.get());
         success = msan.parseArgs(args);
         if (success) {
-            //TODO: problem is that executeStep returns false
             success = msan.executeStep();
-            cout << "Success in main is: " << success << endl;
         }
 
         // conditionally write the IR back to the database on success

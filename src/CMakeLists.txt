@@ -5,7 +5,6 @@ add_executable(msan
         jumps.hpp
         msan.cpp
         msan.hpp
-        msan_driver.cpp
         interface.h
         interface.cpp
         main.cpp
