@@ -111,14 +111,7 @@ void MSan::moveHandler(Instruction_t *instruction){
 }
 
 
-/**
- * Takes two ints representing registers from Registers.cpp and propagates the shadow value of the
- * source register to the destination register.
- */
-void MSan::regToRegMove(const int dest, const int source){
-    shadowRegisters[dest] = shadowRegisters[source];
-    cout << "This is a test." << endl;
-}
+
 
 /**
  * Returns a string containing pushes to all caller-saved general purpose registers, namely
@@ -161,7 +154,7 @@ string MSan::getPopCallerSavedRegistersInstrumentation(){
 void MSan::registerDependencies(){
     auto elfDeps = ElfDependencies_t::factory(getFileIR());
     elfDeps->prependLibraryDepedencies("/home/franzi/Documents/binary-msan2/plugins_install/libinterface.so");
-    regToRegMoveFunction = elfDeps->appendPltEntry("testing");
+    regToRegMoveFunction = elfDeps->appendPltEntry("_ZN5IMSan12regToRegMoveEii");
     getFileIR()->assembleRegistry();
 }
 

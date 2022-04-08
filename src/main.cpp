@@ -8,7 +8,7 @@
 
 
 int main(int argc, char* argv[]) {
-    std::cout << "Hello\n";
+
     const std::string program_name = std::string(argv[0]);
     const auto variantID = std::strtol(argv[1], nullptr, 10);
 
