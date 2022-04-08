@@ -1,4 +1,4 @@
-add_library(msan SHARED
+add_executable(msan
         eflags_access.cpp
         eflags_access.hpp
         jumps.cpp
@@ -6,8 +6,15 @@ add_library(msan SHARED
         msan.cpp
         msan.hpp
         msan_driver.cpp
+        interface.h
+        interface.cpp
+        main.cpp
         )
 
 target_link_libraries(
         msan PRIVATE irdb-sdk
         )
+
+# the .exe postfix is required by the zipr framework
+set_target_properties(msan PROPERTIES OUTPUT_NAME "msan.exe")
+

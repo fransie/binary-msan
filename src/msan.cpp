@@ -41,7 +41,7 @@ MSan::MSan(FileIR_t *p_variantIR)
     MSan::shadowRegisters = std::vector<uint64_t>(16,0);
 }
 
-bool MSan::execute()
+bool MSan::executeStep()
 {
     cout << "Starting msan step." << endl;
     registerDependencies();
@@ -77,7 +77,7 @@ bool MSan::execute()
 //    vector<basic_string<char>> instrumentationParams {to_string(shadowRegisters[1])};
 //    const auto new_instr = ::insertAssemblyInstructionsAfter(fileIr, instruction, instrumentation, instrumentationParams);
 //    cout << "ÏMSan step was executed.\n";
-    return true;
+    return 0; //success
 }
 
 /**
@@ -101,13 +101,13 @@ void MSan::moveHandler(Instruction_t *instruction){
                               getPushCallerSavedRegistersInstrumentation() +
                               "mov rdi, %%1\n" +    // first argument
                               "mov rsi, %%2\n" +    // second argument
-                              "call 0\n" +
+                              //"call 0\n" +
                               getPopCallerSavedRegistersInstrumentation() +
                               "popf\n";             // restore eflags
             vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string((int)source)};
             const auto new_instr = ::insertAssemblyInstructionsBefore(getFileIR(), instruction, instrumentation, instrumentationParams);
             // set target of "call 0"
-            new_instr[12]->setTarget(regToRegMoveFunction);
+            //new_instr[12]->setTarget(regToRegMoveFunction);
             cout << "Inserted the following instrumentation: " << instrumentation << endl;
         }
         else {
@@ -171,4 +171,8 @@ void MSan::registerDependencies(){
     elfDeps->prependLibraryDepedencies("/home/franzi/Documents/binary-msan2/plugins_install/libmsan.so");
     regToRegMoveFunction = elfDeps->appendPltEntry("interface::testing");
     getFileIR()->assembleRegistry();
+}
+
+bool MSan::parseArgs(std::vector<std::string> step_args) {
+    return true;
 }

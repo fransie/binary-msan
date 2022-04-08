@@ -13,18 +13,24 @@
 class MSan : protected IRDB_SDK::Transform_t
 {
 public:
-    MSan(IRDB_SDK::FileIR_t *p_variantIR);
+    MSan(IRDB_SDK::FileIR_t *fileIR);
 
-    bool execute();
-    void moveHandler(IRDB_SDK::Instruction_t *instruction);
+    bool executeStep();
+    bool parseArgs(std::vector<std::string> step_args);
+
+
+    std::vector<uint64_t> shadowRegisters;
+    IRDB_SDK::Instruction_t *regToRegMoveFunction;
+
+private:
     void regToRegMove(int dest, int source);
     std::string getPushCallerSavedRegistersInstrumentation();
     std::string getPopCallerSavedRegistersInstrumentation();
     void registerDependencies();
+    void moveHandler(IRDB_SDK::Instruction_t *instruction);
 
 public:
-    std::vector<uint64_t> shadowRegisters;
-    IRDB_SDK::Instruction_t *regToRegMoveFunction;
+
 };
 
 #endif

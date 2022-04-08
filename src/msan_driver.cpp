@@ -13,13 +13,18 @@ using namespace IRDB_SDK;
 // Thanos-enabled transform. Thanos-enabled transforms must implement the TransfromStep_t abstract class.
 // See the IRDB SDK for additional details.
 //
-class MSanDriver_t : public IRDB_SDK::TransformStep_t
+class MSanDriver_t : public IRDB_SDK::Transform_t
 {
 public:
+    MSanDriver_t(IRDB_SDK::FileIR_t *file) :
+    Transform_t(file){
+
+    }
+
     //
     // required override: how to parse your options
     //
-    int parseArgs(const vector<string> step_args) override
+    int parseArgs(const vector<string> step_args)
     {
         // no arguments to parse.
         return 0; // success (bash-style 0=success, 1=warnings, 2=errors)
@@ -28,39 +33,37 @@ public:
     //
     // required override: how to achieve the actual transform
     //
-    int executeStep() override
+    int executeStep()
     {
-        // record the URL from the main file for log output later
-        auto url=getMainFile()->getURL();
-
+        cout << "start of executeStep in msan_driver";
         // try to load and transform the file's IR.
         try
         {
             // load the fileIR (or, get the handle to an already loaded IR)
-            auto firp = getMainFileIR();
+            auto firp = getFileIR();
 
             // create a transform object and execute a transform
-            auto success = MSan(firp).execute();
-
+            //auto success = MSan(firp).execute();
+            auto success = true;
             // check for success
             if (success)
             {
-                cout << "Success! Thanos will write back changes for " <<  url << endl;
+                cout << "Success!" << endl;
                 return 0; // success (bash-style 0=success, 1=warnings, 2=errors)
             }
 
             // failure
-            cout << "Failure!  Thanos will report error to user for " << url << endl;
+            cout << "Failure!" << endl;
             return 2; // error
         }
         catch (const DatabaseError_t& db_err)
         {
-            cerr << program_name << ": Unexpected database error: " << db_err << "file url: " << url << endl;
+            cerr << program_name << ": Unexpected database error: " << db_err << endl;
             return 2; // error
         }
         catch (...)
         {
-            cerr << program_name << ": Unexpected error file url: " << url << endl;
+            cerr << program_name << endl;
             return 2; // error
         }
         assert(0); // unreachable
@@ -69,8 +72,9 @@ public:
     //
     // required override:  report the step name
     //
-    string getStepName(void) const override
+    string getStepName(void) const
     {
+
         return program_name;
     }
 
@@ -89,13 +93,3 @@ private:
         cerr << "Usage: " << p_name << endl;
     }
 };
-
-
-//
-// Required interface: a factory for creating the interface object for this transform.
-//
-extern "C"
-shared_ptr<TransformStep_t> getTransformStep(void)
-{
-    return shared_ptr<TransformStep_t>(new MSanDriver_t());
-}
