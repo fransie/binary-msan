@@ -6,6 +6,6 @@
 #include <iostream>
 
 
-void interface::testing(){
+void testing(){
     std::cout << "hi";
 }

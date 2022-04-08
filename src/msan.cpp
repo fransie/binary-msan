@@ -38,7 +38,8 @@ MSan::MSan(FileIR_t *p_variantIR)
 {
     // Reserves memory for the shadowing of the 16 general purpose registers and initialises.
     // Upon initialisation, all register shadows are undefined (0 = undefined).
-    MSan::shadowRegisters = std::vector<uint64_t>(16,0);
+    shadowRegisters = std::vector<uint64_t>(16,0);
+    regToRegMoveFunction = nullptr;
 }
 
 bool MSan::executeStep()

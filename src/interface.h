@@ -9,9 +9,14 @@
     #define INTERFACE __attribute__((visibility ("default")))
 #endif
 
-class INTERFACE interface {
-    INTERFACE void testing();
-};
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+INTERFACE void testing();
+
+#ifdef __cplusplus
+} // closing brace for "extern C"
+#endif
 
 #endif //BINARY_MSAN_INTERFACE_H

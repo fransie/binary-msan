@@ -20,7 +20,7 @@ public:
 
 
     std::vector<uint64_t> shadowRegisters;
-    IRDB_SDK::Instruction_t *regToRegMoveFunction;
+
 
 private:
     void regToRegMove(int dest, int source);
@@ -29,8 +29,7 @@ private:
     void registerDependencies();
     void moveHandler(IRDB_SDK::Instruction_t *instruction);
 
-public:
-
+    IRDB_SDK::Instruction_t *regToRegMoveFunction;
 };
 
 #endif
