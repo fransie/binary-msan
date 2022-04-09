@@ -65,10 +65,15 @@ bool MSan::executeStep()
         if(mnemonic == "mov"){
             moveHandler(instruction);
         }
+        if(mnemonic == "add"){
+            addHandler(instruction);
+        }
     }
     return true; //success
 }
 
+// TODO: handle operand sizes other than 64 bit
+// TODO: handle immediate values, segment registers and memory locations as operands
 /**
  * Takes a mov instruction and inserts instrumentation before it so that the shadow is handled correctly.
  */
@@ -94,9 +99,13 @@ void MSan::moveHandler(Instruction_t *instruction){
                               "popf\n";             // restore eflags
             vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string((int)source)};
             const auto new_instr = ::insertAssemblyInstructionsBefore(getFileIR(), instruction, instrumentation, instrumentationParams);
+
             // set target of "call 0"
             new_instr[12]->setTarget(regToRegMoveFunction);
             cout << "Inserted the following instrumentation: " << instrumentation << endl;
+        }
+        if (operands[1]->isConstant()){
+            // immediate to reg
         }
         else {
             // mem to reg
@@ -106,7 +115,14 @@ void MSan::moveHandler(Instruction_t *instruction){
     }
 }
 
+/**
+ * Takes an assembly add-instruction and inserts instrumentation before the instruction which
+ * handles the shadow propagation.
+ * @param instruction the add instruction to be instrumented
+ */
+void MSan::addHandler(Instruction_t *instruction){
 
+}
 
 
 /**
@@ -149,7 +165,11 @@ string MSan::getPopCallerSavedRegistersInstrumentation(){
 
 void MSan::registerDependencies(){
     auto elfDeps = ElfDependencies_t::factory(getFileIR());
+    // TODO: fix absolute paths
     elfDeps->prependLibraryDepedencies("/home/franzi/Documents/binary-msan2/plugins_install/libinterface.so");
+    // Msan libraries don't work yet, uncomment if ready
+    //elfDeps->prependLibraryDepedencies("/home/franzi/Documents/binary-msan2/sharedlibrary/libmsan_c.so");
+    //elfDeps->prependLibraryDepedencies("/home/franzi/Documents/binary-msan2/sharedlibrary/libmsan_cxx.so");
     regToRegMoveFunction = elfDeps->appendPltEntry("_Z12regToRegMoveii");
     getFileIR()->assembleRegistry();
 }

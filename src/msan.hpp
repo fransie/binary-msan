@@ -25,8 +25,10 @@ private:
     std::string getPopCallerSavedRegistersInstrumentation();
     void registerDependencies();
     void moveHandler(IRDB_SDK::Instruction_t *instruction);
+    void addHandler(IRDB_SDK::Instruction_t *instruction);
 
     IRDB_SDK::Instruction_t *regToRegMoveFunction;
+
 };
 
 #endif

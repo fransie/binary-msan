@@ -13,7 +13,9 @@
 #include <vector>
 
 
-INTERFACE void regToRegMove(int dest, int source);
+INTERFACE void regToRegShadowCopy(int dest, int source);
+INTERFACE void defineRegShadow(int reg);
+
 
 
 
