@@ -101,11 +101,27 @@ void MSan::moveHandler(Instruction_t *instruction){
             const auto new_instr = ::insertAssemblyInstructionsBefore(getFileIR(), instruction, instrumentation, instrumentationParams);
 
             // set target of "call 0"
-            new_instr[12]->setTarget(regToRegMoveFunction);
+            new_instr[12]->setTarget(regToRegShadowCopy);
             cout << "Inserted the following instrumentation: " << instrumentation << endl;
         }
         if (operands[1]->isConstant()){
             // immediate to reg
+            auto dest = static_cast<Registers::Register>(operands[0]->getRegNumber());
+            cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << (int) dest << " and immediate: " << operands[1]->getConstant() << endl;
+
+            std::string instrumentation = std::string() +
+                                          "pushf\n" +           // save eflags (necessary?)
+                                          getPushCallerSavedRegistersInstrumentation() +
+                                          "mov rdi, %%1\n" +    // first argument
+                                          "call 0\n" +
+                                          getPopCallerSavedRegistersInstrumentation() +
+                                          "popf\n";             // restore eflags
+            vector<basic_string<char>> instrumentationParams {to_string((int)dest)};
+            const auto new_instr = ::insertAssemblyInstructionsBefore(getFileIR(), instruction, instrumentation, instrumentationParams);
+
+            // set target of "call 0"
+            new_instr[11]->setTarget(defineRegShadow);
+            cout << "Inserted the following instrumentation: " << instrumentation << endl;
         }
         else {
             // mem to reg
@@ -170,7 +186,8 @@ void MSan::registerDependencies(){
     // Msan libraries don't work yet, uncomment if ready
     //elfDeps->prependLibraryDepedencies("/home/franzi/Documents/binary-msan2/sharedlibrary/libmsan_c.so");
     //elfDeps->prependLibraryDepedencies("/home/franzi/Documents/binary-msan2/sharedlibrary/libmsan_cxx.so");
-    regToRegMoveFunction = elfDeps->appendPltEntry("_Z12regToRegMoveii");
+    regToRegShadowCopy = elfDeps->appendPltEntry("_Z18regToRegShadowCopyii");
+    defineRegShadow = elfDeps->appendPltEntry("_Z15defineRegShadowi");
     getFileIR()->assembleRegistry();
 }
 

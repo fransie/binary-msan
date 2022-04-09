@@ -27,7 +27,8 @@ private:
     void moveHandler(IRDB_SDK::Instruction_t *instruction);
     void addHandler(IRDB_SDK::Instruction_t *instruction);
 
-    IRDB_SDK::Instruction_t *regToRegMoveFunction;
+    IRDB_SDK::Instruction_t *regToRegShadowCopy;
+    IRDB_SDK::Instruction_t *defineRegShadow;
 
 };
 
