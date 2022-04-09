@@ -6,20 +6,18 @@
 #include <iostream>
 #include <vector>
 
+// TODO: global variable is probably a bad idea
+std::vector<uint64_t> shadowRegisterState = std::vector<uint64_t>(16,0);
 
-void MSanInterface::testing(){
-    std::cout << "hi";
-}
 
 /**
- * Takes two ints representing registers from Registers.cpp and propagates the shadow value of the
- * source register to the destination register.
+ * Takes two ints representing general purpose registers and propagates the shadow value of the
+ * source register to the destination register. Registers numbering: see namespace Registers.
  */
-void MSanInterface::regToRegMove(const int dest, const int source){
-    std::vector<std::string> testString {"hi", "du"};
-    for (auto text : testString){
-        std::cout << text << std::endl;
-    }
-    //shadowRegisters[dest] = shadowRegisters[source];
-    //cout << "This is a test." << endl;
+ void regToRegMove(const int dest, const int source){
+    std::cout << "Dest value: " << dest << ". Source value: " << source << std::endl;
+    shadowRegisterState[dest] = shadowRegisterState[source];
 }
+
+
+

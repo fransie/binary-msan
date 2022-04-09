@@ -36,10 +36,7 @@ MSan::MSan(FileIR_t *p_variantIR)
         :
         Transform_t(p_variantIR) // init Transform_t class for insertAssembly and getFileIR
 {
-    // Reserves memory for the shadowing of the 16 general purpose registers and initialises.
-    // Upon initialisation, all register shadows are undefined (0 = undefined).
-    shadowRegisters = std::vector<uint64_t>(16,0);
-    regToRegMoveFunction = nullptr;
+    registerDependencies();
 }
 
 bool MSan::executeStep()
@@ -85,9 +82,8 @@ void MSan::moveHandler(Instruction_t *instruction){
             auto source = static_cast<Registers::Register>(operands[1]->getRegNumber());
             cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << (int) dest << " and source: " << (int) source << endl;
 
-            // place them in argument registers according to calling conventions
+            // place reg numbers in argument registers according to calling conventions
             // add call to reg_to_reg_mov
-
             std::string instrumentation = std::string() +
                               "pushf\n" +           // save eflags (necessary?)
                               getPushCallerSavedRegistersInstrumentation() +
@@ -154,7 +150,7 @@ string MSan::getPopCallerSavedRegistersInstrumentation(){
 void MSan::registerDependencies(){
     auto elfDeps = ElfDependencies_t::factory(getFileIR());
     elfDeps->prependLibraryDepedencies("/home/franzi/Documents/binary-msan2/plugins_install/libinterface.so");
-    regToRegMoveFunction = elfDeps->appendPltEntry("_ZN5IMSan12regToRegMoveEii");
+    regToRegMoveFunction = elfDeps->appendPltEntry("_Z12regToRegMoveii");
     getFileIR()->assembleRegistry();
 }
 

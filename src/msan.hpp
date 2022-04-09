@@ -14,16 +14,13 @@ class MSan : protected IRDB_SDK::Transform_t
 {
 public:
     MSan(IRDB_SDK::FileIR_t *fileIR);
+    // TODO: destructor
 
     bool executeStep();
     bool parseArgs(std::vector<std::string> step_args);
 
 
-    std::vector<uint64_t> shadowRegisters;
-
-
 private:
-    void regToRegMove(int dest, int source);
     std::string getPushCallerSavedRegistersInstrumentation();
     std::string getPopCallerSavedRegistersInstrumentation();
     void registerDependencies();

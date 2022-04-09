@@ -9,11 +9,12 @@
     #define INTERFACE __attribute__((visibility ("default")))
 #endif
 
+#include <iostream>
+#include <vector>
 
-class MSanInterface{
-    INTERFACE void testing();
-    INTERFACE void regToRegMove(int dest, int source);
-};
+
+INTERFACE void regToRegMove(int dest, int source);
+
 
 
 #endif //BINARY_MSAN_INTERFACE_H
