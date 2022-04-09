@@ -82,46 +82,10 @@ void MSan::moveHandler(Instruction_t *instruction){
     vector<shared_ptr<DecodedOperand_t>> operands = decodedInstruction->getOperands();
     if(operands[0]->isGeneralPurposeRegister()){
         if(operands[1]->isGeneralPurposeRegister()){
-            // reg to reg
-            auto dest = static_cast<Registers::Register>(operands[0]->getRegNumber());
-            auto source = static_cast<Registers::Register>(operands[1]->getRegNumber());
-            cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << (int) dest << " and source: " << (int) source << endl;
-
-            // place reg numbers in argument registers according to calling conventions
-            // add call to reg_to_reg_mov
-            std::string instrumentation = std::string() +
-                              "pushf\n" +           // save eflags (necessary?)
-                              getPushCallerSavedRegistersInstrumentation() +
-                              "mov rdi, %%1\n" +    // first argument
-                              "mov rsi, %%2\n" +    // second argument
-                              "call 0\n" +
-                              getPopCallerSavedRegistersInstrumentation() +
-                              "popf\n";             // restore eflags
-            vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string((int)source)};
-            const auto new_instr = ::insertAssemblyInstructionsBefore(getFileIR(), instruction, instrumentation, instrumentationParams);
-
-            // set target of "call 0"
-            new_instr[12]->setTarget(regToRegShadowCopy);
-            cout << "Inserted the following instrumentation: " << instrumentation << endl;
+            instrumentRegToRegMove(instruction);
         }
         if (operands[1]->isConstant()){
-            // immediate to reg
-            auto dest = static_cast<Registers::Register>(operands[0]->getRegNumber());
-            cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << (int) dest << " and immediate: " << operands[1]->getConstant() << endl;
-
-            std::string instrumentation = std::string() +
-                                          "pushf\n" +           // save eflags (necessary?)
-                                          getPushCallerSavedRegistersInstrumentation() +
-                                          "mov rdi, %%1\n" +    // first argument
-                                          "call 0\n" +
-                                          getPopCallerSavedRegistersInstrumentation() +
-                                          "popf\n";             // restore eflags
-            vector<basic_string<char>> instrumentationParams {to_string((int)dest)};
-            const auto new_instr = ::insertAssemblyInstructionsBefore(getFileIR(), instruction, instrumentation, instrumentationParams);
-
-            // set target of "call 0"
-            new_instr[11]->setTarget(defineRegShadow);
-            cout << "Inserted the following instrumentation: " << instrumentation << endl;
+            instrumentImmediateToRegMove(instruction);
         }
         else {
             // mem to reg
@@ -130,6 +94,55 @@ void MSan::moveHandler(Instruction_t *instruction){
         // reg to mem
     }
 }
+
+void MSan::instrumentImmediateToRegMove(Instruction_t *instruction) {// immediate to reg
+    auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
+    auto dest = static_cast<Registers::Register>(operands[0]->getRegNumber());
+    cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << (int) dest << " and immediate: " << operands[1]->getConstant() << endl;
+
+    string instrumentation = string() +
+                             "pushf\n" +           // save eflags (necessary?)
+                                  getPushCallerSavedRegistersInstrumentation() +
+                             "mov rdi, %%1\n" +    // first argument
+                                  "call 0\n" +
+                             getPopCallerSavedRegistersInstrumentation() +
+                             "popf\n";             // restore eflags
+    vector<basic_string<char>> instrumentationParams {to_string((int)dest)};
+    const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(getFileIR(), instruction, instrumentation, instrumentationParams);
+
+    // set target of "call 0"
+    new_instr[11]->setTarget(defineRegShadow);
+    cout << "Inserted the following instrumentation: " << instrumentation << endl;
+}
+
+/**
+ * Takes a move instruction from one general purpose registers to another and inserts shadow propagating
+ * instrumentation before the instruction.
+ * @param instruction a pointer to the move instruction
+ */
+void MSan::instrumentRegToRegMove(IRDB_SDK::Instruction_t *instruction) {
+    auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
+    auto dest = static_cast<Registers::Register>(operands[0]->getRegNumber());
+    auto source = static_cast<Registers::Register>(operands[1]->getRegNumber());
+    cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << (int) dest << " and source: " << (int) source << endl;
+
+    // place reg numbers in argument registers according to calling conventions and add call to runtime library
+    std::string instrumentation = std::string() +
+                                  "pushf\n" +           // save eflags (necessary?)
+                                  this->getPushCallerSavedRegistersInstrumentation() +
+                                  "mov rdi, %%1\n" +    // first argument
+                                  "mov rsi, %%2\n" +    // second argument
+                                  "call 0\n" +
+                                  this->getPopCallerSavedRegistersInstrumentation() +
+                                  "popf\n";             // restore eflags
+    vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string((int)source)};
+    const auto new_instr = ::insertAssemblyInstructionsBefore(this->getFileIR(), instruction, instrumentation, instrumentationParams);
+
+    // set target of "call 0"
+    new_instr[12]->setTarget(this->regToRegShadowCopy);
+    cout << "Inserted the following instrumentation: " << instrumentation << endl;
+}
+
 
 /**
  * Takes an assembly add-instruction and inserts instrumentation before the instruction which

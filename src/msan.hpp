@@ -26,10 +26,13 @@ private:
     void registerDependencies();
     void moveHandler(IRDB_SDK::Instruction_t *instruction);
     void addHandler(IRDB_SDK::Instruction_t *instruction);
+    void instrumentRegToRegMove(IRDB_SDK::Instruction_t *instruction);
+
 
     IRDB_SDK::Instruction_t *regToRegShadowCopy;
     IRDB_SDK::Instruction_t *defineRegShadow;
 
+    void instrumentImmediateToRegMove(IRDB_SDK::Instruction_t *instruction);
 };
 
 #endif
