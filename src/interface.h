@@ -12,9 +12,19 @@
 #include <iostream>
 #include <vector>
 
+// HIGHER_BYTE means, for example, register AH
+enum WIDTH{
+    QUAD_WORD = 64,
+    DOUBLE_WORD = 32,
+    WORD = 16,
+    BYTE = 8,
+    HIGHER_BYTE = 0
+};
 
-INTERFACE void regToRegShadowCopy(int dest, int source);
-INTERFACE void defineRegShadow(int reg);
+
+
+INTERFACE void regToRegShadowCopy(int dest, int source, int width);
+INTERFACE void defineRegShadow(int reg, int width);
 
 
 

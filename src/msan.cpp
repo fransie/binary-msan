@@ -4,6 +4,7 @@
 
 #include "msan.hpp"
 #include <irdb-elfdep>
+#include "interface.h"
 
 using namespace IRDB_SDK;
 using namespace std;
@@ -37,6 +38,11 @@ MSan::MSan(FileIR_t *p_variantIR)
         Transform_t(p_variantIR) // init Transform_t class for insertAssembly and getFileIR
 {
     registerDependencies();
+    setUpCapstone();
+}
+
+MSan::~MSan() {
+    cs_close(&capstoneHandle);
 }
 
 bool MSan::executeStep()
@@ -100,18 +106,27 @@ void MSan::instrumentImmediateToRegMove(Instruction_t *instruction) {// immediat
     auto dest = static_cast<Registers::Register>(operands[0]->getRegNumber());
     cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << (int) dest << " and immediate: " << operands[1]->getConstant() << endl;
 
+    auto width = operands[0]->getArgumentSizeInBits();
+    if(isHigherByteRegister(getCapstoneRegister(instruction))){
+        width = HIGHER_BYTE;
+    }
+    // Value is interpreted as hex in binary (due to zipr? idk), therefore convert to hex value.
+    std::stringstream width_decimal;
+    width_decimal << std::hex << width;
+
     string instrumentation = string() +
                              "pushf\n" +           // save eflags (necessary?)
-                                  getPushCallerSavedRegistersInstrumentation() +
+                             getPushCallerSavedRegistersInstrumentation() +
                              "mov rdi, %%1\n" +    // first argument
-                                  "call 0\n" +
+                             "mov rsi, %%2\n" +    // second argument
+                             "call 0\n" +
                              getPopCallerSavedRegistersInstrumentation() +
                              "popf\n";             // restore eflags
-    vector<basic_string<char>> instrumentationParams {to_string((int)dest)};
+    vector<basic_string<char>> instrumentationParams {to_string((int)dest), width_decimal.str()};
     const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(getFileIR(), instruction, instrumentation, instrumentationParams);
 
     // set target of "call 0"
-    new_instr[11]->setTarget(defineRegShadow);
+    new_instr[12]->setTarget(defineRegShadow);
     cout << "Inserted the following instrumentation: " << instrumentation << endl;
 }
 
@@ -121,9 +136,19 @@ void MSan::instrumentImmediateToRegMove(Instruction_t *instruction) {// immediat
  * @param instruction a pointer to the move instruction
  */
 void MSan::instrumentRegToRegMove(IRDB_SDK::Instruction_t *instruction) {
-    auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
-    auto dest = static_cast<Registers::Register>(operands[0]->getRegNumber());
-    auto source = static_cast<Registers::Register>(operands[1]->getRegNumber());
+    const auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
+    const auto dest = static_cast<Registers::Register>(operands[0]->getRegNumber());
+    const auto source = static_cast<Registers::Register>(operands[1]->getRegNumber());
+
+
+    auto width = operands[0]->getArgumentSizeInBits();
+    if(isHigherByteRegister(getCapstoneRegister(instruction))){
+        width = HIGHER_BYTE;
+    }
+    // Value is interpreted as hex in binary (due to zipr? idk), therefore convert to hex value.
+    std::stringstream width_decimal;
+    width_decimal << std::hex << width;
+
     cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << (int) dest << " and source: " << (int) source << endl;
 
     // place reg numbers in argument registers according to calling conventions and add call to runtime library
@@ -132,14 +157,15 @@ void MSan::instrumentRegToRegMove(IRDB_SDK::Instruction_t *instruction) {
                                   this->getPushCallerSavedRegistersInstrumentation() +
                                   "mov rdi, %%1\n" +    // first argument
                                   "mov rsi, %%2\n" +    // second argument
+                                  "mov rdx, %%3\n"      // third argument
                                   "call 0\n" +
                                   this->getPopCallerSavedRegistersInstrumentation() +
                                   "popf\n";             // restore eflags
-    vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string((int)source)};
+    vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string((int)source), width_decimal.str()};
     const auto new_instr = ::insertAssemblyInstructionsBefore(this->getFileIR(), instruction, instrumentation, instrumentationParams);
 
     // set target of "call 0"
-    new_instr[12]->setTarget(this->regToRegShadowCopy);
+    new_instr[13]->setTarget(regToRegShadowCopy);
     cout << "Inserted the following instrumentation: " << instrumentation << endl;
 }
 
@@ -199,11 +225,45 @@ void MSan::registerDependencies(){
     // Msan libraries don't work yet, uncomment if ready
     //elfDeps->prependLibraryDepedencies("/home/franzi/Documents/binary-msan2/sharedlibrary/libmsan_c.so");
     //elfDeps->prependLibraryDepedencies("/home/franzi/Documents/binary-msan2/sharedlibrary/libmsan_cxx.so");
-    regToRegShadowCopy = elfDeps->appendPltEntry("_Z18regToRegShadowCopyii");
-    defineRegShadow = elfDeps->appendPltEntry("_Z15defineRegShadowi");
+    regToRegShadowCopy = elfDeps->appendPltEntry("_Z18regToRegShadowCopyiii");
+    defineRegShadow = elfDeps->appendPltEntry("_Z15defineRegShadowii");
     getFileIR()->assembleRegistry();
 }
 
 bool MSan::parseArgs(std::vector<std::string> step_args) {
     return true;
+}
+
+void MSan::setUpCapstone() {
+    if (cs_open(CS_ARCH_X86, CS_MODE_64, &capstoneHandle) != CS_ERR_OK){
+        //TODO: error handling
+    }
+    cs_option(capstoneHandle, CS_OPT_DETAIL, CS_OPT_ON);
+}
+
+// TODO next step: fix seg fault in msan.log -> maybe because instruction->getDataBits destroys the object?
+x86_reg MSan::getCapstoneRegister(IRDB_SDK::Instruction_t *instruction) {
+    const auto dataBits = instruction->getDataBits();
+    const auto opcode = reinterpret_cast<const uint8_t*>(dataBits.c_str());
+    cs_insn *capstoneInstruction;
+    size_t count = cs_disasm(capstoneHandle, opcode, sizeof(opcode)-1, 0x1000, 0, &capstoneInstruction);
+    if (count == 0){
+        //TODO: error handling of cs_disasm
+        std::cout << "ERROR in getCapstoneRegister";
+    }
+    auto x86Register = capstoneInstruction->detail->x86.operands[0].reg;
+    cs_free(capstoneInstruction, count);
+    return x86Register;
+}
+
+bool MSan::isHigherByteRegister(x86_reg capstoneRegNumber) {
+    switch(capstoneRegNumber){
+        case X86_REG_AH:
+        case X86_REG_CH:
+        case X86_REG_BH:
+        case X86_REG_DH:
+            return true;
+        default:
+            return false;
+    }
 }

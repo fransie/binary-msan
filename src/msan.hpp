@@ -8,13 +8,14 @@
 #include <irdb-core>
 #include <irdb-transform>
 #include <irdb-deep>
+#include <capstone.h>
 
 
 class MSan : protected IRDB_SDK::Transform_t
 {
 public:
     MSan(IRDB_SDK::FileIR_t *fileIR);
-    // TODO: destructor
+    ~MSan() override;
 
     bool executeStep();
     bool parseArgs(std::vector<std::string> step_args);
@@ -27,8 +28,11 @@ private:
     void moveHandler(IRDB_SDK::Instruction_t *instruction);
     void addHandler(IRDB_SDK::Instruction_t *instruction);
     void instrumentRegToRegMove(IRDB_SDK::Instruction_t *instruction);
+    void setUpCapstone();
+    x86_reg getCapstoneRegister(IRDB_SDK::Instruction_t *instruction);
+    bool isHigherByteRegister(x86_reg capstoneRegNumber);
 
-
+    csh capstoneHandle;
     IRDB_SDK::Instruction_t *regToRegShadowCopy;
     IRDB_SDK::Instruction_t *defineRegShadow;
 
