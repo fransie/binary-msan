@@ -129,9 +129,9 @@ void MSan::instrumentImmediateToRegMove(Instruction_t *instruction) {
  */
 void MSan::instrumentRegToRegMove(IRDB_SDK::Instruction_t *instruction) {
     const auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
-    const auto dest = static_cast<Registers::Register>(operands[0]->getRegNumber());
-    const auto source = static_cast<Registers::Register>(operands[1]->getRegNumber());
-    cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << (int) dest << " and source: " << (int) source << endl;
+    const auto dest = operands[0]->getRegNumber();
+    const auto source = operands[1]->getRegNumber();
+    cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << dest << " and source: " << source << endl;
 
     auto width = capstoneService->getOperandWidth(instruction);
     std::string instrumentation = std::string() +
@@ -143,7 +143,7 @@ void MSan::instrumentRegToRegMove(IRDB_SDK::Instruction_t *instruction) {
                                   "call 0\n" +
                                   utils::getPopCallerSavedRegistersInstrumentation() +
                                   "popf\n";             // restore eflags
-    vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string((int)source), to_string(width)};
+    vector<basic_string<char>> instrumentationParams {to_string(dest), to_string(source), to_string(width)};
     const auto new_instr = ::insertAssemblyInstructionsBefore(this->getFileIR(), instruction, instrumentation, instrumentationParams);
 
     // set target of "call 0"

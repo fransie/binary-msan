@@ -13,6 +13,8 @@ add_executable(msan
         interface.h
         interface.cpp
         main.cpp
+        CapstoneService.cpp
+        utils.cpp
         )
 
 # TODO: Fix absolute path

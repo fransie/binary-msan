@@ -16,7 +16,7 @@ class MSan : protected IRDB_SDK::Transform_t
 public:
     MSan(IRDB_SDK::FileIR_t *fileIR);
     //TODO: clean up in destructor
-    ~MSan() override;
+    //~MSan() override;
 
     bool executeStep();
     bool parseArgs(std::vector<std::string> step_args);

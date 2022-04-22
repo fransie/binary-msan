@@ -23,6 +23,7 @@ std::vector<std::bitset<64>> shadowRegisterState = std::vector<std::bitset<64>>(
  * @param width the width of the registers in bits. "0" denominates the second-least significant byte.
  */
 void regToRegShadowCopy(const int dest, const int source, const int width){
+    std::cout << "test  test " << std::endl;
     std::cout << "regToRegShadowCopy. Dest value: " << dest << ". Source value: " << source << ". Width: " << width << std::endl;
     auto destinationRegisterShadow = shadowRegisterState[dest];
     auto sourceRegisterShadow = shadowRegisterState[source];
