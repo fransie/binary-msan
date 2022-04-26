@@ -166,8 +166,8 @@ void MSan::registerDependencies(){
     // TODO: fix absolute paths
     elfDeps->prependLibraryDepedencies("/home/franzi/Documents/binary-msan2/plugins_install/libinterface.so");
     // Msan libraries don't work yet, uncomment if ready
-    //elfDeps->prependLibraryDepedencies("/home/franzi/Documents/binary-msan2/sharedlibrary/libmsan_c.so");
-    //elfDeps->prependLibraryDepedencies("/home/franzi/Documents/binary-msan2/sharedlibrary/libmsan_cxx.so");
+    //elfDeps->prependLibraryDepedencies("/home/franzi/Documents/binary-msan2/sharedlibrary/libclang_rt.msan-x86_64.so");
+    //elfDeps->prependLibraryDepedencies("/home/franzi/Documents/binary-msan2/sharedlibrary/libclang_rt.msan_cxx-x86_64.so ");
     regToRegShadowCopy = elfDeps->appendPltEntry("_Z18regToRegShadowCopyiii");
     defineRegShadow = elfDeps->appendPltEntry("_Z15defineRegShadowii");
     getFileIR()->assembleRegistry();

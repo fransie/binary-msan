@@ -2,10 +2,8 @@
 // Created by Franziska Mäckel on 07.04.22.
 //
 
-#include "interface.h"
 #include <iostream>
-#include <vector>
-#include <bitset>
+#include "interface.h"
 
 // TODO: global variable is probably a bad idea
 /**
@@ -31,8 +29,10 @@ void regToRegShadowCopy(const int dest, const int source, const int width){
         default:
             std::cout << "ERROR: Wrong width." << std::endl;
             //throw std::invalid_argument("Function regToRegShadowCopy was called with an unsupported width value.");
+            break;
         case QUAD_WORD:
             destinationRegisterShadow = sourceRegisterShadow;
+            break;
         case DOUBLE_WORD:
             for (int position = 63; position < (position - width) ; position--){
                 // Higher two bytes are zeroed for double word moves.
@@ -42,15 +42,18 @@ void regToRegShadowCopy(const int dest, const int source, const int width){
                     destinationRegisterShadow.set(position, sourceRegisterShadow[position]);
                 }
             }
+            break;
         case WORD:
         case BYTE:
             for (int position = 63; position < (position - width) ; position--){
                 destinationRegisterShadow.set(position, sourceRegisterShadow[position]);
             }
+            break;
         case HIGHER_BYTE:
             for (int position = 63 - 8; position < (position - width) ; position--){
                 destinationRegisterShadow.set(position, sourceRegisterShadow[position]);
             }
+            break;
     }
 }
 

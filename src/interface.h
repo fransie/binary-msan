@@ -9,8 +9,8 @@
     #define INTERFACE __attribute__((visibility ("default")))
 #endif
 
-#include <iostream>
 #include <vector>
+#include <bitset>
 
 // HIGHER_BYTE means, for example, register AH
 enum WIDTH{

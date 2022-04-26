@@ -11,6 +11,7 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 SET(CMAKE_CXX_STANDARD 17)
 SET(CMAKE_CXX_STANDARD_REQUIRED YES)
 SET(CMAKE_CXX_EXTENSIONS ON)
+set(LIBCXX_ABI_VERSION "1" CACHE STRING "ABI version of libc++. Can be either 1 or 2, where 2 is currently not stable. Defaults to 1.")
 
 if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "Setting build type to Release")
@@ -24,9 +25,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PLUGIN_PATH})
 if(NOT DEFINED ENV{ZIPR_PATH})
     message(FATAL_ERROR "Please provide a valid zipr location: $ export ZIPR_PATH=<your/path/to/zipr>")
 endif()
-
-# configure scripts
-#configure_file(${CMAKE_SOURCE_DIR}/scripts/thread-sanitizer.sh.in ${CMAKE_BINARY_DIR}/thread-sanitizer.sh)
 
 # create libraries for the irdb sdk
 set(IRDBLIB_LOCATION "$ENV{ZIPR_PATH}/irdb-libs/lib/")
@@ -48,6 +46,9 @@ set_property(TARGET _irdb-sdk PROPERTY INTERFACE_LINK_LIBRARIES
         "${IRDBLIB_LOCATION}/${CMAKE_SHARED_LIBRARY_PREFIX}irdb-transform${CMAKE_SHARED_LIBRARY_SUFFIX}"
         "${IRDBLIB_LOCATION}/${CMAKE_SHARED_LIBRARY_PREFIX}irdb-util${CMAKE_SHARED_LIBRARY_SUFFIX}"
         "${IRDBLIB_LOCATION}/${CMAKE_SHARED_LIBRARY_PREFIX}capstone${CMAKE_SHARED_LIBRARY_SUFFIX}"
+        "${IRDBLIB_LOCATION}/${CMAKE_SHARED_LIBRARY_PREFIX}keystone${CMAKE_SHARED_LIBRARY_SUFFIX}"
+        "${IRDBLIB_LOCATION}/${CMAKE_SHARED_LIBRARY_PREFIX}stars${CMAKE_SHARED_LIBRARY_SUFFIX}"
+        "${IRDBLIB_LOCATION}/${CMAKE_SHARED_LIBRARY_PREFIX}MEDSannotation${CMAKE_SHARED_LIBRARY_SUFFIX}"
         )
 
 add_library(irdb-sdk INTERFACE)
