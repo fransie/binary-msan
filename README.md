@@ -5,7 +5,12 @@ This tool is a binary-only implementation of Google's Memory Sanitizer ([their p
 ## Set-up
 
 1. Build zipr and verify it works by rewriting "ls" as described here: https://git.zephyr-software.com/opensrc/zipr.
-2. Clone this repo, set an env variable for the path to zipr on your machine and build:
+2. Add an environment variable with the path to the zipr folder to your shell, e.g. with bash: Add
+``export ZIPR_PATH=/your/path/to/zipr`` to your ```~/.bashrc``` file right before the following line: 
+    ```
+   # If not running interactively, don't do anything
+    ```
+3. Clone this repo, set an env variable for the path to zipr on your machine and build:
    ```
         git clone https://github.com/fransie/binary-msan.git
         cd binary-msan
@@ -14,4 +19,4 @@ This tool is a binary-only implementation of Google's Memory Sanitizer ([their p
         cmake .
         make
    ```
-3. Use binary-msan as follows: ```./run.sh <input-file> <output-file>```, for example ```./run.sh /bin/ls ls-instrumented```
+4. Use binary-msan as follows: ```./run.sh <input-file> <output-file>```, for example ```./run.sh /bin/ls ls-instrumented```
