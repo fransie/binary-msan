@@ -20,3 +20,5 @@ This tool is a binary-only implementation of Google's Memory Sanitizer ([their p
         make
    ```
 4. Use binary-msan as follows: ```./run.sh <input-file> <output-file>```, for example ```./run.sh /bin/ls ls-instrumented```
+```source init.sh``` sets all the necessary environment variables. So whenever you start a new shell, remember to execute
+the script if you're missing env variables.
