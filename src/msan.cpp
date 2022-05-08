@@ -35,9 +35,9 @@ namespace Registers{
 
 
 // constructor
-MSan::MSan(FileIR_t *p_variantIR)
+MSan::MSan(FileIR_t *fileIR)
         :
-        Transform_t(p_variantIR) // init Transform_t class for insertAssembly and getFileIR
+        Transform_t(fileIR) // init Transform_t class for insertAssembly and getFileIR
 {
     registerDependencies();
     capstoneService = std::make_unique<CapstoneService>();
@@ -164,12 +164,23 @@ void MSan::addHandler(Instruction_t *instruction){
 void MSan::registerDependencies(){
     auto elfDeps = ElfDependencies_t::factory(getFileIR());
     // TODO: fix absolute paths
-    elfDeps->prependLibraryDepedencies("/home/franzi/Documents/binary-msan2/plugins_install/libinterface.so");
-    // Msan libraries don't work yet, uncomment if ready
-    //elfDeps->prependLibraryDepedencies("/home/franzi/Documents/binary-msan2/sharedlibrary/libclang_rt.msan-x86_64.so");
-    //elfDeps->prependLibraryDepedencies("/home/franzi/Documents/binary-msan2/sharedlibrary/libclang_rt.msan_cxx-x86_64.so ");
+
+    //elfDeps->prependLibraryDepedencies("libpthread.so.0");
+    //elfDeps->prependLibraryDepedencies("libdl.so.2");
+    //elfDeps->prependLibraryDepedencies("libc.so.6");
+    //elfDeps->prependLibraryDepedencies("libstdc++.so.6");
+
+    const string runtimeLibPath = "/home/franzi/Documents/binary-msan/plugins_install/";
+    elfDeps->prependLibraryDepedencies(runtimeLibPath + "libinterface.so");
     regToRegShadowCopy = elfDeps->appendPltEntry("_Z18regToRegShadowCopyiii");
     defineRegShadow = elfDeps->appendPltEntry("_Z15defineRegShadowii");
+
+    const string compilerRtPath = "/home/franzi/Documents/llvm-project-llvmorg-13.0.1/buildcompilerRT/lib/linux/";
+    //elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.ubsan_standalone-x86_64.so");
+    //elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan_cxx-x86_64.so");
+    //elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan-x86_64.so");
+    //elfDeps->appendGotEntry("_ZN7__ubsan14TypeCheckKindsE");
+    //elfDeps->appendGotEntry("_ZN11__sanitizer21common_flags_dont_useE");
     getFileIR()->assembleRegistry();
 }
 

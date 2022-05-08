@@ -8,8 +8,6 @@
 
 #include <capstone.h>
 #include <irdb-core>
-#include <irdb-transform>
-#include <irdb-deep>
 
 class CapstoneService {
 public:
