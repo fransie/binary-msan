@@ -158,17 +158,28 @@ void MSan::instrumentRegToRegMove(IRDB_SDK::Instruction_t *instruction) {
  * @param instruction the add instruction to be instrumented
  */
 void MSan::addHandler(Instruction_t *instruction){
+    cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << endl;
+    std::string instrumentation = std::string() +
+                                  "pushf\n" +           // save eflags (necessary?)
+                                  utils::getPushCallerSavedRegistersInstrumentation() +
+                                  "call 0\n" +
+                                  utils::getPopCallerSavedRegistersInstrumentation() +
+                                  "popf\n";             // restore eflags
+    vector<basic_string<char>> instrumentationParams {};
 
+    const auto new_instr = ::insertAssemblyInstructionsBefore(this->getFileIR(), instruction, instrumentation, instrumentationParams);
+
+    // set target of "call 0"
+    new_instr[10]->setTarget(origin);
+    cout << "Inserted the following instrumentation: " << instrumentation << endl;
 }
 
 void MSan::registerDependencies(){
     auto elfDeps = ElfDependencies_t::factory(getFileIR());
     // TODO: fix absolute paths
 
-    //elfDeps->prependLibraryDepedencies("libpthread.so.0");
-    //elfDeps->prependLibraryDepedencies("libdl.so.2");
-    //elfDeps->prependLibraryDepedencies("libc.so.6");
-    //elfDeps->prependLibraryDepedencies("libstdc++.so.6");
+//    elfDeps->prependLibraryDepedencies("libdl.so.2");
+//    elfDeps->prependLibraryDepedencies("libpthread.so.0");
 
     const string runtimeLibPath = "/home/franzi/Documents/binary-msan/plugins_install/";
     elfDeps->prependLibraryDepedencies(runtimeLibPath + "libinterface.so");
@@ -176,11 +187,10 @@ void MSan::registerDependencies(){
     defineRegShadow = elfDeps->appendPltEntry("_Z15defineRegShadowii");
 
     const string compilerRtPath = "/home/franzi/Documents/llvm-project-llvmorg-13.0.1/buildcompilerRT/lib/linux/";
-    //elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.ubsan_standalone-x86_64.so");
-    //elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan_cxx-x86_64.so");
-    //elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan-x86_64.so");
-    //elfDeps->appendGotEntry("_ZN7__ubsan14TypeCheckKindsE");
-    //elfDeps->appendGotEntry("_ZN11__sanitizer21common_flags_dont_useE");
+    elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan_cxx-x86_64.so");
+    elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan-x86_64.so");
+    origin = elfDeps->appendPltEntry("__msan_get_origin");
+
     getFileIR()->assembleRegistry();
 }
 

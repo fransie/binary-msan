@@ -4,6 +4,7 @@
 
 #include "utils.h"
 
+// TODO: save state sse and fpu registers + red zone
 /**
  * Returns a string containing pushes to all caller-saved general purpose registers, namely
  *  RAX, RCX, RDX, RSI, RDI, R8, R9, R10 , R11.
