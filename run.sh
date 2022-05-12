@@ -1,3 +1,3 @@
 #!/bin/bash
 
-$PSZ -c rida --step move_globals -c msan $1 $2
+$PSZ -c rida --step move_globals -c binmsan $1 $2

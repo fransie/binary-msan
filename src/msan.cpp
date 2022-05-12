@@ -186,9 +186,12 @@ void MSan::registerDependencies(){
     regToRegShadowCopy = elfDeps->appendPltEntry("_Z18regToRegShadowCopyiii");
     defineRegShadow = elfDeps->appendPltEntry("_Z15defineRegShadowii");
 
-    const string compilerRtPath = "/home/franzi/Documents/llvm-project-llvmorg-13.0.1/buildcompilerRT/lib/linux/";
-    elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan_cxx-x86_64.so");
-    elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan-x86_64.so");
+    //const string compilerRtPath = "/home/franzi/Documents/llvm-project-llvmorg-13.0.1/buildcompilerRT/lib/linux/";
+    const string compilerRtPath = "/home/franzi/Documents/binary-msan/plugins_install/";
+    elfDeps->prependLibraryDepedencies(compilerRtPath + "libmsan_cxx.so");
+    //elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan_cxx-x86_64.so");
+    elfDeps->prependLibraryDepedencies(compilerRtPath + "libmsan.so");
+    //elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan-x86_64.so");
     origin = elfDeps->appendPltEntry("__msan_get_origin");
 
     getFileIR()->assembleRegistry();

@@ -58,4 +58,4 @@ target_link_libraries(irdb-sdk
 
 
 add_subdirectory(src)
-add_subdirectory(libmsan)
+#add_subdirectory(libmsan)
