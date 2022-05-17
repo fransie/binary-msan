@@ -33,7 +33,7 @@ private:
 
     IRDB_SDK::Instruction_t *regToRegShadowCopy;
     IRDB_SDK::Instruction_t *defineRegShadow;
-    IRDB_SDK::Instruction_t *checkMemComponentsInit;
+    IRDB_SDK::Instruction_t *checkRegIsInit;
 
     std::unique_ptr<CapstoneService> capstoneService;
 
