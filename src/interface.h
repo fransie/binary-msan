@@ -11,6 +11,7 @@
 
 #include <vector>
 #include <bitset>
+#include <memory>
 
 // HIGHER_BYTE means, for example, register AH
 enum WIDTH{
@@ -25,7 +26,8 @@ enum WIDTH{
 
 INTERFACE void regToRegShadowCopy(int dest, int source, int width);
 INTERFACE void defineRegShadow(int reg, int width);
-
+INTERFACE void checkMemComponentsInit(int baseReg, int baseRegWidth, int indexReg,
+                            int indexRegWidth);
 
 
 

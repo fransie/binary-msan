@@ -8,9 +8,11 @@
 // TODO: global variable is probably a bad idea
 /**
  * This vector holds the current shadow state of the 16 general purpose registers. Upon initialisation,
- * all of them have the state "undefined".
+ * each bit of all of them has the state "undefined" (1).
  */
-std::vector<std::bitset<64>> shadowRegisterState = std::vector<std::bitset<64>>(16, 0);
+std::vector<std::bitset<64>> shadowRegisterState = std::vector<std::bitset<64>>(16, 1);
+
+void checkMemComponentsInit(int baseReg, int baseRegWidth, int indexReg, int indexRegWidth);
 
 /**
  * Takes two ints representing general purpose registers and propagates the shadow value of the
@@ -79,9 +81,43 @@ void defineRegShadow(const int reg, int width){
         width = 64;
     }
     for(int position = 63 - startFrom; position < (position - width) ; position--){
-        destinationRegisterShadow.set(position, true);
+        destinationRegisterShadow.set(position, false);
     }
 }
 
-
-
+/**
+ * Checks whether memOperand has an uninit component -> this would mean we throw an error, pointer dereference base + index * scale + displacement scale and displacement are always constants, we don't need to check them
+ * @param baseReg
+ * @param baseRegWidth
+ * @param indexReg
+ * @param indexRegWidth
+ */
+void checkMemComponentsInit(int baseReg, int baseRegWidth, int indexReg,
+                            int indexRegWidth) {
+    auto baseRegShadow = shadowRegisterState[baseReg].to_ullong();
+    auto indexRegShadow = shadowRegisterState[indexReg].to_ullong();
+    if(baseRegShadow != 0){
+        int bit = 0;
+        if(baseRegWidth == HIGHER_BYTE){
+            bit = 8;
+            baseRegWidth = 16;
+        }
+        for (; bit < baseRegWidth; bit++){
+            if(bit == 1){
+                std::cout << "msan no return" << std::endl;
+            }
+        }
+    }
+    if (indexRegShadow != 0){
+        int bit = 0;
+        if(indexRegWidth == HIGHER_BYTE){
+            bit = 8;
+            indexRegWidth = 16;
+        }
+        for (; bit < indexRegWidth; bit++){
+            if(bit == 1){
+                std::cout << "msan no return" << std::endl;
+            }
+        }
+    }
+}
