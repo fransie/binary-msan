@@ -28,10 +28,13 @@ private:
     void addHandler(IRDB_SDK::Instruction_t *instruction);
     void instrumentImmediateToRegMove(IRDB_SDK::Instruction_t *instruction);
     void instrumentRegToRegMove(IRDB_SDK::Instruction_t *instruction);
+    void instrumentMemToRegMove(IRDB_SDK::Instruction_t *instruction);
+    void instrumentMemRef(const std::shared_ptr<IRDB_SDK::DecodedOperand_t>& operand, IRDB_SDK::Instruction_t *instruction);
 
     IRDB_SDK::Instruction_t *regToRegShadowCopy;
     IRDB_SDK::Instruction_t *defineRegShadow;
-    IRDB_SDK::Instruction_t *origin;
+    IRDB_SDK::Instruction_t *checkMemComponentsInit;
+
     std::unique_ptr<CapstoneService> capstoneService;
 
 };
