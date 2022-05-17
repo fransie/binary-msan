@@ -23,7 +23,6 @@ void checkMemComponentsInit(int baseReg, int baseRegWidth, int indexReg, int ind
  * @param width the width of the registers in bits. "0" denominates the second-least significant byte.
  */
 void regToRegShadowCopy(const int dest, const int source, const int width){
-    std::cout << "test  test " << std::endl;
     std::cout << "regToRegShadowCopy. Dest value: " << dest << ". Source value: " << source << ". Width: " << width << std::endl;
     auto destinationRegisterShadow = shadowRegisterState[dest];
     auto sourceRegisterShadow = shadowRegisterState[source];
@@ -87,37 +86,23 @@ void defineRegShadow(const int reg, int width){
 
 /**
  * Checks whether memOperand has an uninit component -> this would mean we throw an error, pointer dereference base + index * scale + displacement scale and displacement are always constants, we don't need to check them
- * @param baseReg
- * @param baseRegWidth
- * @param indexReg
- * @param indexRegWidth
+ * @param reg
+ * @param regWidth
  */
-void checkMemComponentsInit(int baseReg, int baseRegWidth, int indexReg,
-                            int indexRegWidth) {
-    auto baseRegShadow = shadowRegisterState[baseReg].to_ullong();
-    auto indexRegShadow = shadowRegisterState[indexReg].to_ullong();
-    if(baseRegShadow != 0){
+void checkRegIsInit(int reg, int regWidth) {
+    std::cout << "checkRegIsInit. Register: " << reg << ". Width: " << regWidth << std::endl;
+    auto regShadow = shadowRegisterState[reg].to_ullong();
+    if(regShadow != 0){
         int bit = 0;
-        if(baseRegWidth == HIGHER_BYTE){
+        if(regWidth == HIGHER_BYTE){
             bit = 8;
-            baseRegWidth = 16;
+            regWidth = 16;
         }
-        for (; bit < baseRegWidth; bit++){
-            if(bit == 1){
+        for (; bit < regWidth; bit++){
+            if(shadowRegisterState[reg].test(bit) == 1){
                 std::cout << "msan no return" << std::endl;
             }
         }
     }
-    if (indexRegShadow != 0){
-        int bit = 0;
-        if(indexRegWidth == HIGHER_BYTE){
-            bit = 8;
-            indexRegWidth = 16;
-        }
-        for (; bit < indexRegWidth; bit++){
-            if(bit == 1){
-                std::cout << "msan no return" << std::endl;
-            }
-        }
-    }
+
 }

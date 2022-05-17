@@ -160,49 +160,44 @@ void MSan::instrumentMemToRegMove(IRDB_SDK::Instruction_t *instruction) {
     cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << (int) dest << " and mem: " << operands[1]->getString() << endl;
 
     instrumentMemRef(operands[1], instruction);
-
-    auto width = capstoneService->getOperandWidth(instruction);
-    string instrumentation = string() +
-                             "pushf\n" +           // save eflags (necessary?)
-                             utils::getPushCallerSavedRegistersInstrumentation() +
-                             "mov rdi, %%1\n" +    // first argument
-                             "mov rsi, %%2\n" +    // second argument
-                             "mov rsi, %%2\n" +    // third argument
-                             "mov rsi, %%2\n" +    // fourth argument
-                             "call 0\n" +
-                             utils::getPopCallerSavedRegistersInstrumentation() +
-                             "popf\n";             // restore eflags
-    vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string(width)};
-    const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(getFileIR(), instruction, instrumentation, instrumentationParams);
-
-    // set target of "call 0"
-    new_instr[12]->setTarget(defineRegShadow);
-    cout << "Inserted the following instrumentation: " << instrumentation << endl;
 }
 
 void MSan::instrumentMemRef(const shared_ptr<DecodedOperand_t> &operand, IRDB_SDK::Instruction_t *instruction) {
-    auto baseReg = operand->getBaseRegister();
-    auto indexReg = operand->getIndexRegister();
-    auto baseRegWidth = operand->getArgumentSizeInBits();
-    auto indexRegWidth = operand->getArgumentSizeInBits();
+    if(operand->hasBaseRegister()){
+        auto baseReg = operand->getBaseRegister();
+        auto baseRegWidth = capstoneService->getBaseRegWidth(instruction);
 
-    string instrumentation = string() +
-                             "pushf\n" +           // save eflags (necessary?)
-                             utils::getPushCallerSavedRegistersInstrumentation() +
-                             "mov rdi, %%1\n" +    // first argument
-                             "mov rsi, %%2\n" +    // second argument
-                             "mov rdx, %%3\n" +    // third argument
-                             "mov rcx, %%4\n" +    // fourth argument
-                             "call 0\n" +
-                             utils::getPopCallerSavedRegistersInstrumentation() +
-                             "popf\n";             // restore eflags
-    vector<basic_string<char>> instrumentationParams {to_string(baseReg), to_string(baseRegWidth), to_string(indexReg),
-                                                      to_string(indexRegWidth)};
-    const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(getFileIR(), instruction, instrumentation, instrumentationParams);
+        string instrumentation = string() +
+                                 "pushf\n" +           // save eflags (necessary?)
+                                 utils::getPushCallerSavedRegistersInstrumentation() +
+                                 "mov rdi, %%1\n" +    // first argument
+                                 "mov rsi, %%2\n" +    // second argument
+                                 "call 0\n" +
+                                 utils::getPopCallerSavedRegistersInstrumentation() +
+                                 "popf\n";             // restore eflags
+        vector<basic_string<char>> instrumentationParams {to_string(baseReg), to_string(baseRegWidth)};
+        const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(getFileIR(), instruction, instrumentation, instrumentationParams);
+        new_instr[12]->setTarget(checkRegIsInit);
+        cout << "Inserted the following instrumentation: " << instrumentation << endl;
+    }
+    if(operand->hasIndexRegister()){
+        auto indexReg = operand->getIndexRegister();
+        auto indexRegWidth = capstoneService->getIndexRegWidth(instruction);
 
-    // set target of "call 0"
-    new_instr[14]->setTarget(checkMemComponentsInit);
-    cout << "Inserted the following instrumentation: " << instrumentation << endl;
+        string instrumentation = string() +
+                                 "pushf\n" +           // save eflags (necessary?)
+                                 utils::getPushCallerSavedRegistersInstrumentation() +
+                                 "mov rdi, %%1\n" +    // first argument
+                                 "mov rsi, %%2\n" +    // second argument
+                                 "call 0\n" +
+                                 utils::getPopCallerSavedRegistersInstrumentation() +
+                                 "popf\n";             // restore eflags
+        vector<basic_string<char>> instrumentationParams {to_string(indexReg), to_string(indexRegWidth)};
+        const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(getFileIR(), instruction, instrumentation, instrumentationParams);
+        new_instr[12]->setTarget(checkRegIsInit);
+        cout << "Inserted the following instrumentation: " << instrumentation << endl;
+    }
+
 }
 
 /**
@@ -222,7 +217,7 @@ void MSan::registerDependencies(){
     elfDeps->prependLibraryDepedencies(runtimeLibPath + "libinterface.so");
     regToRegShadowCopy = elfDeps->appendPltEntry("_Z18regToRegShadowCopyiii");
     defineRegShadow = elfDeps->appendPltEntry("_Z15defineRegShadowii");
-    checkMemComponentsInit = elfDeps->appendPltEntry("_Z22checkMemComponentsInitiiii");
+    checkRegIsInit = elfDeps->appendPltEntry("_Z14checkRegIsInitii");
 
     const string compilerRtPath = "/home/franzi/Documents/llvm-project-llvmorg-13.0.1/buildcompilerRT/lib/linux/";
     elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan_cxx-x86_64.so");

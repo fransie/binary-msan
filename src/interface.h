@@ -26,8 +26,7 @@ enum WIDTH{
 
 INTERFACE void regToRegShadowCopy(int dest, int source, int width);
 INTERFACE void defineRegShadow(int reg, int width);
-INTERFACE void checkMemComponentsInit(int baseReg, int baseRegWidth, int indexReg,
-                            int indexRegWidth);
+INTERFACE void checkRegIsInit(int reg, int regWidth);
 
 
 
