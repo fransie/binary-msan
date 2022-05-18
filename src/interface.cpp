@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include "interface.h"
+#include "msan_interface_internal.h"
 
 // TODO: global variable is probably a bad idea
 /**
@@ -100,7 +101,8 @@ void checkRegIsInit(int reg, int regWidth) {
         }
         for (; bit < regWidth; bit++){
             if(shadowRegisterState[reg].test(bit) == 1){
-                std::cout << "msan no return" << std::endl;
+                std::cout << "msan warning:" << std::endl;
+                __msan_warning();
             }
         }
     }

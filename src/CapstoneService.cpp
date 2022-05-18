@@ -3,7 +3,15 @@
 //
 
 #include "CapstoneService.h"
-#include "interface.h"
+
+// HIGHER_BYTE means, for example, register AH
+enum WIDTH{
+    QUAD_WORD = 64,
+    DOUBLE_WORD = 32,
+    WORD = 16,
+    BYTE = 8,
+    HIGHER_BYTE = 0
+};
 
 CapstoneService::CapstoneService() {
     if (cs_open(CS_ARCH_X86, CS_MODE_64, &capstoneHandle) != CS_ERR_OK){
