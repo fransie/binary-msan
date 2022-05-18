@@ -1,4 +1,4 @@
-#include "eflags_access.hpp"
+#include "eflags_access.h"
 #include <capstone.h>
 #include <iostream>
 
