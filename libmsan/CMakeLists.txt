@@ -1,4 +1,0 @@
-add_subdirectory(interception)
-add_subdirectory(msan)
-add_subdirectory(sanitizer_common)
-add_subdirectory(ubsan)
