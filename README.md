@@ -22,3 +22,6 @@ This tool is a binary-only implementation of Google's Memory Sanitizer ([their p
 4. Use binary-msan as follows: ```./run.sh <input-file> <output-file>```, for example ```./run.sh /bin/ls ls-instrumented```
 ```source init.sh``` sets all the necessary environment variables. So whenever you start a new shell, remember to execute
 the script if you're missing env variables.
+
+TODO: Come up with strategy to distribute shared msan libraries and keep in mind that they have to be compiled with GCC >11.2
+but the rest of the project is known to work only when compiled with GCC 9.
