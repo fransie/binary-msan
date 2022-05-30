@@ -14,7 +14,6 @@ This tool is a binary-only implementation of Google's Memory Sanitizer ([their p
    ```
         git clone https://github.com/fransie/binary-msan.git
         cd binary-msan
-        export ZIPR_PATH=<YOUR/PATH/TO/ZIPR>
         source init.sh
         cmake .
         make
