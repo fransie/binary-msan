@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <msan.h>
 #include "interface.h"
 #include "msan_interface_internal.h"
 
@@ -13,7 +14,6 @@
  */
 std::vector<std::bitset<64>> shadowRegisterState = std::vector<std::bitset<64>>(16, std::bitset<64>{}.set());
 
-void checkMemComponentsInit(int baseReg, int baseRegWidth, int indexReg, int indexRegWidth);
 
 /**
  * Takes two ints representing general purpose registers and propagates the shadow value of the
@@ -85,13 +85,15 @@ void defineRegShadow(const int reg, int width){
 }
 
 /**
- * Checks whether memOperand has an uninit component -> this would mean we throw an error, pointer dereference base + index * scale + displacement scale and displacement are always constants, we don't need to check them
- * @param reg
- * @param regWidth
+ * Checks whether the first regWidth bits of the register referenced by <code>reg</code> are initialised. If not,
+ * an MSan Warning is issued.
+ * Special case: If regWidth is HIGHER_BYTE (e.g. AH), then the bits at position 8 - 15 are checked.
+ * @param reg number of the register to be checked
+ * @param regWidth width of the register in bits
  */
 void checkRegIsInit(int reg, int regWidth) {
-    std::cout << "checkRegIsInit. Register: " << reg << ". Width: " << regWidth << std::endl;
     auto regShadow = shadowRegisterState[reg].to_ullong();
+    std::cout << "checkRegIsInit. Register: " << reg << ". Width: " << regWidth << ". Register shadow as ulong: " <<  regShadow << std::endl;
     if(regShadow != 0){
         int bit = 0;
         if(regWidth == HIGHER_BYTE){
@@ -100,10 +102,29 @@ void checkRegIsInit(int reg, int regWidth) {
         }
         for (; bit < regWidth; bit++){
             if(shadowRegisterState[reg].test(bit) == 1){
-                std::cout << "msan warning:" << std::endl;
-                __msan_warning();
+                std::cout << "msan warning" << std::endl;
+                break;
+                //__msan_warning();
             }
         }
     }
+}
 
+/**
+ * Copies the shadow associated with <code>memAddress</code> into the shadow state of the register <code>reg</code>.
+ * Instrument a 'mov reg, [memAddress]' with this so that the shadow is propagated correctly.
+ *
+ * @param reg Number of the destination register.
+ * @param regWidth Width of the destination register.
+ * @param memAddress Source memory address.
+ */
+void memToRegShadowCopy(int reg, int regWidth, uptr memAddress){
+    std::cout << "memToRegShadowCopy. Register: " << reg << ". RegWidth: " << regWidth << ". MemAddress: " << memAddress << std::endl;
+    if (!MEM_IS_APP(memAddress)) {
+        std::cout << memAddress << " is not an application address." << std::endl;
+        return;
+    }
+    auto *shadow = reinterpret_cast<std::byte *>(MEM_TO_SHADOW(memAddress));
+    //TODO: adapt to width
+    std::cout << "Shadow: " << (short) shadow[0] << std::endl;
 }

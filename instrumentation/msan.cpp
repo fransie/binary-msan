@@ -94,10 +94,8 @@ void MSan::instrumentImmediateToRegMove(Instruction_t *instruction) {
                              utils::getPopCallerSavedRegistersInstrumentation() +
                              "popf\n";             // restore eflags
     vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string(width)};
-    const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsAfter(getFileIR(), instruction, instrumentation, instrumentationParams);
-
-    // set target of "call 0"
-    new_instr[13]->setTarget(defineRegShadow);
+    const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(getFileIR(), instruction, instrumentation, instrumentationParams);
+    new_instr[12]->setTarget(defineRegShadow);
     cout << "Inserted the following instrumentation: " << instrumentation << endl;
 }
 
@@ -123,10 +121,8 @@ void MSan::instrumentRegToRegMove(IRDB_SDK::Instruction_t *instruction) {
                                   utils::getPopCallerSavedRegistersInstrumentation() +
                                   "popf\n";             // restore eflags
     vector<basic_string<char>> instrumentationParams {to_string(dest), to_string(source), to_string(width)};
-    const auto new_instr = ::insertAssemblyInstructionsAfter(this->getFileIR(), instruction, instrumentation, instrumentationParams);
-
-    // set target of "call 0"
-    new_instr[14]->setTarget(regToRegShadowCopy);
+    const auto new_instr = ::insertAssemblyInstructionsBefore(this->getFileIR(), instruction, instrumentation, instrumentationParams);
+    new_instr[13]->setTarget(regToRegShadowCopy);
     cout << "Inserted the following instrumentation: " << instrumentation << endl;
 }
 
@@ -134,9 +130,24 @@ void MSan::instrumentRegToRegMove(IRDB_SDK::Instruction_t *instruction) {
 void MSan::instrumentMemToRegMove(IRDB_SDK::Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     auto dest = operands[0]->getRegNumber();
-    cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << (int) dest << " and mem: " << operands[1]->getString() << endl;
+    cout << "instrumentMemToRegMove. Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << (int) dest << " and mem: " << operands[1]->getString() << endl;
 
-    instrumentMemRef(operands[1], instruction);
+    instruction = instrumentMemRef(operands[1], instruction);
+    auto memoryDisassembly = getMemoryOperandDisassembly(instruction);
+    auto width = capstoneService->getOperandWidth(instruction);
+    std::string instrumentation = std::string() +
+                                  "pushf\n" +           // save eflags (necessary?)
+                                  utils::getPushCallerSavedRegistersInstrumentation() +
+                                  "mov rdi, %%1\n" +    // reg
+                                  "mov rsi, %%2\n" +    // regWidth
+                                  "lea rdx, %%3\n" +    // memAddr
+                                  "call 0\n" +
+                                  utils::getPopCallerSavedRegistersInstrumentation() +
+                                  "popf\n";             // restore eflags
+    vector<basic_string<char>> instrumentationParams {to_string(dest), to_string(width), memoryDisassembly};
+    const auto new_instr = ::insertAssemblyInstructionsBefore(this->getFileIR(), instruction, instrumentation, instrumentationParams);
+    new_instr[13]->setTarget(memToRegShadowCopy);
+    cout << "Inserted the following instrumentation: " << instrumentation << endl;
 }
 
 /**
@@ -169,7 +180,7 @@ IRDB_SDK::Instruction_t * MSan::instrumentMemRef(const shared_ptr<DecodedOperand
         const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(getFileIR(), instruction, instrumentation, instrumentationParams);
         new_instr[12]->setTarget(checkRegIsInit);
         originalInstruction = new_instr[new_instr.size()-1];
-        cout << "Inserted the following base reg instrumentation: " << instrumentation << endl;
+        cout << "instrumentMemRef base. Inserted the following base reg instrumentation: " << instrumentation << endl;
     }
     if(operand->hasIndexRegister()){
         auto indexReg = operand->getIndexRegister();
@@ -187,7 +198,7 @@ IRDB_SDK::Instruction_t * MSan::instrumentMemRef(const shared_ptr<DecodedOperand
         const auto new_instr = ::insertAssemblyInstructionsBefore(getFileIR(), instruction, instrumentation, instrumentationParams);
         new_instr[12]->setTarget(checkRegIsInit);
         originalInstruction = new_instr[new_instr.size()-1];
-        cout << "Inserted the following index reg instrumentation: " << instrumentation << endl;
+        cout << "instrumentMemRef index. Inserted the following index reg instrumentation: " << instrumentation << endl;
     }
     return originalInstruction;
 }
@@ -210,11 +221,11 @@ void MSan::registerDependencies(){
     regToRegShadowCopy = elfDeps->appendPltEntry("_Z18regToRegShadowCopyiii");
     defineRegShadow = elfDeps->appendPltEntry("_Z15defineRegShadowii");
     checkRegIsInit = elfDeps->appendPltEntry("_Z14checkRegIsInitii");
+    memToRegShadowCopy = elfDeps->appendPltEntry("_Z18memToRegShadowCopyiim");
 
     const string compilerRtPath = "/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compilerRT-build/lib/linux/";
     elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan_cxx-x86_64.so");
     elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan-x86_64.so");
-
 
     getFileIR()->assembleRegistry();
 }
