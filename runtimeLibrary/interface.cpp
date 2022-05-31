@@ -11,7 +11,7 @@
  * This vector holds the current shadow state of the 16 general purpose registers. Upon initialisation,
  * each bit of all of them has the state "undefined" (1).
  */
-std::vector<std::bitset<64>> shadowRegisterState = std::vector<std::bitset<64>>(16, 1);
+std::vector<std::bitset<64>> shadowRegisterState = std::vector<std::bitset<64>>(16, std::bitset<64>{}.set());
 
 void checkMemComponentsInit(int baseReg, int baseRegWidth, int indexReg, int indexRegWidth);
 
@@ -29,9 +29,8 @@ void regToRegShadowCopy(const int dest, const int source, const int width){
     auto sourceRegisterShadow = shadowRegisterState[source];
     switch(width){
         default:
-            std::cout << "ERROR: Wrong width." << std::endl;
-            //throw std::invalid_argument("Function regToRegShadowCopy was called with an unsupported width value.");
-            break;
+            std::cerr << "Function regToRegShadowCopy was called with an unsupported width value. Width: " << width << std::endl;
+            throw std::invalid_argument("Function regToRegShadowCopy was called with an unsupported width value.");
         case QUAD_WORD:
             destinationRegisterShadow = sourceRegisterShadow;
             break;

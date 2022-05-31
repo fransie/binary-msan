@@ -69,6 +69,7 @@ int main(int argc, char* argv[]) {
     } catch (...) {
         // log any other errors
         std::cout<< program_name << ": Unexpected error file url: " << url << std::endl;
+        return 2;
     }
 
     // return success code to driver (as a shell-style return value).  0=success, 1=warnings, 2=errors
