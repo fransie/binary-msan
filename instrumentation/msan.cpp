@@ -10,29 +10,6 @@
 using namespace IRDB_SDK;
 using namespace std;
 
-
-namespace Registers{
-    enum class Register {
-        RAX = 0,
-        RCX = 1,
-        RDX = 2,
-        RBX = 3,
-        RSP = 4,
-        RBP = 5,
-        RSI = 6,
-        RDI = 7,
-        R8 = 8,
-        R9 = 9,
-        R10 = 10,
-        R11 = 11,
-        R12 = 12,
-        R13 = 13,
-        R14 = 14,
-        R15 = 15
-    };
-}
-
-
 // constructor
 MSan::MSan(FileIR_t *fileIR)
         :
@@ -103,7 +80,7 @@ void MSan::moveHandler(Instruction_t *instruction){
 
 void MSan::instrumentImmediateToRegMove(Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
-    auto dest = static_cast<Registers::Register>(operands[0]->getRegNumber());
+    auto dest = operands[0]->getRegNumber();
     cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << (int) dest << " and immediate: " << operands[1]->getConstant() << endl;
 
 
@@ -156,7 +133,7 @@ void MSan::instrumentRegToRegMove(IRDB_SDK::Instruction_t *instruction) {
 
 void MSan::instrumentMemToRegMove(IRDB_SDK::Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
-    auto dest = static_cast<Registers::Register>(operands[0]->getRegNumber());
+    auto dest = operands[0]->getRegNumber();
     cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << (int) dest << " and mem: " << operands[1]->getString() << endl;
 
     instrumentMemRef(operands[1], instruction);
