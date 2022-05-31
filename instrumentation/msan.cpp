@@ -94,10 +94,10 @@ void MSan::instrumentImmediateToRegMove(Instruction_t *instruction) {
                              utils::getPopCallerSavedRegistersInstrumentation() +
                              "popf\n";             // restore eflags
     vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string(width)};
-    const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(getFileIR(), instruction, instrumentation, instrumentationParams);
+    const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsAfter(getFileIR(), instruction, instrumentation, instrumentationParams);
 
     // set target of "call 0"
-    new_instr[12]->setTarget(defineRegShadow);
+    new_instr[13]->setTarget(defineRegShadow);
     cout << "Inserted the following instrumentation: " << instrumentation << endl;
 }
 
@@ -123,10 +123,10 @@ void MSan::instrumentRegToRegMove(IRDB_SDK::Instruction_t *instruction) {
                                   utils::getPopCallerSavedRegistersInstrumentation() +
                                   "popf\n";             // restore eflags
     vector<basic_string<char>> instrumentationParams {to_string(dest), to_string(source), to_string(width)};
-    const auto new_instr = ::insertAssemblyInstructionsBefore(this->getFileIR(), instruction, instrumentation, instrumentationParams);
+    const auto new_instr = ::insertAssemblyInstructionsAfter(this->getFileIR(), instruction, instrumentation, instrumentationParams);
 
     // set target of "call 0"
-    new_instr[13]->setTarget(regToRegShadowCopy);
+    new_instr[14]->setTarget(regToRegShadowCopy);
     cout << "Inserted the following instrumentation: " << instrumentation << endl;
 }
 
@@ -139,7 +139,20 @@ void MSan::instrumentMemToRegMove(IRDB_SDK::Instruction_t *instruction) {
     instrumentMemRef(operands[1], instruction);
 }
 
-void MSan::instrumentMemRef(const shared_ptr<DecodedOperand_t> &operand, IRDB_SDK::Instruction_t *instruction) {
+/**
+ * Inserts instrumentation to verify that a memory access does not use an uninitialised base or index register.
+ *
+ * Side effect: Since new instrumentation is inserted before the instruction pointed to by <code>instruction</code>,
+ * the pointer will not point to the original instruction anymore afterwards. Therefore, a pointer to the original
+ * instruction is returned.
+ *
+ * @param operand The operand that contains the memory access.
+ * @param instruction The instruction that contains the operand with the memory access.
+ * @return Returns a pointer to the original instruction.
+ */
+IRDB_SDK::Instruction_t * MSan::instrumentMemRef(const shared_ptr<DecodedOperand_t> &operand, IRDB_SDK::Instruction_t *instruction) {
+    std::cout << "instrumentMemRef. Operand: " << operand->getString() << std::endl;
+    IRDB_SDK::Instruction_t *originalInstruction = instruction;
     if(operand->hasBaseRegister()){
         auto baseReg = operand->getBaseRegister();
         auto baseRegWidth = capstoneService->getBaseRegWidth(instruction);
@@ -153,9 +166,10 @@ void MSan::instrumentMemRef(const shared_ptr<DecodedOperand_t> &operand, IRDB_SD
                                  utils::getPopCallerSavedRegistersInstrumentation() +
                                  "popf\n";             // restore eflags
         vector<basic_string<char>> instrumentationParams {to_string(baseReg), to_string(baseRegWidth)};
-        const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(getFileIR(), instruction, instrumentation, instrumentationParams);
+        const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(getFileIR(), instruction, instrumentation, instrumentationParams);
         new_instr[12]->setTarget(checkRegIsInit);
-        cout << "Inserted the following instrumentation: " << instrumentation << endl;
+        originalInstruction = new_instr[new_instr.size()-1];
+        cout << "Inserted the following base reg instrumentation: " << instrumentation << endl;
     }
     if(operand->hasIndexRegister()){
         auto indexReg = operand->getIndexRegister();
@@ -170,11 +184,12 @@ void MSan::instrumentMemRef(const shared_ptr<DecodedOperand_t> &operand, IRDB_SD
                                  utils::getPopCallerSavedRegistersInstrumentation() +
                                  "popf\n";             // restore eflags
         vector<basic_string<char>> instrumentationParams {to_string(indexReg), to_string(indexRegWidth)};
-        const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(getFileIR(), instruction, instrumentation, instrumentationParams);
+        const auto new_instr = ::insertAssemblyInstructionsBefore(getFileIR(), instruction, instrumentation, instrumentationParams);
         new_instr[12]->setTarget(checkRegIsInit);
-        cout << "Inserted the following instrumentation: " << instrumentation << endl;
+        originalInstruction = new_instr[new_instr.size()-1];
+        cout << "Inserted the following index reg instrumentation: " << instrumentation << endl;
     }
-
+    return originalInstruction;
 }
 
 /**
@@ -196,7 +211,7 @@ void MSan::registerDependencies(){
     defineRegShadow = elfDeps->appendPltEntry("_Z15defineRegShadowii");
     checkRegIsInit = elfDeps->appendPltEntry("_Z14checkRegIsInitii");
 
-    const string compilerRtPath = "/home/franzi/Documents/llvm-project-llvmorg-13.0.1/buildcompilerRT/lib/linux/";
+    const string compilerRtPath = "/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compilerRT-build/lib/linux/";
     elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan_cxx-x86_64.so");
     elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan-x86_64.so");
 
@@ -206,4 +221,17 @@ void MSan::registerDependencies(){
 
 bool MSan::parseArgs(std::vector<std::string> step_args) {
     return true;
+}
+
+std::string MSan::getMemoryOperandDisassembly(Instruction_t *instruction) {
+    auto disassembly = instruction->getDisassembly();
+    auto openBracketPosition = disassembly.find_first_of('[');
+    if(openBracketPosition == string::npos){
+        std::cerr << "MSan::getMemoryOperandDisassembly: Instruction " << instruction->getDisassembly() << " does not include a memory operand. Abort." << std::endl;
+        throw std::invalid_argument("MSan::getMemoryOperandDisassembly: Instruction " + instruction->getDisassembly() + " does not include a memory operand. Abort.");
+    }
+    auto closingBracketPosition = disassembly.find_first_of(']');
+    auto len = closingBracketPosition - openBracketPosition;
+    auto substring = disassembly.substr(openBracketPosition, len + 1);
+    return substring;
 }
