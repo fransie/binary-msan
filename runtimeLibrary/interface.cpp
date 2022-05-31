@@ -124,7 +124,28 @@ void memToRegShadowCopy(int reg, int regWidth, uptr memAddress){
         std::cout << memAddress << " is not an application address." << std::endl;
         return;
     }
-    auto *shadow = reinterpret_cast<std::byte *>(MEM_TO_SHADOW(memAddress));
-    //TODO: adapt to width
-    std::cout << "Shadow: " << (short) shadow[0] << std::endl;
+    auto *memShadow = reinterpret_cast<std::int8_t *>(MEM_TO_SHADOW(memAddress));
+    int position = 0;
+    if(regWidth == HIGHER_BYTE){
+        position = 8;
+    }
+    for (int byte = 0; byte < regWidth / BYTE; byte++){
+        std::int8_t bits = *((memShadow) + byte * BYTE);
+        std::cout << "byte: " << (unsigned short) bits << ". Bits: ";
+        for (int x = 0; x < 8; x++){
+            auto bit = (bits >> x) & 1U;
+            std::cout << (unsigned short) bit << " " ;
+            shadowRegisterState[reg].set(position, bit);
+            position++;
+        }
+        std::cout << std::endl;
+    }
+
+    // double words are zero-extended to quad words upon mov -> clear higher 4 bytes
+    if(regWidth == DOUBLE_WORD){
+        for(int x = 32; x < 64; x++){
+            shadowRegisterState[reg].set(x, false);
+        }
+    }
+    std::cout << "Shadow of register " << reg << " is now " << shadowRegisterState[reg].to_ullong() << std::endl;
 }
