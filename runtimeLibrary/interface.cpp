@@ -147,5 +147,5 @@ void memToRegShadowCopy(int reg, int regWidth, uptr memAddress){
             shadowRegisterState[reg].set(x, false);
         }
     }
-    std::cout << "Shadow of register " << reg << " is now " << shadowRegisterState[reg].to_ullong() << std::endl;
+    std::cout << "memToRegShadowCopy. MemAddress: " << memAddress << ". Shadow of reg " << reg << " is: " << shadowRegisterState[reg].to_ullong() << std::endl;
 }
