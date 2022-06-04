@@ -110,6 +110,31 @@ void checkRegIsInit(int reg, int regWidth) {
     }
 }
 
+///**
+// * Copies the shadow associated with <code>memAddress</code> into the shadow state of the register <code>reg</code>.
+// * Instrument a 'mov reg, [memAddress]' with this so that the shadow is propagated correctly.
+// *
+// * @param reg Number of the destination register.
+// * @param regWidth Width of the destination register.
+// * @param memAddress Source memory address.
+// */
+//void memToRegShadowCopy(int reg, int regWidth, uptr memAddress){
+//    std::cout << "memToRegShadowCopy. Register: " << reg << ". RegWidth: " << regWidth << ". MemAddress: " << memAddress << std::endl;
+//
+//    // get shadow memory and print it
+//    unsigned long long int shadowMem = MEM_TO_SHADOW(memAddress);
+//    std::cout << "Memory address 0x" << std::hex << memAddress << " and shadow address 0x" << shadowMem << std::endl;
+//    std::cout << "Shadow contains 0x" << *(reinterpret_cast<unsigned long long*>(shadowMem)) << std::endl;
+//
+//    std::cout << "Shadow one byte contains " << *(reinterpret_cast<unsigned short*>(shadowMem)) << std::endl;
+//
+//    auto charPointer = reinterpret_cast<char*>(shadowMem);
+//    for(int x = 0; x < 8; x++){
+//        std::cout << "Char " << x << " address: 0x" << std::hex << (unsigned long long) charPointer << " and content 0x" << (short) *charPointer << std::endl;
+//        charPointer++;
+//    }
+//}
+
 /**
  * Copies the shadow associated with <code>memAddress</code> into the shadow state of the register <code>reg</code>.
  * Instrument a 'mov reg, [memAddress]' with this so that the shadow is propagated correctly.
@@ -124,14 +149,14 @@ void memToRegShadowCopy(int reg, int regWidth, uptr memAddress){
         std::cout << memAddress << " is not an application address." << std::endl;
         return;
     }
-    auto *memShadow = reinterpret_cast<std::int8_t *>(MEM_TO_SHADOW(memAddress));
+    auto memShadowAddress = reinterpret_cast<char*>(MEM_TO_SHADOW(memAddress));
     int position = 0;
     if(regWidth == HIGHER_BYTE){
         position = 8;
     }
-    for (int byte = 0; byte < regWidth / BYTE; byte++){
-        std::int8_t bits = *((memShadow) + byte * BYTE);
-        std::cout << "byte: " << (unsigned short) bits << ". Bits: ";
+    for (int byte = 0; byte < (regWidth / BYTE); byte++){
+        char bits = *memShadowAddress;
+        std::cout << "Byte at address 0x" << (uptr) memShadowAddress << ": "<< (unsigned short) bits << ". Bits: ";
         for (int x = 0; x < 8; x++){
             auto bit = (bits >> x) & 1U;
             std::cout << (unsigned short) bit << " " ;
@@ -139,6 +164,7 @@ void memToRegShadowCopy(int reg, int regWidth, uptr memAddress){
             position++;
         }
         std::cout << std::endl;
+        memShadowAddress++;
     }
 
     // double words are zero-extended to quad words upon mov -> clear higher 4 bytes
@@ -147,5 +173,5 @@ void memToRegShadowCopy(int reg, int regWidth, uptr memAddress){
             shadowRegisterState[reg].set(x, false);
         }
     }
-    std::cout << "memToRegShadowCopy. MemAddress: " << memAddress << ". Shadow of reg " << reg << " is: " << shadowRegisterState[reg].to_ullong() << std::endl;
+    std::cout << "memToRegShadowCopy. Shadow of reg " << reg << " is: " << shadowRegisterState[reg].to_ullong() << std::endl;
 }
