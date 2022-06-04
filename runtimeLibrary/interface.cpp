@@ -149,6 +149,7 @@ void memToRegShadowCopy(int reg, int regWidth, uptr memAddress){
         std::cout << memAddress << " is not an application address." << std::endl;
         return;
     }
+    // char pointers in C++ can read memory byte by byte
     auto memShadowAddress = reinterpret_cast<char*>(MEM_TO_SHADOW(memAddress));
     int position = 0;
     if(regWidth == HIGHER_BYTE){
