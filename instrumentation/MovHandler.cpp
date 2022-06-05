@@ -3,8 +3,6 @@
 //
 
 #include "MovHandler.h"
-#include "Utils.h"
-#include "MemoryAccessHandler.h"
 
 using namespace IRDB_SDK;
 using namespace std;
@@ -122,4 +120,8 @@ string MovHandler::getMemoryOperandDisassembly(Instruction_t *instruction) {
 
 MovHandler::MovHandler(FileIR_t *fileIr) : fileIr(fileIr){
     capstone = make_unique<CapstoneService>();
+}
+
+std::string &MovHandler::getAssociatedInstruction() {
+    return associatedInstruction;
 }

@@ -12,7 +12,7 @@ MSan::MSan(FileIR_t *fileIR)
         Transform_t(fileIR) // init Transform_t class for insertAssembly and getFileIR
 {
     registerDependencies();
-    movHandler = make_unique<MovHandler>(fileIR);
+    handlers.push_back(make_unique<MovHandler>(fileIR));
 }
 
 bool MSan::executeStep()
@@ -38,11 +38,10 @@ bool MSan::executeStep()
         auto decodedInstruction = DecodedInstruction_t::factory(instruction);
         auto decodedInstructionCopy = DecodedInstruction_t::factory(instruction);
         auto mnemonic = decodedInstruction->getMnemonic();
-        if(mnemonic == "mov"){
-            movHandler->instrument(instruction);
-        }
-        if(mnemonic == "add"){
-            addHandler(instruction);
+        for (auto&& handler : handlers){
+            if(mnemonic == handler->getAssociatedInstruction()){
+                handler->instrument(instruction);
+            }
         }
     }
     return true; //success

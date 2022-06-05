@@ -23,7 +23,7 @@ public:
     bool parseArgs(std::vector<std::string> step_args);
 
 private:
-    std::unique_ptr<MovHandler> movHandler;
+    std::vector<std::unique_ptr<Handler>> handlers;
 
     void registerDependencies();
     void addHandler(IRDB_SDK::Instruction_t *instruction);

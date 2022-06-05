@@ -5,6 +5,13 @@
 #ifndef BINARY_MSAN_MEMORYACCESSHANDLER_H
 #define BINARY_MSAN_MEMORYACCESSHANDLER_H
 
+#include <memory>
+#include <irdb-core>
+#include <irdb-elfdep>
+#include "Utils.h"
+#include "RuntimeLib.h"
+#include "CapstoneService.h"
+
 
 class MemoryAccessHandler {
 public:

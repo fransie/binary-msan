@@ -9,15 +9,20 @@
 #include <irdb-transform>
 #include "CapstoneService.h"
 #include "RuntimeLib.h"
+#include "Handler.h"
+#include "Utils.h"
+#include "MemoryAccessHandler.h"
 
-class MovHandler {
+class MovHandler : public Handler {
 public:
     explicit MovHandler(IRDB_SDK::FileIR_t *fileIr);
 
-    void instrument(IRDB_SDK::Instruction_t *instruction);
+    void instrument(IRDB_SDK::Instruction_t *instruction) override;
+    std::string &getAssociatedInstruction() override;
 
 
 private:
+    std::string associatedInstruction = "mov";
     std::unique_ptr<CapstoneService> capstone;
     IRDB_SDK::FileIR_t *fileIr;
 

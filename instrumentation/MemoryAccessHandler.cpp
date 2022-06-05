@@ -2,12 +2,9 @@
 // Created by Franziska Mäckel on 05.06.22.
 //
 
-#include "MovHandler.h"
-#include "Utils.h"
 #include "MemoryAccessHandler.h"
 
-#include <memory>
-#include <irdb-elfdep>
+using namespace IRDB_SDK;
 
 /**
  * Inserts instrumentation to verify that a memory access does not use an uninitialised base or index register.
@@ -20,10 +17,10 @@
  * @param instruction The instruction that contains the operand with the memory access.
  * @return Returns a pointer to the original instruction.
  */
-IRDB_SDK::Instruction_t* MemoryAccessHandler::instrumentMemRef(const std::shared_ptr<IRDB_SDK::DecodedOperand_t> &operand,
-                                                               IRDB_SDK::Instruction_t *instruction,
+Instruction_t* MemoryAccessHandler::instrumentMemRef(const std::shared_ptr<DecodedOperand_t> &operand,
+                                                               Instruction_t *instruction,
                                                                std::unique_ptr<CapstoneService> &capstoneService,
-                                                               IRDB_SDK::FileIR_t *fileIr) {
+                                                               FileIR_t *fileIr) {
     std::cout << "instrumentMemRef. Operand: " << operand->getString() << std::endl;
     IRDB_SDK::Instruction_t *originalInstruction = instruction;
     if(operand->hasBaseRegister()){
