@@ -1,8 +1,8 @@
 ############### RUNTIME LIBRARY ###############
 
 add_library(interface SHARED
-        interface.cpp
-        interface.h
+        Interface.cpp
+        Interface.h
 )
 target_compile_options(interface PRIVATE -Wall -Wextra -Wpedantic)
 

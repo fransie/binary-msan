@@ -43,8 +43,8 @@ bool CapstoneService::isHigherByteRegister(x86_reg capstoneRegNumber) {
     }
 }
 
-//TODO: this function should return the width independently of the position of the register etc.
-int CapstoneService::getOperandWidth(IRDB_SDK::Instruction_t *instruction) {
+//TODO: probably needs to changed to fit e.g. movzx
+int CapstoneService::getDestOperandWidth(IRDB_SDK::Instruction_t *instruction) {
     auto operands = IRDB_SDK::DecodedInstruction_t::factory(instruction)->getOperands();
     auto width = operands[0]->getArgumentSizeInBits();
 

@@ -42,7 +42,7 @@ void MovHandler::instrumentImmToRegMove(Instruction_t *instruction) {
     cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << (int) dest << " and immediate: " << operands[1]->getConstant() << endl;
 
 
-    auto width = capstone->getOperandWidth(instruction);
+    auto width = capstone->getDestOperandWidth(instruction);
     string instrumentation = string() +
                              "pushf\n" +           // save eflags (necessary?)
                              Utils::getPushCallerSavedRegistersInstrumentation() +
@@ -68,7 +68,7 @@ void MovHandler::instrumentRegToRegMove(Instruction_t *instruction) {
     const auto source = operands[1]->getRegNumber();
     cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << dest << " and source: " << source << endl;
 
-    auto width = capstone->getOperandWidth(instruction);
+    auto width = capstone->getDestOperandWidth(instruction);
     string instrumentation = string() +
                              "pushf\n" +           // save eflags (necessary?)
                                   Utils::getPushCallerSavedRegistersInstrumentation() +
@@ -91,7 +91,7 @@ void MovHandler::instrumentMemToRegMove(Instruction_t *instruction) {
 
     instruction = MemoryAccessHandler::instrumentMemRef(operands[1], instruction, capstone, fileIr);
     auto memoryDisassembly = getMemoryOperandDisassembly(instruction);
-    auto width = capstone->getOperandWidth(instruction);
+    auto width = capstone->getDestOperandWidth(instruction);
     string instrumentation = string() +
                              "pushf\n" +           // save eflags (necessary?)
                                   Utils::getPushCallerSavedRegistersInstrumentation() +

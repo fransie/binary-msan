@@ -16,7 +16,7 @@ public:
 
     x86_reg getRegister(IRDB_SDK::Instruction_t *instruction, int operandNumber);
     bool isHigherByteRegister(x86_reg capstoneRegNumber);
-    int getOperandWidth(IRDB_SDK::Instruction_t *instruction);
+    int getDestOperandWidth(IRDB_SDK::Instruction_t *instruction);
     int getBaseRegWidth(IRDB_SDK::Instruction_t *instruction);
     int getIndexRegWidth(IRDB_SDK::Instruction_t *instruction);
 
