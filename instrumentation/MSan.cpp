@@ -47,15 +47,6 @@ bool MSan::executeStep()
     return true; //success
 }
 
-/**
- * Takes an assembly add-instruction and inserts instrumentation before the instruction which
- * handles the shadow propagation.
- * @param instruction the add instruction to be instrumented
- */
-void MSan::addHandler(Instruction_t *instruction){
-
-}
-
 void MSan::registerDependencies(){
     auto elfDeps = ElfDependencies_t::factory(getFileIR());
     // TODO: fix absolute paths

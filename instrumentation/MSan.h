@@ -26,8 +26,6 @@ private:
     std::vector<std::unique_ptr<Handler>> handlers;
 
     void registerDependencies();
-    void addHandler(IRDB_SDK::Instruction_t *instruction);
-
 };
 
 #endif
