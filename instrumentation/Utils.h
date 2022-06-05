@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-class utils {
+class Utils {
 public:
     static std::string getPushCallerSavedRegistersInstrumentation();
     static std::string getPopCallerSavedRegistersInstrumentation();

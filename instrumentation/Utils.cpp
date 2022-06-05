@@ -2,7 +2,7 @@
 // Created by Franziska Mäckel on 12.04.22.
 //
 
-#include "utils.h"
+#include "Utils.h"
 
 // TODO: save state sse and fpu registers + red zone
 /**
@@ -11,7 +11,7 @@
  *  Number of instructions: 9.
  * @return string of assembly push instructions
  */
-std::string utils::getPushCallerSavedRegistersInstrumentation(){
+std::string Utils::getPushCallerSavedRegistersInstrumentation(){
     return std::string() +
            "push   rax\n" +
            "push   rcx\n" +
@@ -30,7 +30,7 @@ std::string utils::getPushCallerSavedRegistersInstrumentation(){
  *  Number of instructions: 9.
  * @return string of assembly pop instructions
  */
-std::string utils::getPopCallerSavedRegistersInstrumentation(){
+std::string Utils::getPopCallerSavedRegistersInstrumentation(){
     return std::string() +
            "pop   r11\n" +
            "pop   r10\n" +

@@ -18,12 +18,10 @@ CapstoneService::CapstoneService() {
         //TODO: error handling
     }
     cs_option(capstoneHandle, CS_OPT_DETAIL, CS_OPT_ON);
-    std::cout << "Capstone handle initialised." << std::endl;
 }
 
 CapstoneService::~CapstoneService() {
     cs_close(&capstoneHandle);
-    std::cout << "Capstone handle closed." << std::endl;
 }
 
 x86_reg CapstoneService::getRegister(IRDB_SDK::Instruction_t *instruction, int operandNumber) {

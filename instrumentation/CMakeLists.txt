@@ -1,9 +1,12 @@
 ############### INSTRUMENTATION ###############
 add_executable(binmsan
-        msan.cpp
-        main.cpp
         CapstoneService.cpp
-        utils.cpp
+        RuntimeLib.h
+        MemoryAccessHandler.cpp
+        MovHandler.cpp
+        MSan.cpp
+        Main.cpp
+        Utils.cpp
 )
 target_compile_options(binmsan PRIVATE -Wall -Wextra -Wpedantic)
 

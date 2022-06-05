@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include <irdb-core>
-#include "msan.hpp"
+#include "MSan.h"
 
 
 int main(int argc, char* argv[]) {
