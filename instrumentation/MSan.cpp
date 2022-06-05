@@ -13,6 +13,8 @@ MSan::MSan(FileIR_t *fileIR)
 {
     registerDependencies();
     handlers.push_back(make_unique<MovHandler>(fileIR));
+    handlers.push_back(make_unique<TestHandler>(fileIR));
+
 }
 
 bool MSan::executeStep()

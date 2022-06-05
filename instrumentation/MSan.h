@@ -10,6 +10,7 @@
 #include <irdb-elfdep>
 #include <memory>
 #include "MovHandler.h"
+#include "TestHandler.h"
 #include "RuntimeLib.h"
 
 class MSan : protected IRDB_SDK::Transform_t
