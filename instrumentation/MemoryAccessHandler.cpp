@@ -39,7 +39,6 @@ Instruction_t* MemoryAccessHandler::instrumentMemRef(const std::shared_ptr<Decod
         const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
         new_instr[12]->setTarget(RuntimeLib::checkRegIsInit);
         originalInstruction = new_instr[new_instr.size()-1];
-        std::cout << "instrumentMemRef base. Inserted the following base reg instrumentation: " << instrumentation << std::endl;
     }
     if(operand->hasIndexRegister()){
         auto indexReg = operand->getIndexRegister();
@@ -57,7 +56,6 @@ Instruction_t* MemoryAccessHandler::instrumentMemRef(const std::shared_ptr<Decod
         const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
         new_instr[12]->setTarget(RuntimeLib::checkRegIsInit);
         originalInstruction = new_instr[new_instr.size()-1];
-        std::cout << "instrumentMemRef index. Inserted the following index reg instrumentation: " << instrumentation << std::endl;
     }
     return originalInstruction;
 }

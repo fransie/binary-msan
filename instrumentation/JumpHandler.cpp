@@ -26,6 +26,5 @@ void JumpHandler::instrument(Instruction_t *instruction) {
                              "popf\n";             // restore eflags
     const auto new_instr = insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,{});
     new_instr[10]->setTarget(RuntimeLib::checkEflags);
-    cout << "Inserted the following instrumentation: " << instrumentation << endl;
 }
 

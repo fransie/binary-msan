@@ -52,7 +52,6 @@ void MovHandler::instrumentImmToRegMove(Instruction_t *instruction) {
     vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string(width)};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
     new_instr[12]->setTarget(RuntimeLib::defineRegShadow);
-    cout << "Inserted the following instrumentation: " << instrumentation << endl;
 }
 
 /**
@@ -79,7 +78,6 @@ void MovHandler::instrumentRegToRegMove(Instruction_t *instruction) {
     vector<basic_string<char>> instrumentationParams {to_string(dest), to_string(source), to_string(width)};
     const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
     new_instr[13]->setTarget(RuntimeLib::regToRegShadowCopy);
-    cout << "Inserted the following instrumentation: " << instrumentation << endl;
 }
 
 void MovHandler::instrumentMemToRegMove(Instruction_t *instruction) {
@@ -102,7 +100,6 @@ void MovHandler::instrumentMemToRegMove(Instruction_t *instruction) {
     vector<basic_string<char>> instrumentationParams {to_string(dest), to_string(width), memoryDisassembly};
     const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
     new_instr[13]->setTarget(RuntimeLib::memToRegShadowCopy);
-    cout << "Inserted the following instrumentation: " << instrumentation << endl;
 }
 
 string MovHandler::getMemoryOperandDisassembly(Instruction_t *instruction) {

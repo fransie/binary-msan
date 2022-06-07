@@ -55,7 +55,6 @@ void TestHandler::instrumentSingleRegTest(IRDB_SDK::Instruction_t *instruction) 
     vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string(width)};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
     new_instr[12]->setTarget(RuntimeLib::setFlagsAfterTest_Reg);
-    cout << "instrumentSingleRegTest: Inserted the following instrumentation: " << instrumentation << endl;
 }
 
 void TestHandler::instrumentRegRegTest(IRDB_SDK::Instruction_t *instruction) {
@@ -75,5 +74,4 @@ void TestHandler::instrumentRegRegTest(IRDB_SDK::Instruction_t *instruction) {
     vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string((int)src), to_string(width)};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
     new_instr[13]->setTarget(RuntimeLib::setFlagsAfterTest_RegReg);
-    cout << "instrumentRegRegTest: Inserted the following instrumentation: " << instrumentation << endl;
 }

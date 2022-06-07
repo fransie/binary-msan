@@ -190,7 +190,6 @@ void setFlagsAfterTest_Reg(int reg, int width) {
  * @param width width of the two registers used. In test operations, both registers are the same size.
  */
 void setFlagsAfterTest_RegReg(int destReg, int srcReg, int width) {
-
     auto destShadow = shadowRegisterState[destReg].to_ullong();
     auto srcShadow = shadowRegisterState[srcReg].to_ullong();
     if((destShadow | srcShadow) == 0){
