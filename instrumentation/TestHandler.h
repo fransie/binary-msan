@@ -5,19 +5,27 @@
 #ifndef BINARY_MSAN_TESTHANDLER_H
 #define BINARY_MSAN_TESTHANDLER_H
 
-
+#include <irdb-transform>
 #include "Handler.h"
+#include "CapstoneService.h"
+#include "RuntimeLib.h"
+#include "Utils.h"
 
 class TestHandler : public Handler{
 public:
     explicit TestHandler(IRDB_SDK::FileIR_t *fileIr);
+    ~TestHandler() = default;
 
-    void instrument(IRDB_SDK::Instruction_t *instruction) override;
     const std::string &getAssociatedInstruction() override;
+    void instrument(IRDB_SDK::Instruction_t *instruction) override;
 
 private:
-    std::string associatedInstruction;
+    std::string associatedInstruction = "test";
+    std::unique_ptr<CapstoneService> capstone;
     IRDB_SDK::FileIR_t *fileIr;
+
+    void instrumentSingleRegTest(IRDB_SDK::Instruction_t *instruction);
+    void instrumentRegRegTest(IRDB_SDK::Instruction_t *instruction);
 };
 
 

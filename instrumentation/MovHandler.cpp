@@ -9,7 +9,7 @@ using namespace std;
 
 
 // TODO: handle operand sizes other than 64 bit
-// TODO: handle segment registers and memory locations as operands
+// TODO: handle segment registers as operands
 /**
  * Takes a mov instruction and inserts instrumentation before it so that the shadow is handled correctly.
  */

@@ -7,6 +7,7 @@ add_executable(binmsan
         MSan.cpp
         Main.cpp
         RuntimeLib.h
+        TestHandler.cpp
         Utils.cpp
 )
 target_compile_options(binmsan PRIVATE -Wall -Wextra -Wpedantic)

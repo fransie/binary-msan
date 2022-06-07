@@ -14,6 +14,10 @@
  */
 std::vector<std::bitset<64>> shadowRegisterState = std::vector<std::bitset<64>>(16, std::bitset<64>{}.set());
 
+/**
+ * Represents the definedness of the EFLAGS register in one bit. Hence, this is only an approximation.
+ */
+bool eflagsDefined = false;
 
 /**
  * Takes two ints representing general purpose registers and propagates the shadow value of the
@@ -147,4 +151,67 @@ void memToRegShadowCopy(int reg, int regWidth, uptr memAddress){
         }
     }
     std::cout << "memToRegShadowCopy. Shadow of reg " << reg << " is: 0x" << std::hex << shadowRegisterState[reg].to_ullong() << "." << std::endl;
+}
+
+/**
+ * Sets the shadow of the EFLAGS registers according to a test instruction with one general purpose register included,
+ * e.g. test eax, eax or test eax, 0.
+ * @param reg number of the register.
+ * @param width width of the register.
+ */
+void setFlagsAfterTest_Reg(int reg, int width) {
+    auto shadow = shadowRegisterState[reg].to_ullong();
+    if (shadow == 0){
+        eflagsDefined = true;
+    } else {
+        int bit = 0;
+        if(width == HIGHER_BYTE){
+            bit = 8;
+            width = 16;
+        }
+        for (; bit < width; bit++){
+            if(shadowRegisterState[reg].test(bit) == 1){
+                eflagsDefined = false;
+                std::cout << "setFlagsAfterTest_Reg. Register: " << reg << ". RegWidth: " << width << ". Eflags init: " << std::boolalpha << eflagsDefined << std::endl;
+                return;
+            }
+        }
+        eflagsDefined =  true;
+    }
+    std::cout << "setFlagsAfterTest_Reg. Register: " << reg << ". RegWidth: " << width << ". Eflags init: " << std::boolalpha << eflagsDefined << std::endl;
+}
+
+
+/**
+ * Sets the shadow of the EFLAGS registers according to a test instruction with two general purpose registers included,
+ * e.g. test eax, ebx.
+ * @param destReg number of the destination register.
+ * @param srcReg number of the source register.
+ * @param width width of the two registers used. In test operations, both registers are the same size.
+ */
+void setFlagsAfterTest_RegReg(int destReg, int srcReg, int width) {
+
+    auto destShadow = shadowRegisterState[destReg].to_ullong();
+    auto srcShadow = shadowRegisterState[srcReg].to_ullong();
+    if((destShadow | srcShadow) == 0){
+        eflagsDefined = true;
+    } else {
+        int bit = 0;
+        if(width == HIGHER_BYTE){
+            bit = 8;
+            width = 16;
+        }
+        for (; bit < width; bit++){
+            if(shadowRegisterState[destReg].test(bit) == 1){
+                eflagsDefined = false;
+                return;
+            }
+            if(shadowRegisterState[srcReg].test(bit) == 1){
+                eflagsDefined = false;
+                return;
+            }
+        }
+        eflagsDefined =  true;
+    }
+    std::cout << "setFlagsAfterTest_RegReg. Dest: " << destReg << ". Source: " << srcReg << ". Width: " << width << ". Eflags init: " << std::boolalpha << eflagsDefined << std::endl;
 }

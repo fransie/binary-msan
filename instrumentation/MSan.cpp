@@ -59,6 +59,9 @@ void MSan::registerDependencies(){
     RuntimeLib::defineRegShadow = elfDeps->appendPltEntry("_Z15defineRegShadowii");
     RuntimeLib::checkRegIsInit = elfDeps->appendPltEntry("_Z14checkRegIsInitii");
     RuntimeLib::memToRegShadowCopy = elfDeps->appendPltEntry("_Z18memToRegShadowCopyiim");
+    RuntimeLib::setFlagsAfterTest_Reg = elfDeps->appendPltEntry("_Z21setFlagsAfterTest_Regii");
+    RuntimeLib::setFlagsAfterTest_RegReg = elfDeps->appendPltEntry("_Z24setFlagsAfterTest_RegRegiii");
+
 
     const string compilerRtPath = "/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compilerRT-build/lib/linux/";
     elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan_cxx-x86_64.so");
