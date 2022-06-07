@@ -122,6 +122,6 @@ MovHandler::MovHandler(FileIR_t *fileIr) : fileIr(fileIr){
     capstone = make_unique<CapstoneService>();
 }
 
-std::string &MovHandler::getAssociatedInstruction() {
-    return associatedInstruction;
+const vector<std::string> & MovHandler::getAssociatedInstructions() {
+    return associatedInstructions;
 }

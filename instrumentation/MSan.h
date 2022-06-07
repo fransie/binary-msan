@@ -9,6 +9,7 @@
 #include <irdb-transform>
 #include <irdb-elfdep>
 #include <memory>
+#include "JumpHandler.h"
 #include "MovHandler.h"
 #include "TestHandler.h"
 #include "RuntimeLib.h"

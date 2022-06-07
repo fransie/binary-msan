@@ -11,8 +11,8 @@ TestHandler::TestHandler(IRDB_SDK::FileIR_t *fileIr) : fileIr(fileIr) {
     capstone = make_unique<CapstoneService>();
 }
 
-const std::string &TestHandler::getAssociatedInstruction() {
-    return associatedInstruction;
+const std::vector<std::string> &TestHandler::getAssociatedInstructions() {
+    return associatedInstructions;
 }
 
 //TODO: consider memory destination operand, not only register. Right now, this function assumes destination to be

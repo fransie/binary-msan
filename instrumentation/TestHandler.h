@@ -16,11 +16,11 @@ public:
     explicit TestHandler(IRDB_SDK::FileIR_t *fileIr);
     ~TestHandler() = default;
 
-    const std::string &getAssociatedInstruction() override;
+    const std::vector<std::string> &getAssociatedInstructions() override;
     void instrument(IRDB_SDK::Instruction_t *instruction) override;
 
 private:
-    std::string associatedInstruction = "test";
+    std::vector<std::string> associatedInstructions {"test"};
     std::unique_ptr<CapstoneService> capstone;
     IRDB_SDK::FileIR_t *fileIr;
 

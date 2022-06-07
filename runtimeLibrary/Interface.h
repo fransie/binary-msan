@@ -34,4 +34,7 @@ INTERFACE void regToRegShadowCopy(int dest, int source, int width);
 INTERFACE void setFlagsAfterTest_Reg(int reg, int width);
 INTERFACE void setFlagsAfterTest_RegReg(int destReg, int srcReg, int width);
 
+// jump
+INTERFACE void checkEflags();
+
 #endif //BINARY_MSAN_INTERFACE_H

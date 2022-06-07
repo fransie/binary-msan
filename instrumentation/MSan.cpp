@@ -14,7 +14,7 @@ MSan::MSan(FileIR_t *fileIR)
     registerDependencies();
     handlers.push_back(make_unique<MovHandler>(fileIR));
     handlers.push_back(make_unique<TestHandler>(fileIR));
-
+    handlers.push_back(make_unique<JumpHandler>(fileIR));
 }
 
 bool MSan::executeStep()
@@ -40,8 +40,10 @@ bool MSan::executeStep()
         auto decodedInstruction = DecodedInstruction_t::factory(instruction);
         auto decodedInstructionCopy = DecodedInstruction_t::factory(instruction);
         auto mnemonic = decodedInstruction->getMnemonic();
+
         for (auto&& handler : handlers){
-            if(mnemonic == handler->getAssociatedInstruction()){
+            for (const auto& associatedInstruction : handler->getAssociatedInstructions())
+            if(mnemonic == associatedInstruction){
                 handler->instrument(instruction);
             }
         }
@@ -61,6 +63,7 @@ void MSan::registerDependencies(){
     RuntimeLib::memToRegShadowCopy = elfDeps->appendPltEntry("_Z18memToRegShadowCopyiim");
     RuntimeLib::setFlagsAfterTest_Reg = elfDeps->appendPltEntry("_Z21setFlagsAfterTest_Regii");
     RuntimeLib::setFlagsAfterTest_RegReg = elfDeps->appendPltEntry("_Z24setFlagsAfterTest_RegRegiii");
+    RuntimeLib::checkEflags = elfDeps->appendPltEntry("_Z11checkEflagsv");
 
 
     const string compilerRtPath = "/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compilerRT-build/lib/linux/";

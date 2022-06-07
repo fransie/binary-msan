@@ -18,11 +18,11 @@ public:
     explicit MovHandler(IRDB_SDK::FileIR_t *fileIr);
 
     void instrument(IRDB_SDK::Instruction_t *instruction) override;
-    std::string &getAssociatedInstruction() override;
+    const std::vector<std::string> &getAssociatedInstructions() override;
 
 
 private:
-    std::string associatedInstruction = "mov";
+    std::vector<std::string> associatedInstructions {"mov"};
     std::unique_ptr<CapstoneService> capstone;
     IRDB_SDK::FileIR_t *fileIr;
 

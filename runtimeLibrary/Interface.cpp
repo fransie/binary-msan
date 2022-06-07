@@ -215,3 +215,13 @@ void setFlagsAfterTest_RegReg(int destReg, int srcReg, int width) {
     }
     std::cout << "setFlagsAfterTest_RegReg. Dest: " << destReg << ". Source: " << srcReg << ". Width: " << width << ". Eflags init: " << std::boolalpha << eflagsDefined << std::endl;
 }
+
+/**
+ * Verifies whether the EFLAGS register is initialised and if not, causes an msan warning.
+ */
+void checkEflags() {
+    if(!eflagsDefined){
+        std::cout << "checkEflags: msan warning" << std::endl;
+        //__msan_warning();
+    }
+}

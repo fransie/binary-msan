@@ -10,7 +10,7 @@
 class Handler {
 public:
     virtual void instrument(IRDB_SDK::Instruction_t *instruction) = 0;
-    virtual const std::string &getAssociatedInstruction() = 0;
+    virtual const std::vector<std::string> &getAssociatedInstructions() = 0;
 };
 
 
