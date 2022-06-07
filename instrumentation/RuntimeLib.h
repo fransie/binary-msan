@@ -16,6 +16,7 @@ public:
     inline static IRDB_SDK::Instruction_t *setFlagsAfterTest_Reg;
     inline static IRDB_SDK::Instruction_t *setFlagsAfterTest_RegReg;
     inline static IRDB_SDK::Instruction_t *checkEflags;
+    inline static IRDB_SDK::Instruction_t *initGpRegisters;
 };
 
 

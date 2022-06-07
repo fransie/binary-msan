@@ -37,4 +37,7 @@ INTERFACE void setFlagsAfterTest_RegReg(int destReg, int srcReg, int width);
 // jump
 INTERFACE void checkEflags();
 
+// helpers
+INTERFACE void initGpRegisters();
+
 #endif //BINARY_MSAN_INTERFACE_H

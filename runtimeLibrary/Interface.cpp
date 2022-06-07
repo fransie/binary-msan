@@ -84,7 +84,7 @@ void defineRegShadow(const int reg, int width){
         width = 64;
     }
     for(int position = 63 - startFrom; position < (position - width) ; position--){
-        destinationRegisterShadow.set(position, false);
+        destinationRegisterShadow.set(position, 0);
     }
 }
 
@@ -96,9 +96,8 @@ void defineRegShadow(const int reg, int width){
  * @param regWidth width of the register in bits
  */
 void checkRegIsInit(int reg, int regWidth) {
-    auto regShadow = shadowRegisterState[reg].to_ullong();
-    std::cout << "checkRegIsInit. Register: " << reg << ". Width: " << regWidth << ". Register shadow as ulong: " <<  regShadow << std::endl;
-    if(regShadow != 0){
+    std::cout << "checkRegIsInit. Register: " << reg << ". Width: " << regWidth << ". Register shadow: 0x" << std::hex << shadowRegisterState[reg].to_ullong() << std::endl;
+    if(shadowRegisterState[reg].none()){
         int bit = 0;
         if(regWidth == HIGHER_BYTE){
             bit = 8;
@@ -160,8 +159,7 @@ void memToRegShadowCopy(int reg, int regWidth, uptr memAddress){
  * @param width width of the register.
  */
 void setFlagsAfterTest_Reg(int reg, int width) {
-    auto shadow = shadowRegisterState[reg].to_ullong();
-    if (shadow == 0){
+    if (shadowRegisterState[reg].none()){
         eflagsDefined = true;
     } else {
         int bit = 0;
@@ -190,9 +188,7 @@ void setFlagsAfterTest_Reg(int reg, int width) {
  * @param width width of the two registers used. In test operations, both registers are the same size.
  */
 void setFlagsAfterTest_RegReg(int destReg, int srcReg, int width) {
-    auto destShadow = shadowRegisterState[destReg].to_ullong();
-    auto srcShadow = shadowRegisterState[srcReg].to_ullong();
-    if((destShadow | srcShadow) == 0){
+    if(shadowRegisterState[destReg].none() && shadowRegisterState[srcReg].none()){
         eflagsDefined = true;
     } else {
         int bit = 0;
@@ -222,5 +218,11 @@ void checkEflags() {
     if(!eflagsDefined){
         std::cout << "checkEflags: msan warning" << std::endl;
         //__msan_warning();
+    }
+}
+
+void initGpRegisters() {
+    for(std::bitset<64> &regState : shadowRegisterState){
+        regState.reset();
     }
 }
