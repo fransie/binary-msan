@@ -221,8 +221,10 @@ void checkEflags() {
     }
 }
 
+/**
+ * Sets the state of RBP and RSP to initialised.
+ */
 void initGpRegisters() {
-    for(std::bitset<64> &regState : shadowRegisterState){
-        regState.reset();
-    }
+    shadowRegisterState[4].reset();
+    shadowRegisterState[5].reset();
 }

@@ -33,7 +33,7 @@ bool MSan::executeStep()
     if(!mainFunction){
         cout << "No main function detected." << endl;
     }
-    // assume all registers are initialised upon entry of main function
+    // assume RBP and RSP registers are initialised upon entry of main function
     initGpRegisters(mainFunction->getEntryPoint());
 
     // loop over instructions and add handlers to common functions
