@@ -19,11 +19,9 @@ const std::vector<std::string> &JumpHandler::getAssociatedInstructions() {
 void JumpHandler::instrument(Instruction_t *instruction) {
     cout << "JumpHandler. Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << endl;
     string instrumentation = string() +
-                             "pushf\n" +           // save eflags (necessary?)
                              Utils::getPushCallerSavedRegistersInstrumentation() +
                              "call 0\n" +
-                             Utils::getPopCallerSavedRegistersInstrumentation() +
-                             "popf\n";             // restore eflags
+                             Utils::getPopCallerSavedRegistersInstrumentation();
     const auto new_instr = insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,{});
     new_instr[10]->setTarget(RuntimeLib::checkEflags);
 }

@@ -55,11 +55,9 @@ bool MSan::executeStep()
 
 void MSan::initGpRegisters(Instruction_t *instruction){
     string instrumentation = string() +
-                             "pushf\n" +           // save eflags (necessary?)
                              Utils::getPushCallerSavedRegistersInstrumentation() +
                              "call 0\n" +
-                             Utils::getPopCallerSavedRegistersInstrumentation() +
-                             "popf\n";             // restore eflags
+                             Utils::getPopCallerSavedRegistersInstrumentation();
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(getFileIR(), instruction, instrumentation, {});
     new_instr[10]->setTarget(RuntimeLib::initGpRegisters);
 }
@@ -79,7 +77,7 @@ void MSan::registerDependencies(){
     RuntimeLib::checkEflags = elfDeps->appendPltEntry("_Z11checkEflagsv");
     RuntimeLib::initGpRegisters = elfDeps->appendPltEntry("_Z15initGpRegistersv");
 
-    const string compilerRtPath = "/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compilerRT-build/lib/linux/";
+    const string compilerRtPath = "/home/franzi/Documents/binary-msan/clang_msan_libs/";
     elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan_cxx-x86_64.so");
     elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan-x86_64.so");
 

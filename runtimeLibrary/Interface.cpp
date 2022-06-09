@@ -217,7 +217,8 @@ void setFlagsAfterTest_RegReg(int destReg, int srcReg, int width) {
 void checkEflags() {
     if(!eflagsDefined){
         std::cout << "checkEflags: msan warning" << std::endl;
-        //__msan_warning();
+        __msan_init();
+        __msan_warning();
     }
 }
 

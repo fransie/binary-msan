@@ -42,13 +42,11 @@ void MovHandler::instrumentImmToRegMove(Instruction_t *instruction) {
 
     auto width = capstone->getDestOperandWidth(instruction);
     string instrumentation = string() +
-                             "pushf\n" +           // save eflags (necessary?)
                              Utils::getPushCallerSavedRegistersInstrumentation() +
                              "mov rdi, %%1\n" +    // first argument
                              "mov rsi, %%2\n" +    // second argument
                              "call 0\n" +
-                             Utils::getPopCallerSavedRegistersInstrumentation() +
-                             "popf\n";             // restore eflags
+                             Utils::getPopCallerSavedRegistersInstrumentation();
     vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string(width)};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
     new_instr[12]->setTarget(RuntimeLib::defineRegShadow);
@@ -67,14 +65,12 @@ void MovHandler::instrumentRegToRegMove(Instruction_t *instruction) {
 
     auto width = capstone->getDestOperandWidth(instruction);
     string instrumentation = string() +
-                             "pushf\n" +           // save eflags (necessary?)
                                   Utils::getPushCallerSavedRegistersInstrumentation() +
-                             "mov rdi, %%1\n" +    // first argument
+                                  "mov rdi, %%1\n" +    // first argument
                                   "mov rsi, %%2\n" +    // second argument
                                   "mov rdx, %%3\n"      // third argument
                                   "call 0\n" +
-                             Utils::getPopCallerSavedRegistersInstrumentation() +
-                             "popf\n";             // restore eflags
+                             Utils::getPopCallerSavedRegistersInstrumentation();
     vector<basic_string<char>> instrumentationParams {to_string(dest), to_string(source), to_string(width)};
     const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
     new_instr[13]->setTarget(RuntimeLib::regToRegShadowCopy);
@@ -89,14 +85,12 @@ void MovHandler::instrumentMemToRegMove(Instruction_t *instruction) {
     auto memoryDisassembly = getMemoryOperandDisassembly(instruction);
     auto width = capstone->getDestOperandWidth(instruction);
     string instrumentation = string() +
-                             "pushf\n" +           // save eflags (necessary?)
                                   Utils::getPushCallerSavedRegistersInstrumentation() +
-                             "mov rdi, %%1\n" +    // reg
+                                  "mov rdi, %%1\n" +    // reg
                                   "mov rsi, %%2\n" +    // regWidth
                                   "lea rdx, %%3\n" +    // memAddr
                                   "call 0\n" +
-                             Utils::getPopCallerSavedRegistersInstrumentation() +
-                             "popf\n";             // restore eflags
+                             Utils::getPopCallerSavedRegistersInstrumentation();
     vector<basic_string<char>> instrumentationParams {to_string(dest), to_string(width), memoryDisassembly};
     const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
     new_instr[13]->setTarget(RuntimeLib::memToRegShadowCopy);

@@ -13,6 +13,7 @@
  */
 std::string Utils::getPushCallerSavedRegistersInstrumentation(){
     return std::string() +
+           "pushfq\n" +
            "push   rax\n" +
            "push   rcx\n" +
            "push   rdx\n" +
@@ -40,5 +41,7 @@ std::string Utils::getPopCallerSavedRegistersInstrumentation(){
            "pop   rsi\n" +
            "pop   rdx\n" +
            "pop   rcx\n" +
-           "pop   rax\n";
+           "pop   rax\n" +
+           "popfq\n";
+
 }

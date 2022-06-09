@@ -14,11 +14,11 @@ list(APPEND MSAN_INCLUDE_DIRS "/home/franzi/Documents/llvm-project-llvmorg-13.0.
 
 # add imported targets for msan and msan_cxx
 add_library(msan SHARED IMPORTED)
-set_property(TARGET msan PROPERTY IMPORTED_LOCATION "/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compilerRT-build/lib/linux/libclang_rt.msan-x86_64.so")
+set_property(TARGET msan PROPERTY IMPORTED_LOCATION "/home/franzi/Documents/binary-msan/clang_msan_libs/libclang_rt.msan-x86_64.so")
 target_include_directories(msan INTERFACE ${MSAN_INCLUDE_DIRS})
 
 add_library(msan_cxx SHARED IMPORTED)
-set_property(TARGET msan_cxx PROPERTY IMPORTED_LOCATION "/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compilerRT-build/lib/linux/libclang_rt.msan_cxx-x86_64.so")
+set_property(TARGET msan_cxx PROPERTY IMPORTED_LOCATION "/home/franzi/Documents/binary-msan/clang_msan_libs/libclang_rt.msan_cxx-x86_64.so")
 target_include_directories(msan_cxx INTERFACE ${MSAN_INCLUDE_DIRS})
 
 # add msan libs to runtime library target

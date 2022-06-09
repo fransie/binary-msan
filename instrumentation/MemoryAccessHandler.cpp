@@ -28,13 +28,11 @@ Instruction_t* MemoryAccessHandler::instrumentMemRef(const std::shared_ptr<Decod
         auto baseRegWidth = capstoneService->getBaseRegWidth(instruction);
 
         std::string instrumentation = std::string() +
-                                      "pushf\n" +           // save eflags (necessary?)
                                  Utils::getPushCallerSavedRegistersInstrumentation() +
-                                      "mov rdi, %%1\n" +    // first argument
+                                 "mov rdi, %%1\n" +    // first argument
                                  "mov rsi, %%2\n" +    // second argument
                                  "call 0\n" +
-                                      Utils::getPopCallerSavedRegistersInstrumentation() +
-                                      "popf\n";             // restore eflags
+                                 Utils::getPopCallerSavedRegistersInstrumentation();
         std::vector<std::__cxx11::basic_string<char>> instrumentationParams {std::__cxx11::to_string(baseReg), std::__cxx11::to_string(baseRegWidth)};
         const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
         new_instr[12]->setTarget(RuntimeLib::checkRegIsInit);
@@ -45,16 +43,14 @@ Instruction_t* MemoryAccessHandler::instrumentMemRef(const std::shared_ptr<Decod
         auto indexRegWidth = capstoneService->getIndexRegWidth(instruction);
 
         std::string instrumentation = std::string() +
-                                      "pushf\n" +           // save eflags (necessary?)
                                  Utils::getPushCallerSavedRegistersInstrumentation() +
-                                      "mov rdi, %%1\n" +    // first argument
+                                 "mov rdi, %%1\n" +    // first argument
                                  "mov rsi, %%2\n" +    // second argument
                                  "call 0\n" +
-                                      Utils::getPopCallerSavedRegistersInstrumentation() +
-                                      "popf\n";             // restore eflags
+                                 Utils::getPopCallerSavedRegistersInstrumentation();
         std::vector<std::__cxx11::basic_string<char>> instrumentationParams {std::__cxx11::to_string(indexReg), std::__cxx11::to_string(indexRegWidth)};
         const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
-        new_instr[12]->setTarget(RuntimeLib::checkRegIsInit);
+        new_instr[13]->setTarget(RuntimeLib::checkRegIsInit);
         originalInstruction = new_instr[new_instr.size()-1];
     }
     return originalInstruction;
