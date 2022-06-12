@@ -6,9 +6,9 @@
 
 // TODO: save state sse and fpu registers + red zone
 /**
- * Returns a string containing pushes to all caller-saved general purpose registers, namely
+ * Returns a string containing pushes to EFLAGS and all caller-saved general purpose registers, namely
  *  RAX, RCX, RDX, RSI, RDI, R8, R9, R10 , R11.
- *  Number of instructions: 9.
+ *  Number of instructions: 10.
  * @return string of assembly push instructions
  */
 std::string Utils::getPushCallerSavedRegistersInstrumentation(){
@@ -26,9 +26,9 @@ std::string Utils::getPushCallerSavedRegistersInstrumentation(){
 }
 
 /**
- * Returns a string containing pops into all general purpose registers, namely
+ * Returns a string containing pops into EFLAGS and all general purpose registers, namely
  *  RAX, RCX, RDX, RSI, RDI, R8, R9, R10 , R11 to restore caller-saved registers.
- *  Number of instructions: 9.
+ *  Number of instructions: 10.
  * @return string of assembly pop instructions
  */
 std::string Utils::getPopCallerSavedRegistersInstrumentation(){
