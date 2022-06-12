@@ -8,6 +8,8 @@
 
 #include <capstone.h>
 #include <irdb-core>
+#include "Utils.h"
+#include "Width.h"
 
 class CapstoneService {
 public:
@@ -25,7 +27,6 @@ private:
     csh capstoneHandle;
     cs_insn* getCapstoneInstruction(IRDB_SDK::Instruction_t *instruction);
     static int convertX86RegNumberToWidth(x86_reg regNumber);
-    static int toHex(int num);
     static int getPositionOfMemOperand(cs_insn *capstoneInstruction);
 
 };

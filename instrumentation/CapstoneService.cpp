@@ -4,14 +4,6 @@
 
 #include "CapstoneService.h"
 
-// HIGHER_BYTE means, for example, register AH
-enum WIDTH{
-    QUAD_WORD = 64,
-    DOUBLE_WORD = 32,
-    WORD = 16,
-    BYTE = 8,
-    HIGHER_BYTE = 0
-};
 
 CapstoneService::CapstoneService() {
     if (cs_open(CS_ARCH_X86, CS_MODE_64, &capstoneHandle) != CS_ERR_OK){
@@ -52,7 +44,7 @@ int CapstoneService::getDestOperandWidth(IRDB_SDK::Instruction_t *instruction) {
     if(isHigherByteRegister(regNumber)){
         width = HIGHER_BYTE;
     }
-    return toHex(width);
+    return Utils::toHex(width);
 }
 
 /**
@@ -71,7 +63,7 @@ int CapstoneService::getBaseRegWidth(IRDB_SDK::Instruction_t *instruction) {
     auto mem = capstoneInstruction->detail->x86.operands[numberOfMemOperand].mem;
     auto width = convertX86RegNumberToWidth(mem.base);
     cs_free(capstoneInstruction, 1);
-    return toHex(width);
+    return Utils::toHex(width);
 }
 
 /**
@@ -89,7 +81,7 @@ int CapstoneService::getIndexRegWidth(IRDB_SDK::Instruction_t *instruction) {
     auto mem = capstoneInstruction->detail->x86.operands[numberOfMemOperand].mem;
     auto width = convertX86RegNumberToWidth(mem.index);
     cs_free(capstoneInstruction, 1);
-    return toHex(width);
+    return Utils::toHex(width);
 }
 
 /**
@@ -200,13 +192,6 @@ int CapstoneService::convertX86RegNumberToWidth(x86_reg regNumber) {
             //TODO: improve error handling
             std::cerr << "Register was not general purpose, abort." << std::endl;
     }
-}
-
-// Value is interpreted as hex in binary (due to zipr? idk), therefore convert to hex value.
-int CapstoneService::toHex(int num) {
-    std::stringstream width_decimal;
-    width_decimal << std::hex << num;
-    return std::stoi(width_decimal.str());
 }
 
 /**
