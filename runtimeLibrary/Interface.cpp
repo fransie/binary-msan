@@ -10,7 +10,7 @@
 // TODO: global variable is probably a bad idea
 /**
  * This vector holds the current shadow state of the 16 general purpose registers. Upon initialisation,
- * each bit of all of them has the state "undefined" (1).
+ * each bit of all of them has the state "undefined" (1). Registers numbering: see file operand_csx86.cpp in zipr.
  */
 std::vector<std::bitset<64>> shadowRegisterState = std::vector<std::bitset<64>>(16, std::bitset<64>{}.set());
 
@@ -21,7 +21,7 @@ bool eflagsDefined = false;
 
 /**
  * Takes two ints representing general purpose registers and propagates the shadow value of the
- * source register to the destination register. Registers numbering: see namespace Registers.
+ * source register to the destination register. Registers numbering: see file operand_csx86.cpp in zipr.
  *
  * @param dest the number of the destination register
  * @param source the number of the source register
@@ -67,7 +67,7 @@ void regToRegShadowCopy(const int dest, const int source, const int width){
  * Sets the state of the required number of bits of a register to defined. Registers numbering: see namespace Registers.
  * Use it to define the shadow state for an immediate mov. For example, if an immediate is moved into AL, only the lowest
  * 8 bits of RAX are set to defined. The only exception is 32-bit registers: Here, all 64 bits are set to defined
- * because the higher two bytes are zeroed out by 32-bit moves.
+ * because the higher two bytes are zeroed out by 32-bit moves. Registers numbering: see file operand_csx86.cpp in zipr.
  *
  * @param reg the number of the register to be set to defined.
  * @param width the width of the register to be set to defined in bits. "0" denominates the second-least significant byte.
@@ -90,7 +90,7 @@ void defineRegShadow(const int reg, int width){
 
 /**
  * Checks whether the first regWidth bits of the register referenced by <code>reg</code> are initialised. If not,
- * an MSan Warning is issued.
+ * an MSan Warning is issued. Registers numbering: see file operand_csx86.cpp in zipr.
  * Special case: If regWidth is HIGHER_BYTE (e.g. AH), then the bits at position 8 - 15 are checked.
  * @param reg number of the register to be checked
  * @param regWidth width of the register in bits
@@ -106,8 +106,7 @@ void checkRegIsInit(int reg, int regWidth) {
         for (; bit < regWidth; bit++){
             if(shadowRegisterState[reg].test(bit) == 1){
                 std::cout << "msan warning" << std::endl;
-                break;
-                //__msan_warning();
+                __msan_warning();
             }
         }
     }
@@ -115,7 +114,8 @@ void checkRegIsInit(int reg, int regWidth) {
 
 /**
  * Copies the shadow associated with <code>memAddress</code> into the shadow state of the register <code>reg</code>.
- * Instrument a 'mov reg, [memAddress]' with this so that the shadow is propagated correctly.
+ * Instrument a 'mov reg, [memAddress]' with this so that the shadow is propagated correctly. Registers numbering:
+ * see file operand_csx86.cpp in zipr.
  *
  * @param reg Number of the destination register.
  * @param regWidth Width of the destination register.
@@ -154,7 +154,7 @@ void memToRegShadowCopy(int reg, int regWidth, uptr memAddress){
 
 /**
  * Sets the shadow of the EFLAGS registers according to a test instruction with one general purpose register included,
- * e.g. test eax, eax or test eax, 0.
+ * e.g. test eax, eax or test eax, 0. Registers numbering: see file operand_csx86.cpp in zipr.
  * @param reg number of the register.
  * @param width width of the register.
  */
@@ -182,7 +182,7 @@ void setFlagsAfterTest_Reg(int reg, int width) {
 
 /**
  * Sets the shadow of the EFLAGS registers according to a test instruction with two general purpose registers included,
- * e.g. test eax, ebx.
+ * e.g. test eax, ebx. Registers numbering: see file operand_csx86.cpp in zipr.
  * @param destReg number of the destination register.
  * @param srcReg number of the source register.
  * @param width width of the two registers used. In test operations, both registers are the same size.
@@ -217,7 +217,6 @@ void setFlagsAfterTest_RegReg(int destReg, int srcReg, int width) {
 void checkEflags() {
     if(!eflagsDefined){
         std::cout << "checkEflags: msan warning" << std::endl;
-        __msan_init();
         __msan_warning();
     }
 }
