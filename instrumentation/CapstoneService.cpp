@@ -92,12 +92,15 @@ int CapstoneService::getIndexRegWidth(IRDB_SDK::Instruction_t *instruction) {
  */
 cs_insn* CapstoneService::getCapstoneInstruction(IRDB_SDK::Instruction_t *instruction){
     const auto dataBits = instruction->getDataBits();
-    const auto opcode = reinterpret_cast<const uint8_t*>(dataBits.c_str());
+    uint8_t* rawBytes = new uint8_t[dataBits.length()];
+    for (unsigned long x = 0; x < dataBits.length(); x++){
+        rawBytes[x] = dataBits[x];
+    }
     cs_insn *capstoneInstruction;
-    size_t count = cs_disasm(capstoneHandle, opcode, sizeof(opcode)-1, 0x1000, 0, &capstoneInstruction);
+    size_t count = cs_disasm(capstoneHandle, rawBytes, dataBits.length(), 0x1000, 0, &capstoneInstruction);
     if (count == 0){
         //TODO: error handling of cs_disasm
-        std::cout << "ERROR in getRegister";
+        std::cerr << "ERROR in getRegister" << std::endl;
     }
     return capstoneInstruction;
 }
