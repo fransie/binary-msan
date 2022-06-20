@@ -3,8 +3,8 @@
 
 int main ()
 {
-    int *a = new int[10];
-    write(a[5], "xx\n", 2);
+    char *ptr = new char;
+    write(1, ptr, 1);
     return 0;
 }
 
