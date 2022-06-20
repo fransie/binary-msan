@@ -21,7 +21,9 @@ if __name__ == '__main__':
         if not file.endswith(".cpp"):
             continue
         print(f"Test case ******* {file} *******")
-        subprocess.call(TEST_SCRIPT + " " + file, shell=True)
+        exit_code = subprocess.call(TEST_SCRIPT + " " + file, shell=True)
+        if(exit_code == 2):
+            continue
         expected_output = get_expected_output(file)
 
         log = file.removesuffix(".cpp") + ".txt"
