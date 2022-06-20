@@ -97,7 +97,7 @@ void defineRegShadow(const int reg, int width){
  */
 void checkRegIsInit(int reg, int regWidth) {
     std::cout << "checkRegIsInit. Register: " << reg << ". Width: " << regWidth << ". Register shadow: 0x" << std::hex << shadowRegisterState[reg].to_ullong() << std::endl;
-    if(shadowRegisterState[reg].none()){
+    if(shadowRegisterState[reg].any()){
         int bit = 0;
         if(regWidth == HIGHER_BYTE){
             bit = 8;
