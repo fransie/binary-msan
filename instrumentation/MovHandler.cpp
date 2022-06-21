@@ -8,8 +8,10 @@ using namespace IRDB_SDK;
 using namespace std;
 
 
-// TODO: handle operand sizes other than 64 bit
-// TODO: handle segment registers as operands
+// Achtung: there is also mov to control or debug segments -> handle every case (GPR, immediate, memory, ect.)
+// here explicitly, not with plain "else". Control and debug segments can be recognised with operand->isSpecialRegister().
+// TODO: Are moves with moffs (e.g. opcode A3) also handled as memory operands?
+// TODO: segment registers?
 /**
  * Takes a mov instruction and inserts instrumentation before it so that the shadow is handled correctly.
  */
@@ -20,17 +22,30 @@ void MovHandler::instrument(Instruction_t *instruction){
         if(operands[1]->isGeneralPurposeRegister()){
             // reg to reg
             instrumentRegToRegMove(instruction);
-        }
-        if (operands[1]->isConstant()){
+        } else if (operands[1]->isConstant()){
             // immediate to reg
             instrumentImmToRegMove(instruction);
-        }
-        if (operands[1]->isMemory()) {
-            // memory to reg
+        } else if (operands[1]->isMemory()) {
+            // mem to reg
             instrumentMemToRegMove(instruction);
+        } else if (operands[1]->isSegmentRegister()){
+            // Sreg to reg
         }
-    } else {
-        // reg to mem
+    } else if (operands[0]->isMemory()) {
+        if(operands[1]->isGeneralPurposeRegister()){
+            // reg to mem
+            instrumentRegToMemMove(instruction);
+        } else if (operands[1]->isSegmentRegister()){
+            // Sreg to mem
+        } else if (operands[1]->isConstant()){
+            // immediate to mem
+        }
+    } else if (operands[0]->isSegmentRegister()){
+        if(operands[1]->isGeneralPurposeRegister()){
+            // reg to Sreg
+        } else if (operands[1]->isMemory()){
+            // sreg to mem
+        }
     }
 }
 
@@ -109,6 +124,10 @@ string MovHandler::getMemoryOperandDisassembly(Instruction_t *instruction) {
     return substring;
 }
 
+void MovHandler::instrumentRegToMemMove(IRDB_SDK::Instruction_t *instruction) {
+
+}
+
 MovHandler::MovHandler(FileIR_t *fileIr) : fileIr(fileIr){
     capstone = make_unique<CapstoneService>();
 }
@@ -116,3 +135,4 @@ MovHandler::MovHandler(FileIR_t *fileIr) : fileIr(fileIr){
 const vector<std::string> & MovHandler::getAssociatedInstructions() {
     return associatedInstructions;
 }
+

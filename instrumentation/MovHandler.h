@@ -29,6 +29,7 @@ private:
     void instrumentImmToRegMove(IRDB_SDK::Instruction_t *instruction);
     void instrumentRegToRegMove(IRDB_SDK::Instruction_t *instruction);
     void instrumentMemToRegMove(IRDB_SDK::Instruction_t *instruction);
+    void instrumentRegToMemMove(IRDB_SDK::Instruction_t *instruction);
     std::string getMemoryOperandDisassembly(IRDB_SDK::Instruction_t *instruction);
 
 };
