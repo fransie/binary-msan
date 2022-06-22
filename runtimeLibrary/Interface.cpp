@@ -2,10 +2,7 @@
 // Created by Franziska Mäckel on 07.04.22.
 //
 
-#include <iostream>
-#include <msan.h>
 #include "Interface.h"
-#include "msan_interface_internal.h"
 
 // TODO: global variable is probably a bad idea
 /**
@@ -17,7 +14,7 @@ std::vector<std::bitset<64>> shadowRegisterState = std::vector<std::bitset<64>>(
 /**
  * Represents the definedness of the EFLAGS register in one bit. Hence, this is only an approximation.
  */
-bool eflagsDefined = false;
+bool eflagsDefined = true;
 
 /**
  * Takes two ints representing general purpose registers and propagates the shadow value of the
@@ -32,9 +29,6 @@ void regToRegShadowCopy(const int dest, const int source, const int width){
     auto destinationRegisterShadow = shadowRegisterState[dest];
     auto sourceRegisterShadow = shadowRegisterState[source];
     switch(width){
-        default:
-            std::cerr << "Function regToRegShadowCopy was called with an unsupported width value. Width: " << width << std::endl;
-            throw std::invalid_argument("Function regToRegShadowCopy was called with an unsupported width value.");
         case QUAD_WORD:
             destinationRegisterShadow = sourceRegisterShadow;
             break;
@@ -59,6 +53,8 @@ void regToRegShadowCopy(const int dest, const int source, const int width){
                 destinationRegisterShadow.set(position, sourceRegisterShadow[position]);
             }
             break;
+        default:
+            throw std::invalid_argument("Function regToRegShadowCopy was called with an unsupported width value.");
     }
 }
 
@@ -227,4 +223,48 @@ void checkEflags() {
 void initGpRegisters() {
     shadowRegisterState[4].reset();
     shadowRegisterState[5].reset();
+}
+
+void regToMemShadowCopy(int reg, int regWidth, __sanitizer::uptr memAddress) {
+    std::cout << "regToMemShadowCopy. Register: " << reg << ". RegWidth: " << regWidth << ". MemAddress: 0x" << std::hex << memAddress << std::endl;
+    int size = regWidth / BYTE;
+    if(regWidth == HIGHER_BYTE){
+        size = 1;
+    }
+    auto shadow = getRegisterShadow(reg, regWidth);
+    __msan_partial_poison(reinterpret_cast<const void *>(memAddress), shadow, size);
+}
+
+void *getRegisterShadow(int reg, int regWidth) {
+    auto shadowValue = shadowRegisterState[reg].to_ullong();
+    switch (regWidth) {
+        case QUAD_WORD:{
+            auto *shadow_ptr = new uint64_t;
+            *shadow_ptr = shadowValue;
+            return reinterpret_cast<void *>(shadow_ptr);
+        }
+        case DOUBLE_WORD:{
+            auto *shadow_ptr = new uint32_t;
+            *shadow_ptr = static_cast<uint32_t>(shadowValue);
+            return reinterpret_cast<void *>(shadow_ptr);
+        }
+        case WORD: {
+            auto *shadow_ptr = new uint16_t;
+            *shadow_ptr = static_cast<uint16_t>(shadowValue);
+            return reinterpret_cast<void *>(shadow_ptr);
+        }
+        case HIGHER_BYTE:{
+            auto *shadow_ptr = new uint8_t;
+            shadowValue = shadowValue >> 8;
+            *shadow_ptr = static_cast<uint8_t>(shadowValue);
+            return reinterpret_cast<void *>(shadow_ptr);
+        }
+        case BYTE: {
+            auto *shadow_ptr = new uint8_t;
+            *shadow_ptr = static_cast<uint8_t>(shadowValue);
+            return reinterpret_cast<void *>(shadow_ptr);
+        }
+        default:
+            throw std::invalid_argument("Function regToRegShadowCopy was called with an unsupported width value.");
+    }
 }

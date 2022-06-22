@@ -76,6 +76,7 @@ void MSan::registerDependencies(){
     RuntimeLib::setFlagsAfterTest_RegReg = elfDeps->appendPltEntry("_Z24setFlagsAfterTest_RegRegiii");
     RuntimeLib::checkEflags = elfDeps->appendPltEntry("_Z11checkEflagsv");
     RuntimeLib::initGpRegisters = elfDeps->appendPltEntry("_Z15initGpRegistersv");
+    RuntimeLib::regToMemShadowCopy = elfDeps->appendPltEntry("_Z18regToMemShadowCopyiim");
 
     const string compilerRtPath = "/home/franzi/Documents/binary-msan/clang_msan_libs/";
     elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan_cxx-x86_64.so");

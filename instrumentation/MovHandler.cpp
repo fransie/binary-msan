@@ -111,6 +111,27 @@ void MovHandler::instrumentMemToRegMove(Instruction_t *instruction) {
     new_instr[13]->setTarget(RuntimeLib::memToRegShadowCopy);
 }
 
+void MovHandler::instrumentRegToMemMove(IRDB_SDK::Instruction_t *instruction) {
+    // instrument mem operation
+    cout << "instrumentRegToMemMove. Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << endl;
+    auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
+    instruction = MemoryAccessInstrumentation::instrumentMemRef(operands[0], instruction, capstone, fileIr);
+
+    auto src = operands[1]->getRegNumber();
+    auto width = capstone->getRegWidth(instruction, 1);
+    auto memoryDisassembly = getMemoryOperandDisassembly(instruction);
+    string instrumentation = string() +
+                             Utils::getPushCallerSavedRegistersInstrumentation() +
+                             "mov rdi, %%1\n" +    // reg
+                             "mov rsi, %%2\n" +    // regWidth
+                             "lea rdx, %%3\n" +    // memAddr
+                             "call 0\n" +
+                             Utils::getPopCallerSavedRegistersInstrumentation();
+    vector<basic_string<char>> instrumentationParams {to_string(src), to_string(width), memoryDisassembly};
+    const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
+    new_instr[13]->setTarget(RuntimeLib::regToMemShadowCopy);
+}
+
 string MovHandler::getMemoryOperandDisassembly(Instruction_t *instruction) {
     auto disassembly = instruction->getDisassembly();
     auto openBracketPosition = disassembly.find_first_of('[');
@@ -122,10 +143,6 @@ string MovHandler::getMemoryOperandDisassembly(Instruction_t *instruction) {
     auto len = closingBracketPosition - openBracketPosition;
     auto substring = disassembly.substr(openBracketPosition, len + 1);
     return substring;
-}
-
-void MovHandler::instrumentRegToMemMove(IRDB_SDK::Instruction_t *instruction) {
-
 }
 
 MovHandler::MovHandler(FileIR_t *fileIr) : fileIr(fileIr){

@@ -12,6 +12,9 @@
 #include <vector>
 #include <bitset>
 #include <memory>
+#include <msan_interface_internal.h>
+#include <iostream>
+#include <msan.h>
 
 // HIGHER_BYTE means, for example, register AH
 enum WIDTH{
@@ -28,6 +31,7 @@ INTERFACE void checkRegIsInit(int reg, int regWidth);
 // mov
 INTERFACE void defineRegShadow(int reg, int width);
 INTERFACE void memToRegShadowCopy(int reg, int regWidth, __sanitizer::uptr memAddress);
+INTERFACE void regToMemShadowCopy(int reg, int regWidth, __sanitizer::uptr memAddress);
 INTERFACE void regToRegShadowCopy(int dest, int source, int width);
 
 // test
@@ -39,5 +43,6 @@ INTERFACE void checkEflags();
 
 // helpers
 INTERFACE void initGpRegisters();
+void* getRegisterShadow(int reg, int regWidth);
 
 #endif //BINARY_MSAN_INTERFACE_H

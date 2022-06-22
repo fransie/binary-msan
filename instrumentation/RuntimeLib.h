@@ -13,6 +13,7 @@ public:
     inline static IRDB_SDK::Instruction_t *checkRegIsInit;
     inline static IRDB_SDK::Instruction_t *memToRegShadowCopy;
     inline static IRDB_SDK::Instruction_t *regToRegShadowCopy;
+    inline static IRDB_SDK::Instruction_t *regToMemShadowCopy;
     inline static IRDB_SDK::Instruction_t *setFlagsAfterTest_Reg;
     inline static IRDB_SDK::Instruction_t *setFlagsAfterTest_RegReg;
     inline static IRDB_SDK::Instruction_t *checkEflags;
