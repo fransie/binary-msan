@@ -43,7 +43,7 @@ void TestHandler::instrument(IRDB_SDK::Instruction_t *instruction) {
 void TestHandler::instrumentSingleRegTest(IRDB_SDK::Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     auto dest = operands[0]->getRegNumber();
-    auto width = capstone->getDestOperandWidth(instruction);
+    auto width = capstone->getRegWidth(instruction, 0);
     string instrumentation = string() +
                              Utils::getPushCallerSavedRegistersInstrumentation() +
                              "mov rdi, %%1\n" +    // first argument
@@ -59,7 +59,7 @@ void TestHandler::instrumentRegRegTest(IRDB_SDK::Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     auto dest = operands[0]->getRegNumber();
     auto src = operands[1]->getRegNumber();
-    auto width = capstone->getDestOperandWidth(instruction);
+    auto width = capstone->getRegWidth(instruction, 0);
     string instrumentation = string() +
                              Utils::getPushCallerSavedRegistersInstrumentation() +
                              "mov rdi, %%1\n" +    // first argument

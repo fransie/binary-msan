@@ -46,7 +46,7 @@ std::string Utils::getPopCallerSavedRegistersInstrumentation(){
 
 }
 
-int Utils::toHex(int num) {
+unsigned int Utils::toHex(int num) {
     std::stringstream width_decimal;
     width_decimal << std::hex << num;
     return std::stoi(width_decimal.str());

@@ -36,11 +36,18 @@ bool CapstoneService::isHigherByteRegister(x86_reg capstoneRegNumber) {
 }
 
 //TODO: probably needs to changed to fit e.g. movzx
-int CapstoneService::getDestOperandWidth(IRDB_SDK::Instruction_t *instruction) {
+/**
+ * Returns the width of the register operand denoted by <code>operandNum</code>. For example, operandNum = 1 returns
+ * the width of the second operand of <code>instruction</code>. The operand has to be a general purpose register.
+ * @param instruction The instruction from which we want to get the operand width.
+ * @param operandNum The operand number.
+ * @return Hexadecimal width of the operand/register in bits.
+ */
+unsigned int CapstoneService::getRegWidth(IRDB_SDK::Instruction_t *instruction, int operandNum) {
     auto operands = IRDB_SDK::DecodedInstruction_t::factory(instruction)->getOperands();
-    auto width = operands[0]->getArgumentSizeInBits();
+    auto width = operands[operandNum]->getArgumentSizeInBits();
 
-    auto regNumber = getRegister(instruction, 0);
+    auto regNumber = getRegister(instruction, operandNum);
     if(isHigherByteRegister(regNumber)){
         width = HIGHER_BYTE;
     }
