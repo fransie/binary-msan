@@ -3,7 +3,7 @@ add_executable(binmsan
         CapstoneService.cpp
         Handler.h
         JumpHandler.cpp
-        MemoryAccessHandler.cpp
+        MemoryAccessInstrumentation.cpp
         MovHandler.cpp
         MSan.cpp
         Main.cpp

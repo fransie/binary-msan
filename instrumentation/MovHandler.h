@@ -11,7 +11,7 @@
 #include "RuntimeLib.h"
 #include "Handler.h"
 #include "Utils.h"
-#include "MemoryAccessHandler.h"
+#include "MemoryAccessInstrumentation.h"
 
 class MovHandler : public Handler {
 public:
@@ -30,8 +30,7 @@ private:
     void instrumentRegToRegMove(IRDB_SDK::Instruction_t *instruction);
     void instrumentMemToRegMove(IRDB_SDK::Instruction_t *instruction);
     void instrumentRegToMemMove(IRDB_SDK::Instruction_t *instruction);
-    std::string getMemoryOperandDisassembly(IRDB_SDK::Instruction_t *instruction);
-
+    static std::string getMemoryOperandDisassembly(IRDB_SDK::Instruction_t *instruction);
 };
 
 

@@ -2,7 +2,7 @@
 // Created by Franziska Mäckel on 05.06.22.
 //
 
-#include "MemoryAccessHandler.h"
+#include "MemoryAccessInstrumentation.h"
 
 using namespace IRDB_SDK;
 
@@ -17,10 +17,10 @@ using namespace IRDB_SDK;
  * @param instruction The instruction that contains the operand with the memory access.
  * @return Returns a pointer to the original instruction.
  */
-Instruction_t* MemoryAccessHandler::instrumentMemRef(const std::shared_ptr<DecodedOperand_t> &operand,
-                                                               Instruction_t *instruction,
-                                                               std::unique_ptr<CapstoneService> &capstoneService,
-                                                               FileIR_t *fileIr) {
+Instruction_t* MemoryAccessInstrumentation::instrumentMemRef(const std::shared_ptr<DecodedOperand_t> &operand,
+                                                             Instruction_t *instruction,
+                                                             std::unique_ptr<CapstoneService> &capstoneService,
+                                                             FileIR_t *fileIr) {
     std::cout << "instrumentMemRef. Operand: " << operand->getString() << std::endl;
     IRDB_SDK::Instruction_t *originalInstruction = instruction;
     if(operand->hasBaseRegister()){

@@ -96,7 +96,7 @@ void MovHandler::instrumentMemToRegMove(Instruction_t *instruction) {
     auto dest = operands[0]->getRegNumber();
     cout << "instrumentMemToRegMove. Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << (int) dest << " and mem: " << operands[1]->getString() << endl;
 
-    instruction = MemoryAccessHandler::instrumentMemRef(operands[1], instruction, capstone, fileIr);
+    instruction = MemoryAccessInstrumentation::instrumentMemRef(operands[1], instruction, capstone, fileIr);
     auto memoryDisassembly = getMemoryOperandDisassembly(instruction);
     auto width = capstone->getRegWidth(instruction, 0);
     string instrumentation = string() +
