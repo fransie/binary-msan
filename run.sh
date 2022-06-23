@@ -44,7 +44,7 @@ then
 	exit 2
 fi
 
-if [ ! -z "${halt_on_error+x}" ]
+if [ ! -z "${halt_on_error}" ]
 then
   options="--step-option ${halt_on_error}"
 fi
