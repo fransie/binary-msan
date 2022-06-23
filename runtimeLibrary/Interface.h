@@ -15,6 +15,7 @@
 #include <msan_interface_internal.h>
 #include <iostream>
 #include <msan.h>
+#include <msan_flags.h>
 
 // HIGHER_BYTE means, for example, register AH
 enum WIDTH{
@@ -43,6 +44,7 @@ INTERFACE void checkEflags();
 
 // helpers
 INTERFACE void initGpRegisters();
+INTERFACE void disableHaltOnError();
 void* getRegisterShadow(int reg, int regWidth);
 
 #endif //BINARY_MSAN_INTERFACE_H

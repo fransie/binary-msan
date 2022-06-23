@@ -268,3 +268,7 @@ void *getRegisterShadow(int reg, int regWidth) {
             throw std::invalid_argument("Function regToRegShadowCopy was called with an unsupported width value.");
     }
 }
+
+void disableHaltOnError() {
+    __msan::flags()->halt_on_error = false;
+}

@@ -12,11 +12,6 @@ int main(int argc, char* argv[]) {
     const std::string program_name = std::string(argv[0]);
     const auto variantID = std::strtol(argv[1], nullptr, 10);
 
-    std::vector<std::string> args;
-    for(int i = 2; i < argc; i++) {
-        args.emplace_back(argv[i]);
-    }
-
     // stand-alone transforms must setup the interface to the sql server
     auto pqxx_interface = IRDB_SDK::pqxxDB_t::factory();
     IRDB_SDK::BaseObj_t::setInterface(pqxx_interface.get());
@@ -35,7 +30,7 @@ int main(int argc, char* argv[]) {
     // now try to load the IR and execute a transform
     try {
         // Create and download the file's IR.
-        // Note:  this is achieved differently  with thanos-enabled plugins
+        // Note:  this is achieved differently with thanos-enabled plugins
         auto firp = IRDB_SDK::FileIR_t::factory(pidp.get(), this_file);
 
         // sanity
@@ -46,7 +41,7 @@ int main(int argc, char* argv[]) {
 
         // create and invoke the transform
         MSan msan(firp.get());
-        success = msan.parseArgs(args);
+        success = msan.parseArgs(argc, argv);
         if (success) {
             success = msan.executeStep();
         }
@@ -55,10 +50,10 @@ int main(int argc, char* argv[]) {
         if (success) {
             std::cout << "Writing changes for " << url << std::endl;
 
-            // Stand alone trnasforms must manually write the IR back to the IRDB and commit the transactions
+            // Stand alone transforms must manually write the IR back to the IRDB and commit the transactions
             firp->writeToDB();
 
-            // and commit the the transaction to postgres
+            // and commit the transaction to postgres
             pqxx_interface->commit();
         } else {
             std::cout << "Skipping write back on failure. " << url << std::endl;
