@@ -54,7 +54,7 @@ void regToRegShadowCopy(const int dest, const int source, const int width){
     std::cout << ". New dest shadow: " << shadowRegisterState[dest].to_ullong() << std::endl;
 }
 
-
+//TODO: do the processing of width in instrumentation, not here
 /**
  * Sets the state of the required number of bits of a register to defined. Registers numbering: see namespace Registers.
  * Use it to define the shadow state for an immediate mov. For example, if an immediate is moved into AL, only the lowest
@@ -66,7 +66,6 @@ void regToRegShadowCopy(const int dest, const int source, const int width){
  */
 void defineRegShadow(const int reg, int width){
     std::cout << "defineRegShadow. Register: " << reg << ". Width: " << width << std::endl;
-    auto destinationRegisterShadow = shadowRegisterState[reg];
     int startFrom = 0;
     if(width == HIGHER_BYTE){
         startFrom = 8;
@@ -75,7 +74,7 @@ void defineRegShadow(const int reg, int width){
         // Higher two bytes are zeroed for double word moves.
         width = 64;
     }
-    for(int position = 63 - startFrom; position < (position - width) ; position--){
+    for(int position = 63 - startFrom; position >= (64 - width) ; position--){
         shadowRegisterState[reg].set(position, 0);
     }
 }
@@ -217,11 +216,12 @@ void checkEflags() {
  * Sets the state of RBP and RSP to initialised.
  */
 void initGpRegisters() {
+    std::cout << "Init rbp and rsp." << std::endl;
     shadowRegisterState[4].reset();
     shadowRegisterState[5].reset();
 }
 
-void regToMemShadowCopy(int reg, int regWidth, __sanitizer::uptr memAddress) {
+void regToMemShadowCopy(int reg, int regWidth, uptr memAddress) {
     std::cout << "regToMemShadowCopy. Register: " << reg << ". RegWidth: " << regWidth << ". MemAddress: 0x" << std::hex << memAddress << std::endl;
     int size = regWidth / BYTE;
     if(regWidth == HIGHER_BYTE){
