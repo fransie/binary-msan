@@ -1,17 +1,29 @@
+// COMPILE: g++ regToMem_64bit.cpp -o regToMem -I/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compiler-rt/lib/msan -I/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compiler-rt/include/sanitizer/ -I/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compiler-rt/lib/  -L/home/franzi/Documents/binary-msan/plugins_install -linterface
+
 #include <assert.h>
+#include <iostream>
+#include "../runtimeLibrary/Interface.h"
 
-
-void testShadow(long long *ptr){
-    auto shadow = reinterpret_cast<long long*>((unsigned long long)(&ptr) ^ 0x500000000000ULL);
-    assert(*shadow == 0);
+void testShadowNot0(uint64_t *ptr){
+    auto shadow = reinterpret_cast<uint64_t*>((unsigned long long)(ptr) ^ 0x500000000000ULL);
+    assert(*shadow == UINT64_MAX);
 }
 
-int main(int argc, char** argv) {
-    long long a;
+void testShadow0(uint64_t *ptr){
+    auto shadow = reinterpret_cast<uint64_t*>((unsigned long long)(ptr) ^ 0x500000000000ULL);
+    assert(*shadow == 0);
+    std::cout << "Success." << std::endl;
+}
+
+int main() {
+    // define rax here because "new" is not instrumented yet and returns an uninit address is rax, which is wrong.
+    defineRegShadow(0,64);
+    uint64_t *a = new uint64_t;
+    testShadowNot0(a);
     asm ("mov $1, %rax");
-    asm ("mov %%rax, %0" : "=r" ( a ));
-    testShadow(&a);
+    asm ("mov %%rax, %0" : "=r" ( *a ));
+    testShadow0(a);
     return 0;
 }
 
-// EXPECTED: memToRegShadowCopy. Shadow of reg 0 is: 0xffffffffffffffff.
+// EXPECTED: Success.
