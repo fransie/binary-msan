@@ -15,7 +15,6 @@
 #include <msan_interface_internal.h>
 #include <iostream>
 #include <msan.h>
-#include <msan_flags.h>
 
 // HIGHER_BYTE means, for example, register AH
 enum WIDTH{

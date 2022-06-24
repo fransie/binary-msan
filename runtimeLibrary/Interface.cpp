@@ -266,5 +266,6 @@ void *getRegisterShadow(int reg, int regWidth) {
 }
 
 void disableHaltOnError() {
-    __msan::flags()->halt_on_error = false;
+    std::cout << "Keep going on msan error." << std::endl;
+    __msan_set_keep_going(1);
 }

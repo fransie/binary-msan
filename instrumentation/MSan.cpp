@@ -61,8 +61,8 @@ void MSan::initGpRegisters(Instruction_t *instruction){
                              Utils::getPushCallerSavedRegistersInstrumentation() +
                              "call 0\n" +
                              Utils::getPopCallerSavedRegistersInstrumentation();
-    const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(getFileIR(), instruction, instrumentation, {});
-    new_instr[10]->setTarget(RuntimeLib::initGpRegisters);
+    const auto new_instr = IRDB_SDK::insertAssemblyInstructionsAfter(getFileIR(), instruction, instrumentation, {});
+    new_instr[11]->setTarget(RuntimeLib::initGpRegisters);
 }
 
 void MSan::registerDependencies(){
@@ -80,7 +80,7 @@ void MSan::registerDependencies(){
     RuntimeLib::checkEflags = elfDeps->appendPltEntry("_Z11checkEflagsv");
     RuntimeLib::initGpRegisters = elfDeps->appendPltEntry("_Z15initGpRegistersv");
     RuntimeLib::regToMemShadowCopy = elfDeps->appendPltEntry("_Z18regToMemShadowCopyiim");
-    RuntimeLib::regToMemShadowCopy = elfDeps->appendPltEntry("_Z18disableHaltOnErrorv");
+    RuntimeLib::disableHaltOnError = elfDeps->appendPltEntry("_Z18disableHaltOnErrorv");
 
     const string compilerRtPath = "/home/franzi/Documents/binary-msan/clang_msan_libs/";
     elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan_cxx-x86_64.so");
@@ -127,6 +127,6 @@ void MSan::disableHaltOnError(IRDB_SDK::Instruction_t *instruction) {
                              Utils::getPushCallerSavedRegistersInstrumentation() +
                              "call 0\n" +
                              Utils::getPopCallerSavedRegistersInstrumentation();
-    const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(getFileIR(), instruction, instrumentation, {});
-    new_instr[10]->setTarget(RuntimeLib::initGpRegisters);
+    const auto new_instr = IRDB_SDK::insertAssemblyInstructionsAfter(getFileIR(), instruction, instrumentation, {});
+    new_instr[11]->setTarget(RuntimeLib::disableHaltOnError);
 }
