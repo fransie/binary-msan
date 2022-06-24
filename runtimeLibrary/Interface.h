@@ -15,21 +15,15 @@
 #include <msan_interface_internal.h>
 #include <iostream>
 #include <msan.h>
-
-// HIGHER_BYTE means, for example, register AH
-enum WIDTH{
-    QUAD_WORD = 64,
-    DOUBLE_WORD = 32,
-    WORD = 16,
-    BYTE = 8,
-    HIGHER_BYTE = 0
-};
+// TODO: move width file in different folder
+#include "../instrumentation/Width.h"
 
 // mem access
 INTERFACE void checkRegIsInit(int reg, int regWidth);
 
 // mov
 INTERFACE void defineRegShadow(int reg, int width);
+INTERFACE void defineMemShadow(__sanitizer::uptr memAddress, int width);
 INTERFACE void memToRegShadowCopy(int reg, int regWidth, __sanitizer::uptr memAddress);
 INTERFACE void regToMemShadowCopy(int reg, int regWidth, __sanitizer::uptr memAddress);
 INTERFACE void regToRegShadowCopy(int dest, int source, int width);
