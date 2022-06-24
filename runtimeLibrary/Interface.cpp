@@ -25,37 +25,33 @@ bool eflagsDefined = true;
  * @param width the width of the registers in bits. "0" denominates the second-least significant byte.
  */
 void regToRegShadowCopy(const int dest, const int source, const int width){
-    std::cout << "regToRegShadowCopy. Dest value: " << dest << ". Source value: " << source << ". Width: " << width << std::endl;
-    auto destinationRegisterShadow = shadowRegisterState[dest];
-    auto sourceRegisterShadow = shadowRegisterState[source];
+    std::cout << "regToRegShadowCopy. Dest value: " << dest << ". Source value: " << source << ". Width: " << width;
     switch(width){
         case QUAD_WORD:
-            destinationRegisterShadow = sourceRegisterShadow;
-            break;
-        case DOUBLE_WORD:
-            for (int position = 63; position < (position - width) ; position--){
-                // Higher two bytes are zeroed for double word moves.
-                if(position < 31){
-                    destinationRegisterShadow.set(position, false);
-                } else {
-                    destinationRegisterShadow.set(position, sourceRegisterShadow[position]);
-                }
-            }
-            break;
         case WORD:
         case BYTE:
-            for (int position = 63; position < (position - width) ; position--){
-                destinationRegisterShadow.set(position, sourceRegisterShadow[position]);
+            for (int position = 63; position >= (64 - width) ; position--){
+                shadowRegisterState[dest].set(position, shadowRegisterState[source][position]);
+            }
+            break;
+        case DOUBLE_WORD:
+            for (int position = 63; position >= 32 ; position--) {
+                shadowRegisterState[dest].set(position, shadowRegisterState[source][position]);
+            }
+            // Higher four bytes are zeroed for double word moves.
+            for (int position = 31; position >= 0 ; position--) {
+                    shadowRegisterState[dest].set(position, false);
             }
             break;
         case HIGHER_BYTE:
-            for (int position = 63 - 8; position < (position - width) ; position--){
-                destinationRegisterShadow.set(position, sourceRegisterShadow[position]);
+            for (int position = 63 - BYTE; position >= (64 - WORD) ; position--){
+                shadowRegisterState[dest].set(position, shadowRegisterState[source][position]);
             }
             break;
         default:
             throw std::invalid_argument("Function regToRegShadowCopy was called with an unsupported width value.");
     }
+    std::cout << ". New dest shadow: " << shadowRegisterState[dest].to_ullong() << std::endl;
 }
 
 
@@ -80,7 +76,7 @@ void defineRegShadow(const int reg, int width){
         width = 64;
     }
     for(int position = 63 - startFrom; position < (position - width) ; position--){
-        destinationRegisterShadow.set(position, 0);
+        shadowRegisterState[reg].set(position, 0);
     }
 }
 
@@ -101,8 +97,8 @@ void checkRegIsInit(int reg, int regWidth) {
         }
         for (; bit < regWidth; bit++){
             if(shadowRegisterState[reg].test(bit) == 1){
-                std::cout << "msan warning" << std::endl;
                 __msan_warning();
+                break;
             }
         }
     }
@@ -118,7 +114,7 @@ void checkRegIsInit(int reg, int regWidth) {
  * @param memAddress Source memory address.
  */
 void memToRegShadowCopy(int reg, int regWidth, uptr memAddress){
-    std::cout << "memToRegShadowCopy. Register: " << reg << ". RegWidth: " << regWidth << ". MemAddress: 0x" << std::hex << memAddress << std::endl;
+    std::cout << "memToRegShadowCopy. Register: " << reg << ". RegWidth: " << regWidth << ". MemAddress: 0x" << std::hex << memAddress << ".";
     if (!MEM_IS_APP(memAddress)) {
         std::cout << memAddress << " is not an application address." << std::endl;
         return;
@@ -145,7 +141,7 @@ void memToRegShadowCopy(int reg, int regWidth, uptr memAddress){
             shadowRegisterState[reg].set(x, false);
         }
     }
-    std::cout << "memToRegShadowCopy. Shadow of reg " << reg << " is: 0x" << std::hex << shadowRegisterState[reg].to_ullong() << "." << std::endl;
+    std::cout << " Shadow of reg " << reg << " is: 0x" << std::hex << shadowRegisterState[reg].to_ullong() << "." << std::endl;
 }
 
 /**
