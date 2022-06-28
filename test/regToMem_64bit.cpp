@@ -21,7 +21,7 @@ int main() {
     uint64_t *a = new uint64_t;
     testShadowNot0(a);
     asm ("mov $1, %rax");
-    asm ("mov %%rax, %0" : "=r" ( *a ));
+    asm ("mov %%rax, %0" : "=m" ( *a ));
     testShadow0(a);
     return 0;
 }
