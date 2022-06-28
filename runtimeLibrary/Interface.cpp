@@ -122,6 +122,7 @@ void memToRegShadowCopy(int reg, int regWidth, uptr memAddress){
     auto memShadowAddress = reinterpret_cast<char*>(MEM_TO_SHADOW(memAddress));
     int position = 0;
     if(regWidth == HIGHER_BYTE){
+        regWidth = 8;
         position = 8;
     }
     for (int byte = 0; byte < (regWidth / BYTE); byte++){
@@ -268,4 +269,14 @@ void *getRegisterShadow(int reg, int regWidth) {
 void disableHaltOnError() {
     std::cout << "Keep going on msan error." << std::endl;
     __msan_set_keep_going(1);
+}
+
+/**
+ * Defines <code>width</code> bytes of shadow memory corresponding to the memory starting from <code>memAddress</code>.
+ * @param memAddress Address of the initialised memory.
+ * @param width Width of the initialised memory in bytes.
+ */
+void defineMemShadow(uptr memAddress, int width) {
+    std::cout << "defineMemShadow. MemAddress: 0x" << std::hex << memAddress << ". Width: " << width << std::endl;
+    __msan_unpoison((void*)memAddress, width);
 }
