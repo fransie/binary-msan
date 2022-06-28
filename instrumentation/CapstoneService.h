@@ -9,7 +9,7 @@
 #include <capstone.h>
 #include <irdb-core>
 #include "Utils.h"
-#include "Width.h"
+#include "../common/Width.h"
 
 class CapstoneService {
 public:

@@ -3,6 +3,7 @@
 add_library(interface SHARED
         Interface.cpp
         Interface.h
+        ../common/Width.h
 )
 target_compile_options(interface PRIVATE -Wall -Wextra -Wpedantic)
 

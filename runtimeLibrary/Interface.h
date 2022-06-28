@@ -16,7 +16,7 @@
 #include <iostream>
 #include <msan.h>
 // TODO: move width file in different folder
-#include "../instrumentation/Width.h"
+#include "../common/Width.h"
 
 // mem access
 INTERFACE void checkRegIsInit(int reg, int regWidth);

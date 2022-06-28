@@ -10,7 +10,7 @@ add_executable(binmsan
         RuntimeLib.h
         TestHandler.cpp
         Utils.cpp
-        Width.h
+        ../common/Width.h
 )
 target_compile_options(binmsan PRIVATE -Wall -Wextra -Wpedantic)
 
