@@ -7,7 +7,7 @@
 
 CapstoneService::CapstoneService() {
     if (cs_open(CS_ARCH_X86, CS_MODE_64, &capstoneHandle) != CS_ERR_OK){
-        //TODO: error handling
+        throw std::runtime_error("Error opening capstone handle. Abort.");
     }
     cs_option(capstoneHandle, CS_OPT_DETAIL, CS_OPT_ON);
 }
@@ -35,7 +35,6 @@ bool CapstoneService::isHigherByteRegister(x86_reg capstoneRegNumber) {
     }
 }
 
-//TODO: probably needs to changed to fit e.g. movzx
 /**
  * Returns the width of the register operand denoted by <code>operandNum</code>. For example, operandNum = 1 returns
  * the width of the second operand of <code>instruction</code>. The operand has to be a general purpose register.
@@ -106,8 +105,7 @@ cs_insn* CapstoneService::getCapstoneInstruction(IRDB_SDK::Instruction_t *instru
     cs_insn *capstoneInstruction;
     size_t count = cs_disasm(capstoneHandle, rawBytes, dataBits.length(), 0x1000, 0, &capstoneInstruction);
     if (count == 0){
-        //TODO: error handling of cs_disasm
-        std::cerr << "ERROR in getRegister" << std::endl;
+        throw std::runtime_error("Failed to disassemble instruction " + instruction->getDisassembly());
     }
     return capstoneInstruction;
 }

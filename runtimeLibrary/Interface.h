@@ -15,7 +15,6 @@
 #include <msan_interface_internal.h>
 #include <iostream>
 #include <msan.h>
-// TODO: move width file in different folder
 #include "../common/Width.h"
 
 // mem access
