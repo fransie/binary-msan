@@ -1,11 +1,19 @@
-#include <stdio.h>
+// COMPILE OPTIONS: -I/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compiler-rt/lib/msan -I/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compiler-rt/include/sanitizer/ -I/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compiler-rt/lib/  -L/home/franzi/Documents/binary-msan/plugins_install -linterface
 
-int main(int argc, char** argv) {
-    int *i = new int;
-    if (*i){
-        printf("xx\n");
-    }
+#include "../runtimeLibrary/Interface.h"
+
+int main() {
+    // given
+    defineRegShadow(0,64);
+    uint32_t *a = new uint32_t;
+    checkRegIsInit(0,64);
+
+    // when
+    asm( "mov %0, %%eax" : : "m" (*a));
+
+    // then this should be uninit
+    checkRegIsInit(0,DOUBLE_WORD);
     return 0;
 }
 
-// EXPECTED: memToRegShadowCopy. Shadow of reg 0 is: 0xffffffff.
+// EXPECTED: MemorySanitizer: use-of-uninitialized-value
