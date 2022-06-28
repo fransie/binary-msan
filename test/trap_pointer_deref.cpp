@@ -1,17 +1,13 @@
-#include <iostream>
+// COMPILE OPTIONS: -I/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compiler-rt/lib/msan -I/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compiler-rt/include/sanitizer/ -I/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compiler-rt/lib/  -L/home/franzi/Documents/binary-msan/plugins_install -linterface
 
-class someClass
-{
-public:
-    int* ptr2Int;
-};
+#include <iostream>
+#include "../runtimeLibrary/Interface.h"
 
 int main(int argc, char** argv) {
-    // create class so that pointer is stored on heap
-    // uninit stack pointers are not supported yet
-    someClass *obj = new someClass();
-    int num = *obj->ptr2Int;
-    std::cout << num;
+    // define rax here because "new" is not instrumented yet and returns an uninit address in rax, which is wrong.
+    defineRegShadow(0,64);
+    int **ptr = (int **) new int;
+    int number = **ptr;
     return 0;
 }
 

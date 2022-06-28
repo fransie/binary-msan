@@ -113,7 +113,7 @@ void checkRegIsInit(int reg, int regWidth) {
  * @param memAddress Source memory address.
  */
 void memToRegShadowCopy(int reg, int regWidth, uptr memAddress){
-    std::cout << "memToRegShadowCopy. Register: " << reg << ". RegWidth: " << regWidth << ". MemAddress: 0x" << std::hex << memAddress << ".";
+    std::cout << "memToRegShadowCopy. Register: " << reg << ". RegWidth: " << regWidth << ". MemAddress: 0x" << std::hex << memAddress << "." << std::endl;
     if (!MEM_IS_APP(memAddress)) {
         std::cout << memAddress << " is not an application address." << std::endl;
         return;
@@ -140,7 +140,7 @@ void memToRegShadowCopy(int reg, int regWidth, uptr memAddress){
             shadowRegisterState[reg].set(x, false);
         }
     }
-    std::cout << " Shadow of reg " << reg << " is: 0x" << std::hex << shadowRegisterState[reg].to_ullong() << "." << std::endl;
+    std::cout << "memToRegShadowCopy. Shadow of reg " << reg << " is: 0x" << std::hex << shadowRegisterState[reg].to_ullong() << "." << std::endl;
 }
 
 /**

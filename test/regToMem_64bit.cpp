@@ -1,4 +1,4 @@
-// COMPILE: g++ regToMem_64bit.cpp -o regToMem -I/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compiler-rt/lib/msan -I/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compiler-rt/include/sanitizer/ -I/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compiler-rt/lib/  -L/home/franzi/Documents/binary-msan/plugins_install -linterface
+// COMPILE OPTIONS: -I/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compiler-rt/lib/msan -I/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compiler-rt/include/sanitizer/ -I/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compiler-rt/lib/  -L/home/franzi/Documents/binary-msan/plugins_install -linterface
 
 #include <assert.h>
 #include <iostream>
@@ -16,7 +16,7 @@ void testShadow0(uint64_t *ptr){
 }
 
 int main() {
-    // define rax here because "new" is not instrumented yet and returns an uninit address is rax, which is wrong.
+    // define rax here because "new" is not instrumented yet and returns an uninit address is rax, which in wrong.
     defineRegShadow(0,64);
     uint64_t *a = new uint64_t;
     testShadowNot0(a);
