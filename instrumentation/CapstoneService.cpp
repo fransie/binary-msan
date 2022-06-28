@@ -210,11 +210,11 @@ int CapstoneService::convertX86RegNumberToWidth(x86_reg regNumber) {
  * @return position of the memory operand in the instruction
  */
 int CapstoneService::getPositionOfMemOperand(cs_insn *capstoneInstruction){
-    for (int i = 0; i < capstoneInstruction->detail->x86.operands->size; i++){
+    for (int i = 0; i <= capstoneInstruction->detail->x86.operands->size; i++){
         if(capstoneInstruction->detail->x86.operands[i].type == X86_OP_MEM){
             return i;
         }
     }
-    std::cerr << "No memory operand was found in instruction " << capstoneInstruction->op_str << std::endl;
+    std::cerr << "No memory operand was found in operands " << capstoneInstruction->op_str << std::endl;
 }
 
