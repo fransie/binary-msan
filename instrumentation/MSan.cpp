@@ -73,6 +73,7 @@ void MSan::registerDependencies(){
     elfDeps->prependLibraryDepedencies(runtimeLibPath + "libinterface.so");
     RuntimeLib::regToRegShadowCopy = elfDeps->appendPltEntry("_Z18regToRegShadowCopyiii");
     RuntimeLib::defineRegShadow = elfDeps->appendPltEntry("_Z15defineRegShadowii");
+    RuntimeLib::defineMemShadow = elfDeps->appendPltEntry("_Z15defineMemShadowmi");
     RuntimeLib::checkRegIsInit = elfDeps->appendPltEntry("_Z14checkRegIsInitii");
     RuntimeLib::memToRegShadowCopy = elfDeps->appendPltEntry("_Z18memToRegShadowCopyiim");
     RuntimeLib::setFlagsAfterTest_Reg = elfDeps->appendPltEntry("_Z21setFlagsAfterTest_Regii");

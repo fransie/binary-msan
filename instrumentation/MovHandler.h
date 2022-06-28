@@ -27,6 +27,7 @@ private:
     IRDB_SDK::FileIR_t *fileIr;
 
     void instrumentImmToRegMove(IRDB_SDK::Instruction_t *instruction);
+    void instrumentImmToMemMove(IRDB_SDK::Instruction_t *instruction);
     void instrumentRegToRegMove(IRDB_SDK::Instruction_t *instruction);
     void instrumentMemToRegMove(IRDB_SDK::Instruction_t *instruction);
     void instrumentRegToMemMove(IRDB_SDK::Instruction_t *instruction);

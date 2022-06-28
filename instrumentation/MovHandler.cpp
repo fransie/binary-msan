@@ -39,6 +39,7 @@ void MovHandler::instrument(Instruction_t *instruction){
             // Sreg to mem
         } else if (operands[1]->isConstant()){
             // immediate to mem
+            instrumentImmToMemMove(instruction);
         }
     } else if (operands[0]->isSegmentRegister()){
         if(operands[1]->isGeneralPurposeRegister()){
@@ -130,6 +131,22 @@ void MovHandler::instrumentRegToMemMove(IRDB_SDK::Instruction_t *instruction) {
     vector<basic_string<char>> instrumentationParams {to_string(src), to_string(width), memoryDisassembly};
     const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
     new_instr[13]->setTarget(RuntimeLib::regToMemShadowCopy);
+}
+
+void MovHandler::instrumentImmToMemMove(IRDB_SDK::Instruction_t *instruction) {
+    cout << "instrumentImmToMemMove: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << endl;
+    auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
+    auto dest = getMemoryOperandDisassembly(instruction);
+    auto destWidth = operands[0]->getArgumentSizeInBytes();
+    string instrumentation = string() +
+                             Utils::getPushCallerSavedRegistersInstrumentation() +
+                             "lea rdi, %%1\n" +    // first argument
+                             "mov rsi, %%2\n" +    // second argument
+                             "call 0\n" +
+                             Utils::getPopCallerSavedRegistersInstrumentation();
+    vector<basic_string<char>> instrumentationParams {dest, to_string(Utils::toHex(destWidth))};
+    const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
+    new_instr[12]->setTarget(RuntimeLib::defineMemShadow);
 }
 
 string MovHandler::getMemoryOperandDisassembly(Instruction_t *instruction) {
