@@ -9,11 +9,11 @@
 #include <irdb-transform>
 #include "CapstoneService.h"
 #include "RuntimeLib.h"
-#include "Handler.h"
+#include "InstructionHandler.h"
 #include "Utils.h"
 #include "MemoryAccessInstrumentation.h"
 
-class MovHandler : public Handler {
+class MovHandler : public InstructionHandler {
 public:
     explicit MovHandler(IRDB_SDK::FileIR_t *fileIr);
 

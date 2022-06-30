@@ -1,13 +1,13 @@
 ############### INSTRUMENTATION ###############
 add_executable(binmsan
         CapstoneService.cpp
-        Handler.h
         JumpHandler.cpp
         MemoryAccessInstrumentation.cpp
         MovHandler.cpp
         MSan.cpp
         Main.cpp
         RuntimeLib.h
+        StackVariableHandler.cpp
         TestHandler.cpp
         Utils.cpp
         ../common/Width.h

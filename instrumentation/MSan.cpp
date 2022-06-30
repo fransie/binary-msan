@@ -3,6 +3,10 @@
 //
 
 #include "MSan.h"
+#include "JumpHandler.h"
+#include "MovHandler.h"
+#include "StackVariableHandler.h"
+#include "TestHandler.h"
 
 using namespace IRDB_SDK;
 using namespace std;
@@ -12,9 +16,10 @@ MSan::MSan(FileIR_t *fileIR)
         Transform_t(fileIR) // init Transform_t class for insertAssembly and getFileIR
 {
     registerDependencies();
-    handlers.push_back(make_unique<MovHandler>(fileIR));
-    handlers.push_back(make_unique<TestHandler>(fileIR));
-    handlers.push_back(make_unique<JumpHandler>(fileIR));
+    functionHandlers.push_back(make_unique<StackVariableHandler>());
+    instructionHandlers.push_back(make_unique<MovHandler>(fileIR));
+    instructionHandlers.push_back(make_unique<TestHandler>(fileIR));
+    instructionHandlers.push_back(make_unique<JumpHandler>(fileIR));
 }
 
 bool MSan::executeStep()
@@ -25,6 +30,7 @@ bool MSan::executeStep()
     for (auto const &function : functions){
         if(function->getName() == "main"){
             mainFunction = function;
+            functionHandlers.at(0)->instrument(mainFunction);
             break;
         }
     }
@@ -43,10 +49,9 @@ bool MSan::executeStep()
     auto instructions = mainFunction->getInstructions();
     for (auto instruction : instructions){
         auto decodedInstruction = DecodedInstruction_t::factory(instruction);
-        auto decodedInstructionCopy = DecodedInstruction_t::factory(instruction);
         auto mnemonic = decodedInstruction->getMnemonic();
 
-        for (auto&& handler : handlers){
+        for (auto&& handler : instructionHandlers){
             for (const auto& associatedInstruction : handler->getAssociatedInstructions())
             if(mnemonic == associatedInstruction){
                 handler->instrument(instruction);

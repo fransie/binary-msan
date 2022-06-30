@@ -6,12 +6,12 @@
 #define BINARY_MSAN_TESTHANDLER_H
 
 #include <irdb-transform>
-#include "Handler.h"
+#include "InstructionHandler.h"
 #include "CapstoneService.h"
 #include "RuntimeLib.h"
 #include "Utils.h"
 
-class TestHandler : public Handler{
+class TestHandler : public InstructionHandler{
 public:
     explicit TestHandler(IRDB_SDK::FileIR_t *fileIr);
     ~TestHandler() = default;

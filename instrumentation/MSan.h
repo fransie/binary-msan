@@ -9,11 +9,10 @@
 #include <irdb-transform>
 #include <irdb-elfdep>
 #include <memory>
-#include "JumpHandler.h"
-#include "MovHandler.h"
-#include "TestHandler.h"
 #include "RuntimeLib.h"
 #include "Utils.h"
+#include "FunctionHandler.h"
+#include "InstructionHandler.h"
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
@@ -31,7 +30,8 @@ public:
     bool parseArgs(int argc, char* argv[]);
 private:
     bool halt_on_error = false;
-    std::vector<std::unique_ptr<Handler>> handlers;
+    std::vector<std::unique_ptr<InstructionHandler>> instructionHandlers;
+    std::vector<std::unique_ptr<FunctionHandler>> functionHandlers;
 
     void registerDependencies();
     void initGpRegisters(IRDB_SDK::Instruction_t *instruction);

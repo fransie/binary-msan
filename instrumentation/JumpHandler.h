@@ -6,12 +6,12 @@
 #define BINARY_MSAN_JUMPHANDLER_H
 
 #include "irdb-transform"
-#include "Handler.h"
+#include "InstructionHandler.h"
 #include "RuntimeLib.h"
 #include "Utils.h"
 #include "CapstoneService.h"
 
-class JumpHandler : public Handler {
+class JumpHandler : public InstructionHandler {
 public:
     explicit JumpHandler(IRDB_SDK::FileIR_t *fileIr);
     ~JumpHandler() = default;
