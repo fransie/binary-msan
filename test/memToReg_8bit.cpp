@@ -8,6 +8,7 @@ int main(int argc, char** argv) {
     uint8_t *a = new uint8_t;
     checkRegIsInit(0,64);
 
+
     // when
     asm( "mov %0, %%al" : : "m" (*a));
 
