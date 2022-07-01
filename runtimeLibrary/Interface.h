@@ -24,7 +24,6 @@ INTERFACE void checkRegIsInit(int reg, int regWidth);
 
 // mov
 INTERFACE void defineRegShadow(int reg, int width);
-INTERFACE void defineMemShadow(__sanitizer::uptr memAddress, int width);
 INTERFACE void memToRegShadowCopy(int reg, int regWidth, __sanitizer::uptr memAddress);
 INTERFACE void regToMemShadowCopy(int reg, int regWidth, __sanitizer::uptr memAddress);
 INTERFACE void regToRegShadowCopy(int dest, int source, int width);

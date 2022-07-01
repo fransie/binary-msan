@@ -264,13 +264,3 @@ void *getRegisterShadow(int reg, int regWidth) {
             throw std::invalid_argument("Function regToRegShadowCopy was called with an unsupported width value.");
     }
 }
-
-/**
- * Defines <code>width</code> bytes of shadow memory corresponding to the memory starting from <code>memAddress</code>.
- * @param memAddress Address of the initialised memory.
- * @param width Width of the initialised memory in bytes.
- */
-void defineMemShadow(uptr memAddress, int width) {
-    std::cout << "defineMemShadow. MemAddress: 0x" << std::hex << memAddress << ". Width: " << width << std::endl;
-    __msan_unpoison((void*)memAddress, width);
-}

@@ -80,7 +80,6 @@ void MSan::registerDependencies(){
     elfDeps->prependLibraryDepedencies(runtimeLibPath + "libinterface.so");
     RuntimeLib::regToRegShadowCopy = elfDeps->appendPltEntry("regToRegShadowCopy");
     RuntimeLib::defineRegShadow = elfDeps->appendPltEntry("defineRegShadow");
-    RuntimeLib::defineMemShadow = elfDeps->appendPltEntry("defineMemShadow");
     RuntimeLib::checkRegIsInit = elfDeps->appendPltEntry("checkRegIsInit");
     RuntimeLib::memToRegShadowCopy = elfDeps->appendPltEntry("memToRegShadowCopy");
     RuntimeLib::setFlagsAfterTest_Reg = elfDeps->appendPltEntry("setFlagsAfterTest_Reg");
@@ -88,9 +87,11 @@ void MSan::registerDependencies(){
     RuntimeLib::checkEflags = elfDeps->appendPltEntry("checkEflags");
     RuntimeLib::initGpRegisters = elfDeps->appendPltEntry("initGpRegisters");
     RuntimeLib::regToMemShadowCopy = elfDeps->appendPltEntry("regToMemShadowCopy");
-    RuntimeLib::__msan_set_keep_going = elfDeps->appendPltEntry("__msan_set_keep_going");
 
+    RuntimeLib::__msan_set_keep_going = elfDeps->appendPltEntry("__msan_set_keep_going");
+    RuntimeLib::__msan_unpoison = elfDeps->appendPltEntry("__msan_unpoison");
     RuntimeLib::__msan_poison_stack = elfDeps->appendPltEntry("__msan_poison_stack");
+
     const string compilerRtPath = "/home/franzi/Documents/binary-msan/clang_msan_libs/";
     elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan_cxx-x86_64.so");
     elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan-x86_64.so");

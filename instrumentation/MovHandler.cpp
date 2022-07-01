@@ -146,7 +146,7 @@ void MovHandler::instrumentImmToMemMove(IRDB_SDK::Instruction_t *instruction) {
                              Utils::getPopCallerSavedRegistersInstrumentation();
     vector<basic_string<char>> instrumentationParams {dest, to_string(Utils::toHex(destWidth))};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
-    new_instr[12]->setTarget(RuntimeLib::defineMemShadow);
+    new_instr[12]->setTarget(RuntimeLib::__msan_unpoison);
 }
 
 string MovHandler::getMemoryOperandDisassembly(Instruction_t *instruction) {
