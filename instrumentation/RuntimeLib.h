@@ -20,6 +20,7 @@ public:
     inline static IRDB_SDK::Instruction_t *checkEflags;
     inline static IRDB_SDK::Instruction_t *initGpRegisters;
     inline static IRDB_SDK::Instruction_t *disableHaltOnError;
+    inline static IRDB_SDK::Instruction_t *__msan_poison_stack;
 };
 
 

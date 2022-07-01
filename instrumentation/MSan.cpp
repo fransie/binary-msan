@@ -16,7 +16,7 @@ MSan::MSan(FileIR_t *fileIR)
         Transform_t(fileIR) // init Transform_t class for insertAssembly and getFileIR
 {
     registerDependencies();
-    functionHandlers.push_back(make_unique<StackVariableHandler>());
+    functionHandlers.push_back(make_unique<StackVariableHandler>(fileIR));
     instructionHandlers.push_back(make_unique<MovHandler>(fileIR));
     instructionHandlers.push_back(make_unique<TestHandler>(fileIR));
     instructionHandlers.push_back(make_unique<JumpHandler>(fileIR));
@@ -30,7 +30,6 @@ bool MSan::executeStep()
     for (auto const &function : functions){
         if(function->getName() == "main"){
             mainFunction = function;
-            functionHandlers.at(0)->instrument(mainFunction);
             break;
         }
     }
@@ -58,6 +57,7 @@ bool MSan::executeStep()
             }
         }
     }
+    functionHandlers.at(0)->instrument(mainFunction);
     return true; //success
 }
 
@@ -88,6 +88,7 @@ void MSan::registerDependencies(){
     RuntimeLib::regToMemShadowCopy = elfDeps->appendPltEntry("regToMemShadowCopy");
     RuntimeLib::disableHaltOnError = elfDeps->appendPltEntry("disableHaltOnError");
 
+    RuntimeLib::__msan_poison_stack = elfDeps->appendPltEntry("__msan_poison_stack");
     const string compilerRtPath = "/home/franzi/Documents/binary-msan/clang_msan_libs/";
     elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan_cxx-x86_64.so");
     elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan-x86_64.so");

@@ -19,10 +19,13 @@
  */
 class StackVariableHandler : public FunctionHandler{
 public:
+    explicit StackVariableHandler(IRDB_SDK::FileIR_t *fileIr);
     void instrument(IRDB_SDK::Function_t *function) override;
 private:
+    IRDB_SDK::FileIR_t *fileIr;
+
     bool isLeafOrTailCallFunction(IRDB_SDK::Function_t *function);
-    void setLocalVariablesToUninit(IRDB_SDK::Function_t *function);
+    void setLocalVariablesToUninit(IRDB_SDK::Function_t *function, int stackFrameSize);
 };
 
 
