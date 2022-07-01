@@ -76,17 +76,17 @@ void MSan::registerDependencies(){
 
     const string runtimeLibPath = "/home/franzi/Documents/binary-msan/plugins_install/";
     elfDeps->prependLibraryDepedencies(runtimeLibPath + "libinterface.so");
-    RuntimeLib::regToRegShadowCopy = elfDeps->appendPltEntry("_Z18regToRegShadowCopyiii");
-    RuntimeLib::defineRegShadow = elfDeps->appendPltEntry("_Z15defineRegShadowii");
-    RuntimeLib::defineMemShadow = elfDeps->appendPltEntry("_Z15defineMemShadowmi");
-    RuntimeLib::checkRegIsInit = elfDeps->appendPltEntry("_Z14checkRegIsInitii");
-    RuntimeLib::memToRegShadowCopy = elfDeps->appendPltEntry("_Z18memToRegShadowCopyiim");
-    RuntimeLib::setFlagsAfterTest_Reg = elfDeps->appendPltEntry("_Z21setFlagsAfterTest_Regii");
-    RuntimeLib::setFlagsAfterTest_RegReg = elfDeps->appendPltEntry("_Z24setFlagsAfterTest_RegRegiii");
-    RuntimeLib::checkEflags = elfDeps->appendPltEntry("_Z11checkEflagsv");
-    RuntimeLib::initGpRegisters = elfDeps->appendPltEntry("_Z15initGpRegistersv");
-    RuntimeLib::regToMemShadowCopy = elfDeps->appendPltEntry("_Z18regToMemShadowCopyiim");
-    RuntimeLib::disableHaltOnError = elfDeps->appendPltEntry("_Z18disableHaltOnErrorv");
+    RuntimeLib::regToRegShadowCopy = elfDeps->appendPltEntry("regToRegShadowCopy");
+    RuntimeLib::defineRegShadow = elfDeps->appendPltEntry("defineRegShadow");
+    RuntimeLib::defineMemShadow = elfDeps->appendPltEntry("defineMemShadow");
+    RuntimeLib::checkRegIsInit = elfDeps->appendPltEntry("checkRegIsInit");
+    RuntimeLib::memToRegShadowCopy = elfDeps->appendPltEntry("memToRegShadowCopy");
+    RuntimeLib::setFlagsAfterTest_Reg = elfDeps->appendPltEntry("setFlagsAfterTest_Reg");
+    RuntimeLib::setFlagsAfterTest_RegReg = elfDeps->appendPltEntry("setFlagsAfterTest_RegReg");
+    RuntimeLib::checkEflags = elfDeps->appendPltEntry("checkEflags");
+    RuntimeLib::initGpRegisters = elfDeps->appendPltEntry("initGpRegisters");
+    RuntimeLib::regToMemShadowCopy = elfDeps->appendPltEntry("regToMemShadowCopy");
+    RuntimeLib::disableHaltOnError = elfDeps->appendPltEntry("disableHaltOnError");
 
     const string compilerRtPath = "/home/franzi/Documents/binary-msan/clang_msan_libs/";
     elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan_cxx-x86_64.so");

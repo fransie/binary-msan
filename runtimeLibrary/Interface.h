@@ -17,6 +17,8 @@
 #include <msan.h>
 #include "../common/Width.h"
 
+extern "C"{
+
 // mem access
 INTERFACE void checkRegIsInit(int reg, int regWidth);
 
@@ -39,4 +41,5 @@ INTERFACE void initGpRegisters();
 INTERFACE void disableHaltOnError();
 void* getRegisterShadow(int reg, int regWidth);
 
+} // extern "C"
 #endif //BINARY_MSAN_INTERFACE_H
