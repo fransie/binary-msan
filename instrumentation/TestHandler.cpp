@@ -49,7 +49,7 @@ void TestHandler::instrumentSingleRegTest(IRDB_SDK::Instruction_t *instruction) 
                              "mov rdi, %%1\n" +    // first argument
                              "mov rsi, %%2\n" +    // second argument
                              "call 0\n" +
-                             "mov rdi, rax\n" +
+                             "mov dil, al\n" +
                              "call 0\n" +
                              Utils::getPopCallerSavedRegistersInstrumentation();
     vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string(width)};
@@ -71,7 +71,7 @@ void TestHandler::instrumentRegRegTest(IRDB_SDK::Instruction_t *instruction) {
                              "mov rdx, %%3\n" +    // src
                              "mov rcx, %%4\n" +    // srcWidth
                              "call 0\n" +
-                             "mov rdi, rax\n" +
+                             "mov dil, al\n" +
                              "call 0\n" +
                              Utils::getPopCallerSavedRegistersInstrumentation();
     vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string(destWidth), to_string((int)src), to_string(srcWidth)};
