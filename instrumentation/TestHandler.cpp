@@ -49,25 +49,33 @@ void TestHandler::instrumentSingleRegTest(IRDB_SDK::Instruction_t *instruction) 
                              "mov rdi, %%1\n" +    // first argument
                              "mov rsi, %%2\n" +    // second argument
                              "call 0\n" +
+                             "mov rdi, rax\n" +
+                             "call 0\n" +
                              Utils::getPopCallerSavedRegistersInstrumentation();
     vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string(width)};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
-    new_instr[12]->setTarget(RuntimeLib::setFlagsAfterTest_Reg);
+    new_instr[12]->setTarget(RuntimeLib::isRegFullyDefined);
+    new_instr[14]->setTarget(RuntimeLib::setEflags);
 }
 
 void TestHandler::instrumentRegRegTest(IRDB_SDK::Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     auto dest = operands[0]->getRegNumber();
     auto src = operands[1]->getRegNumber();
-    auto width = capstone->getRegWidth(instruction, 0);
+    auto destWidth = capstone->getRegWidth(instruction, 0);
+    auto srcWidth = capstone->getRegWidth(instruction, 1);
     string instrumentation = string() +
                              Utils::getPushCallerSavedRegistersInstrumentation() +
-                             "mov rdi, %%1\n" +    // first argument
-                             "mov rsi, %%2\n" +    // second argument
-                             "mov rdx, %%3\n" +    // second argument
+                             "mov rdi, %%1\n" +    // dest
+                             "mov rsi, %%2\n" +    // destWidth
+                             "mov rdx, %%3\n" +    // src
+                             "mov rcx, %%4\n" +    // srcWidth
+                             "call 0\n" +
+                             "mov rdi, rax\n" +
                              "call 0\n" +
                              Utils::getPopCallerSavedRegistersInstrumentation();
-    vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string((int)src), to_string(width)};
+    vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string(destWidth), to_string((int)src), to_string(srcWidth)};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
-    new_instr[13]->setTarget(RuntimeLib::setFlagsAfterTest_RegReg);
+    new_instr[14]->setTarget(RuntimeLib::isRegOrRegFullyDefined);
+    new_instr[16]->setTarget(RuntimeLib::setEflags);
 }

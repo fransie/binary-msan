@@ -28,17 +28,22 @@ INTERFACE void memToRegShadowCopy(int reg, int regWidth, __sanitizer::uptr memAd
 INTERFACE void regToMemShadowCopy(int reg, int regWidth, __sanitizer::uptr memAddress);
 INTERFACE void regToRegShadowCopy(int dest, int source, int width);
 
-// test
-INTERFACE void setFlagsAfterTest_Reg(int reg, int width);
-INTERFACE void setFlagsAfterTest_RegReg(int destReg, int srcReg, int width);
-
 // jump
 INTERFACE void checkEflags();
 
 // helpers
 INTERFACE void initGpRegisters();
-INTERFACE void disableHaltOnError();
 void* getRegisterShadow(int reg, int regWidth);
+
+bool isRegFullyDefined(int reg, int width);
+bool isMemFullyDefined(const void *mem, uptr size);
+bool isRegOrRegFullyDefined(int dest, int destWidth, int src, int srcWidth);
+bool isRegOrMemFullyDefined(int reg, const void *mem, int width);
+
+void setEflags(bool defined);
+
+void setRegShadow(bool initState);
+void setMemShadow(bool initState);
 
 } // extern "C"
 #endif //BINARY_MSAN_INTERFACE_H

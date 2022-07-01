@@ -82,11 +82,12 @@ void MSan::registerDependencies(){
     RuntimeLib::defineRegShadow = elfDeps->appendPltEntry("defineRegShadow");
     RuntimeLib::checkRegIsInit = elfDeps->appendPltEntry("checkRegIsInit");
     RuntimeLib::memToRegShadowCopy = elfDeps->appendPltEntry("memToRegShadowCopy");
-    RuntimeLib::setFlagsAfterTest_Reg = elfDeps->appendPltEntry("setFlagsAfterTest_Reg");
-    RuntimeLib::setFlagsAfterTest_RegReg = elfDeps->appendPltEntry("setFlagsAfterTest_RegReg");
     RuntimeLib::checkEflags = elfDeps->appendPltEntry("checkEflags");
     RuntimeLib::initGpRegisters = elfDeps->appendPltEntry("initGpRegisters");
     RuntimeLib::regToMemShadowCopy = elfDeps->appendPltEntry("regToMemShadowCopy");
+    RuntimeLib::isRegFullyDefined = elfDeps->appendPltEntry("isRegFullyDefined");
+    RuntimeLib::isRegOrRegFullyDefined = elfDeps->appendPltEntry("isRegOrRegFullyDefined");
+    RuntimeLib::setEflags = elfDeps->appendPltEntry("setEflags");
 
     RuntimeLib::__msan_set_keep_going = elfDeps->appendPltEntry("__msan_set_keep_going");
     RuntimeLib::__msan_unpoison = elfDeps->appendPltEntry("__msan_unpoison");

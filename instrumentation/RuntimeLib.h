@@ -15,12 +15,13 @@ public:
     inline static IRDB_SDK::Instruction_t *memToRegShadowCopy;
     inline static IRDB_SDK::Instruction_t *regToRegShadowCopy;
     inline static IRDB_SDK::Instruction_t *regToMemShadowCopy;
-    inline static IRDB_SDK::Instruction_t *setFlagsAfterTest_Reg;
-    inline static IRDB_SDK::Instruction_t *setFlagsAfterTest_RegReg;
     inline static IRDB_SDK::Instruction_t *checkEflags;
     inline static IRDB_SDK::Instruction_t *initGpRegisters;
     inline static IRDB_SDK::Instruction_t *__msan_set_keep_going;
     inline static IRDB_SDK::Instruction_t *__msan_poison_stack;
+    inline static IRDB_SDK::Instruction_t *isRegFullyDefined;
+    inline static IRDB_SDK::Instruction_t *isRegOrRegFullyDefined;
+    inline static IRDB_SDK::Instruction_t *setEflags;
 };
 
 

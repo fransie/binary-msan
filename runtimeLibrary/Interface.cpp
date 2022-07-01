@@ -145,65 +145,6 @@ void memToRegShadowCopy(int reg, int regWidth, uptr memAddress){
 }
 
 /**
- * Sets the shadow of the EFLAGS registers according to a test instruction with one general purpose register included,
- * e.g. test eax, eax or test eax, 0. Registers numbering: see file operand_csx86.cpp in zipr.
- * @param reg number of the register.
- * @param width width of the register.
- */
-void setFlagsAfterTest_Reg(int reg, int width) {
-    if (shadowRegisterState[reg].none()){
-        eflagsDefined = true;
-    } else {
-        int bit = 0;
-        if(width == HIGHER_BYTE){
-            bit = 8;
-            width = 16;
-        }
-        for (; bit < width; bit++){
-            if(shadowRegisterState[reg].test(bit) == 1){
-                eflagsDefined = false;
-                std::cout << "setFlagsAfterTest_Reg. Register: " << reg << ". RegWidth: " << width << ". Eflags init: " << std::boolalpha << eflagsDefined << std::endl;
-                return;
-            }
-        }
-        eflagsDefined =  true;
-    }
-    std::cout << "setFlagsAfterTest_Reg. Register: " << reg << ". RegWidth: " << width << ". Eflags init: " << std::boolalpha << eflagsDefined << std::endl;
-}
-
-
-/**
- * Sets the shadow of the EFLAGS registers according to a test instruction with two general purpose registers included,
- * e.g. test eax, ebx. Registers numbering: see file operand_csx86.cpp in zipr.
- * @param destReg number of the destination register.
- * @param srcReg number of the source register.
- * @param width width of the two registers used. In test operations, both registers are the same size.
- */
-void setFlagsAfterTest_RegReg(int destReg, int srcReg, int width) {
-    if(shadowRegisterState[destReg].none() && shadowRegisterState[srcReg].none()){
-        eflagsDefined = true;
-    } else {
-        int bit = 0;
-        if(width == HIGHER_BYTE){
-            bit = 8;
-            width = 16;
-        }
-        for (; bit < width; bit++){
-            if(shadowRegisterState[destReg].test(bit) == 1){
-                eflagsDefined = false;
-                return;
-            }
-            if(shadowRegisterState[srcReg].test(bit) == 1){
-                eflagsDefined = false;
-                return;
-            }
-        }
-        eflagsDefined =  true;
-    }
-    std::cout << "setFlagsAfterTest_RegReg. Dest: " << destReg << ". Source: " << srcReg << ". Width: " << width << ". Eflags init: " << std::boolalpha << eflagsDefined << std::endl;
-}
-
-/**
  * Verifies whether the EFLAGS register is initialised and if not, causes an msan warning.
  */
 void checkEflags() {
@@ -262,5 +203,67 @@ void *getRegisterShadow(int reg, int regWidth) {
         }
         default:
             throw std::invalid_argument("Function regToRegShadowCopy was called with an unsupported width value.");
+    }
+}
+
+
+void setEflags(bool defined) {
+    eflagsDefined = defined;
+}
+
+bool isRegFullyDefined(int reg, int width) {
+    if (shadowRegisterState[reg].none()){
+        return true;
+    } else {
+        int bit = 0;
+        if(width == HIGHER_BYTE){
+            bit = 8;
+            width = 16;
+        }
+        for (; bit < width; bit++){
+            if(shadowRegisterState[reg].test(bit) == 1){
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
+bool isRegOrRegFullyDefined(int dest, int destWidth, int src, int srcWidth) {
+    if(destWidth == HIGHER_BYTE || srcWidth == HIGHER_BYTE){
+        int destBit = 0;
+        if(destWidth == HIGHER_BYTE){
+            destBit = 8;
+            destWidth = 16;
+        }
+        for (; destBit < destWidth; destBit++){
+            if(shadowRegisterState[dest].test(destBit) == 1){
+                return false;
+            }
+        }
+        int srcBit = 0;
+        if(srcWidth == HIGHER_BYTE){
+            srcBit = 8;
+            srcWidth = 16;
+        }
+        for (; srcBit < srcWidth; srcBit++){
+            if(shadowRegisterState[src].test(srcBit) == 1){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    auto registerOr = shadowRegisterState[dest] ^ shadowRegisterState[src];
+    if(registerOr.none()){
+        return true;
+    } else {
+        int bit = 0;
+        for (; bit < destWidth; bit++){
+            if(registerOr.test(bit) == 1){
+                return false;
+            }
+        }
+        return true;
     }
 }
