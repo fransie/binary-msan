@@ -11,6 +11,7 @@
 class CompareHandler : public InstructionHandler {
 public:
     explicit CompareHandler(IRDB_SDK::FileIR_t *fileIr);
+    ~CompareHandler() = default;
     void instrument(IRDB_SDK::Instruction_t *instruction) override;
 
     const std::vector<std::string> &getAssociatedInstructions() override;

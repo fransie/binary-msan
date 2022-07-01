@@ -1,6 +1,7 @@
 ############### INSTRUMENTATION ###############
 add_executable(binmsan
         CapstoneService.cpp
+        CompareHandler.cpp
         JumpHandler.cpp
         MemoryAccessInstrumentation.cpp
         MovHandler.cpp

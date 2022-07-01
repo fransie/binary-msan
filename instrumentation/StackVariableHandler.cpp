@@ -90,7 +90,7 @@ void StackVariableHandler::setLocalVariablesToUninit(IRDB_SDK::Function_t *funct
                              Utils::getPopCallerSavedRegistersInstrumentation();
     vector<basic_string<char>> instrumentationParams {to_string(Utils::toHex(stackFrameSize))};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsAfter(fileIr, nextInstruction, instrumentation, instrumentationParams);
-    new_instr[12]->setTarget(RuntimeLib::__msan_poison_stack);
+    new_instr[13]->setTarget(RuntimeLib::__msan_poison_stack);
 }
 
 
