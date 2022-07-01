@@ -2,6 +2,7 @@
 // Created by Franziska Mäckel on 03.04.22.
 //
 
+#include "CompareHandler.h"
 #include "MSan.h"
 #include "JumpHandler.h"
 #include "MovHandler.h"
@@ -20,6 +21,7 @@ MSan::MSan(FileIR_t *fileIR)
     instructionHandlers.push_back(make_unique<MovHandler>(fileIR));
     instructionHandlers.push_back(make_unique<TestHandler>(fileIR));
     instructionHandlers.push_back(make_unique<JumpHandler>(fileIR));
+    instructionHandlers.push_back(make_unique<CompareHandler>(fileIR));
 }
 
 bool MSan::executeStep()
