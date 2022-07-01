@@ -265,11 +265,6 @@ void *getRegisterShadow(int reg, int regWidth) {
     }
 }
 
-void disableHaltOnError() {
-    std::cout << "Keep going on msan error." << std::endl;
-    __msan_set_keep_going(1);
-}
-
 /**
  * Defines <code>width</code> bytes of shadow memory corresponding to the memory starting from <code>memAddress</code>.
  * @param memAddress Address of the initialised memory.

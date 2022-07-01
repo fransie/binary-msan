@@ -88,7 +88,7 @@ void MSan::registerDependencies(){
     RuntimeLib::checkEflags = elfDeps->appendPltEntry("checkEflags");
     RuntimeLib::initGpRegisters = elfDeps->appendPltEntry("initGpRegisters");
     RuntimeLib::regToMemShadowCopy = elfDeps->appendPltEntry("regToMemShadowCopy");
-    RuntimeLib::disableHaltOnError = elfDeps->appendPltEntry("disableHaltOnError");
+    RuntimeLib::__msan_set_keep_going = elfDeps->appendPltEntry("__msan_set_keep_going");
 
     RuntimeLib::__msan_poison_stack = elfDeps->appendPltEntry("__msan_poison_stack");
     const string compilerRtPath = "/home/franzi/Documents/binary-msan/clang_msan_libs/";
@@ -134,8 +134,9 @@ bool MSan::parseArgs(int argc, char **argv) {
 void MSan::disableHaltOnError(IRDB_SDK::Instruction_t *instruction) {
     string instrumentation = string() +
                              Utils::getPushCallerSavedRegistersInstrumentation() +
+                             "mov rdi, 1\n" +
                              "call 0\n" +
                              Utils::getPopCallerSavedRegistersInstrumentation();
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsAfter(getFileIR(), instruction, instrumentation, {});
-    new_instr[11]->setTarget(RuntimeLib::disableHaltOnError);
+    new_instr[12]->setTarget(RuntimeLib::__msan_set_keep_going);
 }
