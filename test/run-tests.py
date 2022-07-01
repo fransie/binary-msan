@@ -1,4 +1,6 @@
+import re
 import subprocess
+import sys
 from os import listdir
 from os.path import isfile, join
 
@@ -51,12 +53,20 @@ def run_test(filename):
 
 if __name__ == '__main__':
     subprocess.call(CLEAN_SCRIPT, shell=True)
+
+    regex = ""
+    if len(sys.argv) > 1:
+        regex = sys.argv[1]
     # TODO: fix absolute path
     testfiles = [f for f in listdir("/home/franzi/Documents/binary-msan/test") if isfile(join("", f))]
     testfiles.sort()
     for file in testfiles:
         if not file.endswith(".cpp"):
             continue
+        if regex != "":
+            result = re.search(regex, file)
+            if result is None:
+                continue
         print(f"******* {file} *******")
         if is_disabled(file):
             continue
@@ -64,6 +74,7 @@ if __name__ == '__main__':
         sanitize(file)
         exit_code = run_test(file)
         if exit_code == 2:
+
             continue
 
         expected_output = get_expected_output(file)
