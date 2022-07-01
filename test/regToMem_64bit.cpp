@@ -17,7 +17,7 @@ void testShadow0(uint64_t *ptr){
 
 int main() {
     // define rax here because "new" is not instrumented yet and returns an uninit address is rax, which in wrong.
-    defineRegShadow(0,64);
+    setRegShadow(0,0,64);
     uint64_t *a = new uint64_t;
     testShadowNot0(a);
     asm ("mov $1, %rax");

@@ -54,31 +54,6 @@ void regToRegShadowCopy(const int dest, const int source, const int width){
     std::cout << ". New dest shadow: " << shadowRegisterState[dest].to_ullong() << std::endl;
 }
 
-//TODO: do the processing of width in instrumentation, not here
-/**
- * Sets the state of the required number of bits of a register to defined. Registers numbering: see namespace Registers.
- * Use it to define the shadow state for an immediate mov. For example, if an immediate is moved into AL, only the lowest
- * 8 bits of RAX are set to defined. The only exception is 32-bit registers: Here, all 64 bits are set to defined
- * because the higher two bytes are zeroed out by 32-bit moves. Registers numbering: see file operand_csx86.cpp in zipr.
- *
- * @param reg the number of the register to be set to defined.
- * @param width the width of the register to be set to defined in bits. "0" denominates the second-least significant byte.
- */
-void defineRegShadow(const int reg, int width){
-    std::cout << "defineRegShadow. Register: " << reg << ". Width: " << width << std::endl;
-    int startFrom = 0;
-    if(width == HIGHER_BYTE){
-        startFrom = 8;
-    }
-    if(width == DOUBLE_WORD){
-        // Higher two bytes are zeroed for double word moves.
-        width = 64;
-    }
-    for(int position = 63 - startFrom; position >= (64 - width) ; position--){
-        shadowRegisterState[reg].set(position, 0);
-    }
-}
-
 /**
  * Checks whether the first regWidth bits of the register referenced by <code>reg</code> are initialised. If not,
  * an MSan Warning is issued. Registers numbering: see file operand_csx86.cpp in zipr.
@@ -265,5 +240,28 @@ bool isRegOrRegFullyDefined(int dest, int destWidth, int src, int srcWidth) {
             }
         }
         return true;
+    }
+}
+
+bool isMemFullyDefined(const void *mem, uptr size) {
+    auto firstUninitByte = __msan_test_shadow(mem, size);
+    return (firstUninitByte == -1);
+}
+
+bool isRegOrMemFullyDefined(int reg, const void *mem, int width) {
+    auto firstUninitByte = __msan_test_shadow(mem, width);
+    if (firstUninitByte != -1){
+        return false;
+    }
+    return isRegFullyDefined(reg, width);
+}
+
+void setRegShadow(bool initState, int reg, int width) {
+    int startFrom = 0;
+    if(width == HIGHER_BYTE){
+        startFrom = 8;
+    }
+    for(int position = 63 - startFrom; position >= (64 - width) ; position--){
+        shadowRegisterState[reg].set(position, initState);
     }
 }

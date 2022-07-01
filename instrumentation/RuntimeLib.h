@@ -22,6 +22,8 @@ public:
     inline static IRDB_SDK::Instruction_t *isRegFullyDefined;
     inline static IRDB_SDK::Instruction_t *isRegOrRegFullyDefined;
     inline static IRDB_SDK::Instruction_t *setEflags;
+    inline static IRDB_SDK::Instruction_t *setRegShadow;
+    inline static IRDB_SDK::Instruction_t *setMemShadow;
 };
 
 

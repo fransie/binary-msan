@@ -59,13 +59,14 @@ void MovHandler::instrumentImmToRegMove(Instruction_t *instruction) {
     auto width = capstone->getRegWidth(instruction, 0);
     string instrumentation = string() +
                              Utils::getPushCallerSavedRegistersInstrumentation() +
-                             "mov rdi, %%1\n" +    // first argument
-                             "mov rsi, %%2\n" +    // second argument
+                             "mov dil, 0\n" +    // initState
+                             "mov rsi, %%1\n" +    // reg
+                             "mov rdx, %%2\n" +    // regWidth
                              "call 0\n" +
                              Utils::getPopCallerSavedRegistersInstrumentation();
     vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string(width)};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
-    new_instr[12]->setTarget(RuntimeLib::defineRegShadow);
+    new_instr[12]->setTarget(RuntimeLib::setRegShadow);
 }
 
 /**

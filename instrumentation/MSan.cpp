@@ -79,7 +79,6 @@ void MSan::registerDependencies(){
     const string runtimeLibPath = "/home/franzi/Documents/binary-msan/plugins_install/";
     elfDeps->prependLibraryDepedencies(runtimeLibPath + "libinterface.so");
     RuntimeLib::regToRegShadowCopy = elfDeps->appendPltEntry("regToRegShadowCopy");
-    RuntimeLib::defineRegShadow = elfDeps->appendPltEntry("defineRegShadow");
     RuntimeLib::checkRegIsInit = elfDeps->appendPltEntry("checkRegIsInit");
     RuntimeLib::memToRegShadowCopy = elfDeps->appendPltEntry("memToRegShadowCopy");
     RuntimeLib::checkEflags = elfDeps->appendPltEntry("checkEflags");
@@ -88,6 +87,8 @@ void MSan::registerDependencies(){
     RuntimeLib::isRegFullyDefined = elfDeps->appendPltEntry("isRegFullyDefined");
     RuntimeLib::isRegOrRegFullyDefined = elfDeps->appendPltEntry("isRegOrRegFullyDefined");
     RuntimeLib::setEflags = elfDeps->appendPltEntry("setEflags");
+    RuntimeLib::setRegShadow = elfDeps->appendPltEntry("setRegShadow");
+    RuntimeLib::setMemShadow = elfDeps->appendPltEntry("setMemShadow");
 
     RuntimeLib::__msan_set_keep_going = elfDeps->appendPltEntry("__msan_set_keep_going");
     RuntimeLib::__msan_unpoison = elfDeps->appendPltEntry("__msan_unpoison");

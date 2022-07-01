@@ -23,7 +23,6 @@ extern "C"{
 INTERFACE void checkRegIsInit(int reg, int regWidth);
 
 // mov
-INTERFACE void defineRegShadow(int reg, int width);
 INTERFACE void memToRegShadowCopy(int reg, int regWidth, __sanitizer::uptr memAddress);
 INTERFACE void regToMemShadowCopy(int reg, int regWidth, __sanitizer::uptr memAddress);
 INTERFACE void regToRegShadowCopy(int dest, int source, int width);
@@ -42,8 +41,8 @@ bool isRegOrMemFullyDefined(int reg, const void *mem, int width);
 
 void setEflags(bool defined);
 
-void setRegShadow(bool initState);
-void setMemShadow(bool initState);
+void setRegShadow(bool initState, int reg, int width);
+void setMemShadow(bool initState, const void *mem, uptr size);
 
 } // extern "C"
 #endif //BINARY_MSAN_INTERFACE_H

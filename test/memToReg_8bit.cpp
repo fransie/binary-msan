@@ -4,7 +4,7 @@
 
 int main(int argc, char** argv) {
     // given
-    defineRegShadow(0,64);
+    setRegShadow(0,0,64);
     uint8_t *a = new uint8_t;
     checkRegIsInit(0,64);
 

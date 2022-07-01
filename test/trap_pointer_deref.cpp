@@ -5,7 +5,7 @@
 
 int main(int argc, char** argv) {
     // define rax here because "new" is not instrumented yet and returns an uninit address in rax, which is wrong.
-    defineRegShadow(0,64);
+    setRegShadow(0,0,64);
     int **ptr = (int **) new int;
     int number = **ptr;
     return 0;
