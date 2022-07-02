@@ -1,7 +1,7 @@
 ############### INSTRUMENTATION ###############
 add_executable(binmsan
         CapstoneService.cpp
-        CompareHandler.cpp
+        EflagsHandler.cpp
         JumpHandler.cpp
         MemoryAccessInstrumentation.cpp
         MovHandler.cpp
@@ -9,7 +9,6 @@ add_executable(binmsan
         Main.cpp
         RuntimeLib.h
         StackVariableHandler.cpp
-        TestHandler.cpp
         Utils.cpp
         ../common/Width.h
 )

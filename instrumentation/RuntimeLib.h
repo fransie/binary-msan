@@ -20,7 +20,9 @@ public:
     inline static IRDB_SDK::Instruction_t *__msan_set_keep_going;
     inline static IRDB_SDK::Instruction_t *__msan_poison_stack;
     inline static IRDB_SDK::Instruction_t *isRegFullyDefined;
+    inline static IRDB_SDK::Instruction_t *isMemFullyDefined;
     inline static IRDB_SDK::Instruction_t *isRegOrRegFullyDefined;
+    inline static IRDB_SDK::Instruction_t *isRegOrMemFullyDefined;
     inline static IRDB_SDK::Instruction_t *setEflags;
     inline static IRDB_SDK::Instruction_t *setRegShadow;
     inline static IRDB_SDK::Instruction_t *setMemShadow;

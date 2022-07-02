@@ -2,12 +2,11 @@
 // Created by Franziska Mäckel on 03.04.22.
 //
 
-#include "CompareHandler.h"
+#include "EflagsHandler.h"
 #include "MSan.h"
 #include "JumpHandler.h"
 #include "MovHandler.h"
 #include "StackVariableHandler.h"
-#include "TestHandler.h"
 
 using namespace IRDB_SDK;
 using namespace std;
@@ -19,9 +18,9 @@ MSan::MSan(FileIR_t *fileIR)
     registerDependencies();
     functionHandlers.push_back(make_unique<StackVariableHandler>(fileIR));
     instructionHandlers.push_back(make_unique<MovHandler>(fileIR));
-    instructionHandlers.push_back(make_unique<TestHandler>(fileIR));
+    instructionHandlers.push_back(make_unique<EflagsHandler>(fileIR));
     instructionHandlers.push_back(make_unique<JumpHandler>(fileIR));
-    instructionHandlers.push_back(make_unique<CompareHandler>(fileIR));
+    instructionHandlers.push_back(make_unique<EflagsHandler>(fileIR));
 }
 
 bool MSan::executeStep()
@@ -85,7 +84,9 @@ void MSan::registerDependencies(){
     RuntimeLib::initGpRegisters = elfDeps->appendPltEntry("initGpRegisters");
     RuntimeLib::regToMemShadowCopy = elfDeps->appendPltEntry("regToMemShadowCopy");
     RuntimeLib::isRegFullyDefined = elfDeps->appendPltEntry("isRegFullyDefined");
+    RuntimeLib::isMemFullyDefined = elfDeps->appendPltEntry("isMemFullyDefined");
     RuntimeLib::isRegOrRegFullyDefined = elfDeps->appendPltEntry("isRegOrRegFullyDefined");
+    RuntimeLib::isRegOrMemFullyDefined = elfDeps->appendPltEntry("isRegOrMemFullyDefined");
     RuntimeLib::setEflags = elfDeps->appendPltEntry("setEflags");
     RuntimeLib::setRegShadow = elfDeps->appendPltEntry("setRegShadow");
     RuntimeLib::setMemShadow = elfDeps->appendPltEntry("setMemShadow");

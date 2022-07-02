@@ -205,6 +205,11 @@ bool isRegFullyDefined(int reg, int width) {
     }
 }
 
+bool isMemFullyDefined(const void *mem, uptr size) {
+    auto firstUninitByte = __msan_test_shadow(mem, size);
+    return (firstUninitByte == -1);
+}
+
 bool isRegOrRegFullyDefined(int dest, int destWidth, int src, int srcWidth) {
     if(destWidth == HIGHER_BYTE || srcWidth == HIGHER_BYTE){
         int destBit = 0;
@@ -244,13 +249,15 @@ bool isRegOrRegFullyDefined(int dest, int destWidth, int src, int srcWidth) {
     }
 }
 
-bool isMemFullyDefined(const void *mem, uptr size) {
-    auto firstUninitByte = __msan_test_shadow(mem, size);
-    return (firstUninitByte == -1);
-}
-
+// TODO: decide to either take bits everywhere or bytes! Or make clear which function
+// takes width in bytes and which in bits
 bool isRegOrMemFullyDefined(int reg, const void *mem, int width) {
-    auto firstUninitByte = __msan_test_shadow(mem, width);
+    sptr firstUninitByte;
+    if(width == HIGHER_BYTE){
+        firstUninitByte = __msan_test_shadow(mem, 1);
+    } else{
+        firstUninitByte = __msan_test_shadow(mem, width / BYTE);
+    }
     if (firstUninitByte != -1){
         return false;
     }
