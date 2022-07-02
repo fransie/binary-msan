@@ -32,17 +32,17 @@ INTERFACE void checkEflags();
 
 // helpers
 INTERFACE void initGpRegisters();
-void* getRegisterShadow(int reg, int regWidth);
+INTERFACE void* getRegisterShadow(int reg, int regWidth);
 
-bool isRegFullyDefined(int reg, int width);
-bool isMemFullyDefined(const void *mem, uptr size);
-bool isRegOrRegFullyDefined(int dest, int destWidth, int src, int srcWidth);
-bool isRegOrMemFullyDefined(int reg, const void *mem, int width);
+INTERFACE bool isRegFullyDefined(int reg, int width);
+INTERFACE bool isMemFullyDefined(const void *mem, uptr size);
+INTERFACE bool isRegOrRegFullyDefined(int dest, int destWidth, int src, int srcWidth);
+INTERFACE bool isRegOrMemFullyDefined(int reg, const void *mem, int width);
 
-void setEflags(bool defined);
+INTERFACE void setEflags(bool defined);
 
-void setRegShadow(bool initState, int reg, int width);
-void setMemShadow(bool initState, const void *mem, uptr size);
+INTERFACE void setRegShadow(bool initState, int reg, int width);
+INTERFACE void setMemShadow(bool initState, const void *mem, uptr size);
 
 } // extern "C"
 #endif //BINARY_MSAN_INTERFACE_H
