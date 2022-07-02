@@ -74,7 +74,7 @@ if __name__ == '__main__':
         sanitize(file)
         exit_code = run_test(file)
         if exit_code == 2:
-
+            print(f"Run of sanitized {file} failed.")
             continue
 
         expected_output = get_expected_output(file)
@@ -83,10 +83,10 @@ if __name__ == '__main__':
 
         line_num = 1
         for line in log_lines:
-            if line_num == len(log_lines):
-                print(f"{RED}ERROR: Expected output was not in logs/{log}. Expected: '{expected_output}'{END}")
-                break
             if expected_output in line:
                 print(f"{GREEN}SUCCESS: Found expected output in logs/{log}. Expected: '{expected_output}'{END}")
+                break
+            if line_num == len(log_lines):
+                print(f"{RED}ERROR: Expected output was not in logs/{log}. Expected: '{expected_output}'{END}")
                 break
             line_num += 1
