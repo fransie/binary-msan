@@ -3,7 +3,6 @@
 //
 
 #include "Interface.h"
-#include <msan_interface.h>
 
 // TODO: global variable is probably a bad idea
 /**
