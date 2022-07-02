@@ -3,6 +3,7 @@
 //
 
 #include "Interface.h"
+#include <msan_interface.h>
 
 // TODO: global variable is probably a bad idea
 /**
@@ -263,5 +264,13 @@ void setRegShadow(bool initState, int reg, int width) {
     }
     for(int position = 63 - startFrom; position >= (64 - width) ; position--){
         shadowRegisterState[reg].set(position, initState);
+    }
+}
+
+void setMemShadow(bool initState, const void *mem, uptr size) {
+    if(initState){
+        __msan_unpoison(mem, size);
+    } else {
+        __msan_poison(mem, size);
     }
 }
