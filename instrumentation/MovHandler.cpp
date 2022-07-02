@@ -3,6 +3,7 @@
 //
 
 #include "MovHandler.h"
+#include "CapstoneService.h"
 
 using namespace IRDB_SDK;
 using namespace std;
@@ -99,7 +100,7 @@ void MovHandler::instrumentMemToRegMove(Instruction_t *instruction) {
     cout << "instrumentMemToRegMove. Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << (int) dest << " and mem: " << operands[1]->getString() << endl;
 
     instruction = MemoryAccessInstrumentation::instrumentMemRef(operands[1], instruction, capstone, fileIr);
-    auto memoryDisassembly = getMemoryOperandDisassembly(instruction);
+    auto memoryDisassembly = capstone->getMemoryOperandDisassembly(instruction);
     auto width = capstone->getRegWidth(instruction, 0);
     string instrumentation = string() +
                                   Utils::getPushCallerSavedRegistersInstrumentation() +
@@ -121,7 +122,7 @@ void MovHandler::instrumentRegToMemMove(IRDB_SDK::Instruction_t *instruction) {
 
     auto src = operands[1]->getRegNumber();
     auto width = capstone->getRegWidth(instruction, 1);
-    auto memoryDisassembly = getMemoryOperandDisassembly(instruction);
+    auto memoryDisassembly = capstone->getMemoryOperandDisassembly(instruction);
     string instrumentation = string() +
                              Utils::getPushCallerSavedRegistersInstrumentation() +
                              "mov rdi, %%1\n" +    // reg
@@ -137,7 +138,7 @@ void MovHandler::instrumentRegToMemMove(IRDB_SDK::Instruction_t *instruction) {
 void MovHandler::instrumentImmToMemMove(IRDB_SDK::Instruction_t *instruction) {
     cout << "instrumentImmToMemMove: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << endl;
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
-    auto dest = getMemoryOperandDisassembly(instruction);
+    auto dest = capstone->getMemoryOperandDisassembly(instruction);
     auto destWidth = operands[0]->getArgumentSizeInBytes();
     string instrumentation = string() +
                              Utils::getPushCallerSavedRegistersInstrumentation() +
@@ -148,19 +149,6 @@ void MovHandler::instrumentImmToMemMove(IRDB_SDK::Instruction_t *instruction) {
     vector<basic_string<char>> instrumentationParams {dest, to_string(Utils::toHex(destWidth))};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
     new_instr[12]->setTarget(RuntimeLib::__msan_unpoison);
-}
-
-string MovHandler::getMemoryOperandDisassembly(Instruction_t *instruction) {
-    auto disassembly = instruction->getDisassembly();
-    auto openBracketPosition = disassembly.find_first_of('[');
-    if(openBracketPosition == string::npos){
-        cerr << "movHandler: Instruction " << instruction->getDisassembly() << " does not include a memory operand. Abort." << endl;
-        throw invalid_argument("movHandler: Instruction " + instruction->getDisassembly() + " does not include a memory operand. Abort.");
-    }
-    auto closingBracketPosition = disassembly.find_first_of(']');
-    auto len = closingBracketPosition - openBracketPosition;
-    auto substring = disassembly.substr(openBracketPosition, len + 1);
-    return substring;
 }
 
 MovHandler::MovHandler(FileIR_t *fileIr) : fileIr(fileIr){

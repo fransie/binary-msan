@@ -216,3 +216,15 @@ int CapstoneService::getPositionOfMemOperand(cs_insn *capstoneInstruction){
     std::cerr << "No memory operand was found in operands " << capstoneInstruction->op_str << std::endl;
 }
 
+std::string CapstoneService::getMemoryOperandDisassembly(IRDB_SDK::Instruction_t *instruction) {
+    auto disassembly = instruction->getDisassembly();
+    auto openBracketPosition = disassembly.find_first_of('[');
+    if(openBracketPosition == std::string::npos){
+        std::cerr << "movHandler: Instruction " << instruction->getDisassembly() << " does not include a memory operand. Abort." << std::endl;
+        throw std::invalid_argument("movHandler: Instruction " + instruction->getDisassembly() + " does not include a memory operand. Abort.");
+    }
+    auto closingBracketPosition = disassembly.find_first_of(']');
+    auto len = closingBracketPosition - openBracketPosition;
+    auto substring = disassembly.substr(openBracketPosition, len + 1);
+    return substring;
+}

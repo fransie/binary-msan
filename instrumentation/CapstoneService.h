@@ -21,7 +21,7 @@ public:
     unsigned int getRegWidth(IRDB_SDK::Instruction_t *instruction, int operandNum);
     int getBaseRegWidth(IRDB_SDK::Instruction_t *instruction);
     int getIndexRegWidth(IRDB_SDK::Instruction_t *instruction);
-
+    static std::string getMemoryOperandDisassembly(IRDB_SDK::Instruction_t *instruction);
 
 private:
     csh capstoneHandle;
