@@ -35,7 +35,8 @@ Instruction_t* MemoryAccessInstrumentation::instrumentMemRef(const std::shared_p
                                  Utils::getPopCallerSavedRegistersInstrumentation();
         std::vector<std::__cxx11::basic_string<char>> instrumentationParams {std::__cxx11::to_string(baseReg), std::__cxx11::to_string(baseRegWidth)};
         const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
-        new_instr[12]->setTarget(RuntimeLib::checkRegIsInit);
+        auto calls = CapstoneService::getCallInstructionPosition(new_instr);
+	    new_instr[calls[0]]->setTarget(RuntimeLib::checkRegIsInit);
         originalInstruction = new_instr[new_instr.size()-1];
     }
     if(operand->hasIndexRegister()){
@@ -50,7 +51,8 @@ Instruction_t* MemoryAccessInstrumentation::instrumentMemRef(const std::shared_p
                                  Utils::getPopCallerSavedRegistersInstrumentation();
         std::vector<std::__cxx11::basic_string<char>> instrumentationParams {std::__cxx11::to_string(indexReg), std::__cxx11::to_string(indexRegWidth)};
         const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
-        new_instr[13]->setTarget(RuntimeLib::checkRegIsInit);
+        auto calls = CapstoneService::getCallInstructionPosition(new_instr);
+	    new_instr[calls[0]]->setTarget(RuntimeLib::checkRegIsInit);
         originalInstruction = new_instr[new_instr.size()-1];
     }
     return originalInstruction;

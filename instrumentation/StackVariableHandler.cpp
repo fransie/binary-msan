@@ -6,6 +6,7 @@
 #include "StackVariableHandler.h"
 #include "RuntimeLib.h"
 #include "Utils.h"
+#include "CapstoneService.h"
 
 using namespace std;
 
@@ -90,7 +91,8 @@ void StackVariableHandler::setLocalVariablesToUninit(IRDB_SDK::Function_t *funct
                              Utils::getPopCallerSavedRegistersInstrumentation();
     vector<basic_string<char>> instrumentationParams {to_string(Utils::toHex(stackFrameSize))};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsAfter(fileIr, nextInstruction, instrumentation, instrumentationParams);
-    new_instr[13]->setTarget(RuntimeLib::__msan_poison_stack);
+    auto calls = CapstoneService::getCallInstructionPosition(new_instr);
+    new_instr[calls[0]]->setTarget(RuntimeLib::__msan_poison_stack);
 }
 
 

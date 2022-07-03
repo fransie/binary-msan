@@ -67,7 +67,8 @@ void MovHandler::instrumentImmToRegMove(Instruction_t *instruction) {
                              Utils::getPopCallerSavedRegistersInstrumentation();
     vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string(width)};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
-    new_instr[12]->setTarget(RuntimeLib::setRegShadow);
+    auto calls = CapstoneService::getCallInstructionPosition(new_instr);
+	new_instr[calls[0]]->setTarget(RuntimeLib::setRegShadow);
 }
 
 /**
@@ -91,7 +92,7 @@ void MovHandler::instrumentRegToRegMove(Instruction_t *instruction) {
                              Utils::getPopCallerSavedRegistersInstrumentation();
     vector<basic_string<char>> instrumentationParams {to_string(dest), to_string(source), to_string(width)};
     const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
-    new_instr[13]->setTarget(RuntimeLib::regToRegShadowCopy);
+    auto calls = CapstoneService::getCallInstructionPosition(new_instr);new_instr[calls[0]]->setTarget(RuntimeLib::regToRegShadowCopy);
 }
 
 void MovHandler::instrumentMemToRegMove(Instruction_t *instruction) {
@@ -111,7 +112,8 @@ void MovHandler::instrumentMemToRegMove(Instruction_t *instruction) {
                              Utils::getPopCallerSavedRegistersInstrumentation();
     vector<basic_string<char>> instrumentationParams {to_string(dest), to_string(width), memoryDisassembly};
     const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
-    new_instr[13]->setTarget(RuntimeLib::memToRegShadowCopy);
+    auto calls = CapstoneService::getCallInstructionPosition(new_instr);
+	new_instr[calls[0]]->setTarget(RuntimeLib::memToRegShadowCopy);
 }
 
 void MovHandler::instrumentRegToMemMove(IRDB_SDK::Instruction_t *instruction) {
@@ -132,7 +134,8 @@ void MovHandler::instrumentRegToMemMove(IRDB_SDK::Instruction_t *instruction) {
                              Utils::getPopCallerSavedRegistersInstrumentation();
     vector<basic_string<char>> instrumentationParams {to_string(src), to_string(width), memoryDisassembly};
     const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
-    new_instr[13]->setTarget(RuntimeLib::regToMemShadowCopy);
+    auto calls = CapstoneService::getCallInstructionPosition(new_instr);
+	new_instr[calls[0]]->setTarget(RuntimeLib::regToMemShadowCopy);
 }
 
 void MovHandler::instrumentImmToMemMove(IRDB_SDK::Instruction_t *instruction) {
@@ -148,7 +151,8 @@ void MovHandler::instrumentImmToMemMove(IRDB_SDK::Instruction_t *instruction) {
                              Utils::getPopCallerSavedRegistersInstrumentation();
     vector<basic_string<char>> instrumentationParams {dest, to_string(Utils::toHex(destWidth))};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
-    new_instr[12]->setTarget(RuntimeLib::__msan_unpoison);
+    auto calls = CapstoneService::getCallInstructionPosition(new_instr);
+	new_instr[calls[0]]->setTarget(RuntimeLib::__msan_unpoison);
 }
 
 MovHandler::MovHandler(FileIR_t *fileIr) : fileIr(fileIr){

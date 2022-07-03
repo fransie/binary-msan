@@ -228,3 +228,14 @@ std::string CapstoneService::getMemoryOperandDisassembly(IRDB_SDK::Instruction_t
     auto substring = disassembly.substr(openBracketPosition, len + 1);
     return substring;
 }
+
+std::vector<size_t> CapstoneService::getCallInstructionPosition(const std::vector<IRDB_SDK::Instruction_t *> &instructions) {
+    std::vector<size_t> result {};
+    for (size_t x = 0; x < instructions.size(); x++){
+        auto decodedInstruction = IRDB_SDK::DecodedInstruction_t::factory(instructions[x]);
+        if(decodedInstruction->getMnemonic() == "call"){
+            result.push_back(x);
+        }
+    }
+    return result;
+}

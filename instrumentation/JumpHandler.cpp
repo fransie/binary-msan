@@ -35,7 +35,8 @@ void JumpHandler::checkEflags(Instruction_t *instruction) {
                              "call 0\n" +
                              Utils::getPopCallerSavedRegistersInstrumentation();
     const auto new_instr = insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,{});
-    new_instr[10]->setTarget(RuntimeLib::checkEflags);
+    auto calls = CapstoneService::getCallInstructionPosition(new_instr);
+    new_instr[calls[0]]->setTarget(RuntimeLib::checkEflags);
 }
 
 void JumpHandler::checkCx(unique_ptr<IRDB_SDK::DecodedInstruction_t> &decodedInstr, Instruction_t *instruction) {
@@ -53,6 +54,7 @@ void JumpHandler::checkCx(unique_ptr<IRDB_SDK::DecodedInstruction_t> &decodedIns
                              "call 0\n" +
                              Utils::getPopCallerSavedRegistersInstrumentation();
     const auto new_instr = insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,{to_string(rcxNumber), to_string(Utils::toHex(width))});
-    new_instr[11]->setTarget(RuntimeLib::checkRegIsInit);
+    auto calls = CapstoneService::getCallInstructionPosition(new_instr);
+	new_instr[calls[0]]->setTarget(RuntimeLib::checkRegIsInit);
 }
 

@@ -62,8 +62,9 @@ void EflagsHandler::propagateRegShadowToEflags(IRDB_SDK::Instruction_t *instruct
                              Utils::getPopCallerSavedRegistersInstrumentation();
     vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string(width)};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
-    new_instr[12]->setTarget(RuntimeLib::isRegFullyDefined);
-    new_instr[14]->setTarget(RuntimeLib::setEflags);
+    auto calls = CapstoneService::getCallInstructionPosition(new_instr);
+    new_instr[calls[0]]->setTarget(RuntimeLib::isRegFullyDefined);
+    new_instr[calls[1]]->setTarget(RuntimeLib::setEflags);
 }
 
 void EflagsHandler::propagateMemShadowToEflags(IRDB_SDK::Instruction_t *instruction) {
@@ -80,8 +81,9 @@ void EflagsHandler::propagateMemShadowToEflags(IRDB_SDK::Instruction_t *instruct
                              Utils::getPopCallerSavedRegistersInstrumentation();
     vector<basic_string<char>> instrumentationParams {dest, to_string(Utils::toHex(destWidth))};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
-    new_instr[12]->setTarget(RuntimeLib::isMemFullyDefined);
-    new_instr[14]->setTarget(RuntimeLib::setEflags);
+    auto calls = CapstoneService::getCallInstructionPosition(new_instr);
+    new_instr[calls[0]]->setTarget(RuntimeLib::isMemFullyDefined);
+    new_instr[calls[1]]->setTarget(RuntimeLib::setEflags);
 }
 
 void EflagsHandler::propagateRegOrRegShadowToEflags(IRDB_SDK::Instruction_t *instruction) {
@@ -102,8 +104,9 @@ void EflagsHandler::propagateRegOrRegShadowToEflags(IRDB_SDK::Instruction_t *ins
                              Utils::getPopCallerSavedRegistersInstrumentation();
     vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string(destWidth), to_string((int)src), to_string(srcWidth)};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
-    new_instr[14]->setTarget(RuntimeLib::isRegOrRegFullyDefined);
-    new_instr[16]->setTarget(RuntimeLib::setEflags);
+    auto calls = CapstoneService::getCallInstructionPosition(new_instr);
+    new_instr[calls[0]]->setTarget(RuntimeLib::isRegOrRegFullyDefined);
+    new_instr[calls[1]]->setTarget(RuntimeLib::setEflags);
 }
 
 
@@ -130,7 +133,8 @@ void EflagsHandler::propagateRegOrMemShadowToEflags(IRDB_SDK::Instruction_t *ins
                              Utils::getPopCallerSavedRegistersInstrumentation();
     vector<basic_string<char>> instrumentationParams {to_string(reg), memory, to_string(width)};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
-    new_instr[13]->setTarget(RuntimeLib::isRegOrMemFullyDefined);
-    new_instr[15]->setTarget(RuntimeLib::setEflags);
+    auto calls = CapstoneService::getCallInstructionPosition(new_instr);
+    new_instr[calls[0]]->setTarget(RuntimeLib::isRegOrMemFullyDefined);
+    new_instr[calls[1]]->setTarget(RuntimeLib::setEflags);
 }
 
