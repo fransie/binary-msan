@@ -20,7 +20,6 @@ MSan::MSan(FileIR_t *fileIR)
     instructionHandlers.push_back(make_unique<MovHandler>(fileIR));
     instructionHandlers.push_back(make_unique<EflagsHandler>(fileIR));
     instructionHandlers.push_back(make_unique<JumpHandler>(fileIR));
-    instructionHandlers.push_back(make_unique<EflagsHandler>(fileIR));
 }
 
 bool MSan::executeStep()

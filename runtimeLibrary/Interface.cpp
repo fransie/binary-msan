@@ -183,6 +183,7 @@ void *getRegisterShadow(int reg, int regWidth) {
 
 
 void setEflags(bool defined) {
+    std::cout << "setEflags to " << defined << std::endl;
     eflagsDefined = defined;
 }
 

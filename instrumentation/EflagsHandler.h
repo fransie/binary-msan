@@ -17,7 +17,7 @@ public:
 
     const std::vector<std::string> &getAssociatedInstructions() override;
 private:
-    std::vector<std::string> associatedInstructions {"cmp, test"};
+    std::vector<std::string> associatedInstructions {"cmp", "test"};
     std::unique_ptr<CapstoneService> capstone;
 
     IRDB_SDK::FileIR_t *fileIr;
