@@ -1,10 +1,22 @@
 #include <cassert>
 #include <iostream>
-#include <msan_interface.h>
+#include <msan.h>
 #include "gtest/gtest.h"
+#include "../runtimeLibrary/Interface.h"
 
 TEST(ImmToMemTestsuite, Eight){
-    EXPECT_EQ(0,0);
+    // given
+    __msan_init();
+    auto *a = new uint8_t;
+    auto shadow = reinterpret_cast<uint8_t*>((unsigned long long)(a) ^ 0x500000000000ULL);
+    EXPECT_EQ(*shadow, UINT8_MAX);
+
+    // when
+    setMemShadow(1, a, 1);
+
+    // then
+    shadow = reinterpret_cast<uint8_t*>((unsigned long long)(a) ^ 0x500000000000ULL);
+    EXPECT_EQ(*shadow, 0);
 }
 
 //
