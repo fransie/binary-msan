@@ -33,7 +33,7 @@ Instruction_t* MemoryAccessInstrumentation::instrumentMemRef(const std::shared_p
                                  "mov rsi, %%2\n" +    // second argument
                                  "call 0\n" +
                                  Utils::getPopCallerSavedRegistersInstrumentation();
-        std::vector<std::__cxx11::basic_string<char>> instrumentationParams {std::__cxx11::to_string(baseReg), std::__cxx11::to_string(baseRegWidth)};
+        vector<basic_string<char>> instrumentationParams {to_string(baseReg), to_string(baseRegWidth)};
         const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
         auto calls = CapstoneService::getCallInstructionPosition(new_instr);
 	    new_instr[calls[0]]->setTarget(RuntimeLib::checkRegIsInit);
@@ -49,7 +49,7 @@ Instruction_t* MemoryAccessInstrumentation::instrumentMemRef(const std::shared_p
                                  "mov rsi, %%2\n" +    // second argument
                                  "call 0\n" +
                                  Utils::getPopCallerSavedRegistersInstrumentation();
-        std::vector<std::__cxx11::basic_string<char>> instrumentationParams {std::__cxx11::to_string(indexReg), std::__cxx11::to_string(indexRegWidth)};
+        vector<basic_string<char>> instrumentationParams {to_string(indexReg), to_string(indexRegWidth)};
         const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
         auto calls = CapstoneService::getCallInstructionPosition(new_instr);
 	    new_instr[calls[0]]->setTarget(RuntimeLib::checkRegIsInit);
