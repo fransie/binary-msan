@@ -1,3 +1,4 @@
+# Use clang via env variables due to googletest (https://github.com/google/googletest/pull/3661)
 cmake_minimum_required(VERSION 3.11.0)
 project(binary-msan)
 enable_testing()
@@ -56,6 +57,6 @@ target_link_libraries(irdb-sdk
         INTERFACE _irdb-sdk
         )
 
-
 add_subdirectory(instrumentation)
 add_subdirectory(runtimeLibrary)
+add_subdirectory(test)
