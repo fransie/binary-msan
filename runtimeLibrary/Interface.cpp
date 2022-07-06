@@ -191,13 +191,13 @@ bool isRegFullyDefined(int reg, int width) {
     if (shadowRegisterState[reg].none()){
         return true;
     } else {
-        int bit = 0;
+        int startFrom = 0;
         if(width == HIGHER_BYTE){
-            bit = 8;
-            width = 16;
+            startFrom = 8;
+            width = 8;
         }
-        for (; bit < width; bit++){
-            if(shadowRegisterState[reg].test(bit) == 1){
+        for (int position = startFrom; position < (startFrom + width); position++){
+            if(shadowRegisterState[reg].test(startFrom) == 1){
                 return false;
             }
         }
@@ -264,18 +264,20 @@ bool isRegOrMemFullyDefined(int reg, const void *mem, int width) {
     return isRegFullyDefined(reg, width);
 }
 
-void setRegShadow(bool initState, int reg, int width) {
+void setRegShadow(bool isInited, int reg, int width) {
+    auto shadowValue = !isInited;
     int startFrom = 0;
     if(width == HIGHER_BYTE){
         startFrom = 8;
+        width = 8;
     }
-    for(int position = 63 - startFrom; position >= (64 - width) ; position--){
-        shadowRegisterState[reg].set(position, initState);
+    for(int position = startFrom; position < (startFrom + width); position++){
+        shadowRegisterState[reg].set(position, shadowValue);
     }
 }
 
-void setMemShadow(bool initState, const void *mem, uptr size) {
-    if(initState){
+void setMemShadow(bool isInited, const void *mem, uptr size) {
+    if(isInited){
         __msan_unpoison(mem, size);
     } else {
         __msan_poison(mem, size);
