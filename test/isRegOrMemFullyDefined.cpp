@@ -1,4 +1,3 @@
-#include <cassert>
 #include <iostream>
 #include <msan.h>
 #include "gtest/gtest.h"
@@ -7,8 +6,7 @@
 TEST(isRegOrMemFullyDefinedTests, bothFullyDefined){
     // given
     shadowRegisterState[0].reset();
-    auto *a = new uint64_t;
-    *a = 12;
+    auto *a = new uint64_t {12};
     EXPECT_EQ(shadowRegisterState[0].to_ullong(), 0);
 
     // when
@@ -34,8 +32,7 @@ TEST(isRegOrMemFullyDefinedTests, bothFullyUndefined){
 TEST(isRegOrMemFullyDefinedTests, regFullyUndefined){
     // given
     shadowRegisterState[0].set();
-    auto *a = new uint64_t;
-    *a = 12;
+    auto *a = new uint64_t {12};
     EXPECT_EQ(shadowRegisterState[0].to_ullong(), UINT64_MAX);
 
     // when
@@ -47,10 +44,9 @@ TEST(isRegOrMemFullyDefinedTests, regFullyUndefined){
 
 TEST(isRegOrMemFullyDefinedTests, regUndefined8High){
     // given
-    shadowRegisterState[0].set();
+    shadowRegisterState[0].reset();
     shadowRegisterState[0].set(8,true);
-    auto *a = new uint64_t;
-    *a = 12;
+    auto *a = new uint64_t {12};
     EXPECT_EQ(shadowRegisterState[0].to_ullong(), 0x100);
 
     // when

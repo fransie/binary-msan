@@ -11,7 +11,7 @@ TEST(setMemShadowTests, UnpoisonBits8){
     EXPECT_EQ(*shadow, UINT8_MAX);
 
     // when
-    setMemShadow(1, a, 1);
+    setMemShadow(true, a, 1);
 
     // then
     shadow = reinterpret_cast<uint8_t*>((unsigned long long)(a) ^ 0x500000000000ULL);
@@ -25,7 +25,7 @@ TEST(setMemShadowTests, UnpoisonBits16){
     EXPECT_EQ(*shadow, UINT16_MAX);
 
     // when
-    setMemShadow(1, a, 2);
+    setMemShadow(true, a, 2);
 
     // then
     shadow = reinterpret_cast<uint16_t*>((unsigned long long)(a) ^ 0x500000000000ULL);
@@ -39,7 +39,7 @@ TEST(setMemShadowTests, UnpoisonBits32){
     EXPECT_EQ(*shadow, UINT32_MAX);
 
     // when
-    setMemShadow(1, a, 4);
+    setMemShadow(true, a, 4);
 
     // then
     shadow = reinterpret_cast<u_int32_t*>((unsigned long long)(a) ^ 0x500000000000ULL);
@@ -53,7 +53,7 @@ TEST(setMemShadowTests, UnpoisonBits64){
     EXPECT_EQ(*shadow, UINT64_MAX);
 
     // when
-    setMemShadow(1, a, 8);
+    setMemShadow(true, a, 8);
 
     // then
     shadow = reinterpret_cast<uint64_t*>((unsigned long long)(a) ^ 0x500000000000ULL);
@@ -62,12 +62,12 @@ TEST(setMemShadowTests, UnpoisonBits64){
 
 TEST(setMemShadowTests, PoisonBits8){
     // given
-    auto *a = new uint8_t;
+    auto *a = new uint8_t{12};
     auto shadow = reinterpret_cast<uint8_t*>((unsigned long long)(a) ^ 0x500000000000ULL);
-    EXPECT_EQ(*shadow, UINT8_MAX);
+    EXPECT_EQ(*shadow, 0);
 
     // when
-    setMemShadow(0, a, 1);
+    setMemShadow(false, a, 1);
 
     // then
     shadow = reinterpret_cast<uint8_t*>((unsigned long long)(a) ^ 0x500000000000ULL);
@@ -76,12 +76,12 @@ TEST(setMemShadowTests, PoisonBits8){
 
 TEST(setMemShadowTests, PoisonBits16){
     // given
-    auto *a = new uint16_t;
+    auto *a = new uint16_t{12};
     auto shadow = reinterpret_cast<uint16_t*>((unsigned long long)(a) ^ 0x500000000000ULL);
-    EXPECT_EQ(*shadow, UINT16_MAX);
+    EXPECT_EQ(*shadow, 0);
 
     // when
-    setMemShadow(0, a, 2);
+    setMemShadow(false, a, 2);
 
     // then
     shadow = reinterpret_cast<uint16_t*>((unsigned long long)(a) ^ 0x500000000000ULL);
@@ -90,12 +90,12 @@ TEST(setMemShadowTests, PoisonBits16){
 
 TEST(setMemShadowTests, PoisonBits32){
     // given
-    auto *a = new u_int32_t ;
+    auto *a = new u_int32_t{12};
     auto shadow = reinterpret_cast<u_int32_t*>((unsigned long long)(a) ^ 0x500000000000ULL);
-    EXPECT_EQ(*shadow, UINT32_MAX);
+    EXPECT_EQ(*shadow, 0);
 
     // when
-    setMemShadow(0, a, 4);
+    setMemShadow(false, a, 4);
 
     // then
     shadow = reinterpret_cast<u_int32_t*>((unsigned long long)(a) ^ 0x500000000000ULL);
@@ -104,12 +104,12 @@ TEST(setMemShadowTests, PoisonBits32){
 
 TEST(setMemShadowTests, PoisonBits64){
     // given
-    auto *a = new uint64_t;
+    auto *a = new uint64_t{12};
     auto shadow = reinterpret_cast<uint64_t*>((unsigned long long)(a) ^ 0x500000000000ULL);
-    EXPECT_EQ(*shadow, UINT64_MAX);
+    EXPECT_EQ(*shadow, 0);
 
     // when
-    setMemShadow(0, a, 8);
+    setMemShadow(false, a, 8);
 
     // then
     shadow = reinterpret_cast<uint64_t*>((unsigned long long)(a) ^ 0x500000000000ULL);
