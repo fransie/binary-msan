@@ -5,7 +5,7 @@ add_library(interface SHARED
         Interface.h
         ../common/Width.h
 )
-target_compile_options(interface PRIVATE -Wall -Wextra -Wpedantic)
+target_compile_options(interface PRIVATE -Wextra -Wpedantic -fsanitize=memory)
 
 # collect include directories
 set(MSAN_INCLUDE_DIRS)
