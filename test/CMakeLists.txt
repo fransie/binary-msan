@@ -2,7 +2,13 @@ project(test)
 find_package(GTest CONFIG REQUIRED)
 
 add_executable (unit_tests
-        immToMem_8bit.cpp
+        getRegisterShadowTests.cpp
+        isRegFullyDefined.cpp
+        isMemFullyDefined.cpp
+        isRegOrRegFullyDefined.cpp
+        isRegOrMemFullyDefined.cpp
+        setMemShadowTests.cpp
+        setRegShadowTests.cpp
 #        immToMem_16bit.cpp
 #        immToMem_32bit.cpp
 #        immToMem_64bit.cpp

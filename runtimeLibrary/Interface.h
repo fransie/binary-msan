@@ -19,6 +19,8 @@
 
 extern "C"{
 
+extern std::vector<std::bitset<64>> shadowRegisterState;
+
 // mem access
 INTERFACE void checkRegIsInit(int reg, int regWidth);
 
@@ -41,7 +43,7 @@ INTERFACE bool isRegOrMemFullyDefined(int reg, const void *mem, int width);
 
 INTERFACE void setEflags(bool defined);
 
-INTERFACE void setRegShadow(bool initState, int reg, int width);
+INTERFACE void setRegShadow(bool isInited, int reg, int width);
 INTERFACE void setMemShadow(bool initState, const void *mem, uptr size);
 
 } // extern "C"
