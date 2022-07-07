@@ -235,12 +235,11 @@ bool isRegOrRegFullyDefined(int dest, int destWidth, int src, int srcWidth) {
         return true;
     }
 
-    auto registerOr = shadowRegisterState[dest] ^ shadowRegisterState[src];
+    auto registerOr = shadowRegisterState[dest] | shadowRegisterState[src];
     if(registerOr.none()){
         return true;
     } else {
-        int bit = 0;
-        for (; bit < destWidth; bit++){
+        for (int bit = 0; bit < destWidth; bit++){
             if(registerOr.test(bit) == 1){
                 return false;
             }
