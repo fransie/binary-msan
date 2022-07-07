@@ -2,11 +2,13 @@ project(test)
 find_package(GTest CONFIG REQUIRED)
 
 add_executable (unit_tests
+        checkRegIsInitTests.cpp
         getRegisterShadowTests.cpp
         isRegFullyDefined.cpp
         isMemFullyDefined.cpp
         isRegOrRegFullyDefined.cpp
         isRegOrMemFullyDefined.cpp
+        regToRegShadowCopyTests.cpp
         setMemShadowTests.cpp
         setRegShadowTests.cpp
 #        immToMem_16bit.cpp
@@ -31,9 +33,7 @@ add_executable (unit_tests
         )
 
 
-set(MSANIFIED_LLVM_DIR "/home/franzi/Documents/llvm-project-llvmorg-13.0.1/llvmInstrumentedBuild")
-set(MSAN_CFLAGS -stdlib=libc++ -fsanitize=memory -L${MSANIFIED_LLVM_DIR}/lib -lc++ -lc++abi -I${MSANIFIED_LLVM_DIR}/include -I${MSANIFIED_LLVM_DIR}/include/c++/v1)
-target_compile_options(unit_tests PUBLIC ${MSAN_CFLAGS} )
+target_compile_options(unit_tests PUBLIC ${MSAN_CFLAGS} -fsanitize-recover=memory)
 
 set(gtest_SOURCE_DIR "/home/franzi/Documents/googletest/googletest")
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
