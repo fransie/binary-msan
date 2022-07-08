@@ -105,7 +105,3 @@ TEST(regToRegShadowCopyTests, width8HighMixed2) {
     EXPECT_EQ(shadowRegisterState[0].to_ullong(), 0xffffffffffffff1a);
     EXPECT_EQ(shadowRegisterState[1].to_ullong(), 0x0000000000001a00);
 }
-
-// given rax is init and rbx is uninit
-// when a "mov rbx, rax" happens and it is instrumented
-// then the instrumentation inserted should lead to rbx being init as well afterwards

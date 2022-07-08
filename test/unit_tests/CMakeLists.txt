@@ -9,6 +9,7 @@ add_executable (unit_tests
         isMemFullyDefined.cpp
         isRegOrRegFullyDefined.cpp
         isRegOrMemFullyDefined.cpp
+        regToMemShadowCopyTests.cpp
         regToRegShadowCopyTests.cpp
         setMemShadowTests.cpp
         setRegShadowTests.cpp
