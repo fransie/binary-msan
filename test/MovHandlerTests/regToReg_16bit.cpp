@@ -13,10 +13,10 @@ int main() {
     assert(shadowRegisterState[1].to_ullong() == UINT64_MAX);
 
     // when
-    asm ("mov %eax, %ecx");
+    asm ("mov %ax, %cx");
 
     // then
-    assert(shadowRegisterState[1].to_ullong() == 0);
+    assert(shadowRegisterState[1].to_ullong() == 0xffffffffffff0000);
     std::cout << "Success." << std::endl;
     return 0;
 }

@@ -25,31 +25,34 @@ def is_disabled(filename):
 
 
 def build(filename):
-    test_name = filename.removesuffix(".cpp")
-    output_name = f"obj/{test_name}"
+    directory = filename.split("/")[0]
+    test_name = filename.split("/")[1].removesuffix(".cpp")
+    output_name = f"{directory}/obj/{test_name}"
     lines = open(filename, "r").readlines()
     if lines[0].__contains__("COMPILE OPTIONS"):
         options = lines[0].replace("// COMPILE OPTIONS: ", "").strip("\n")
-        subprocess.call(f"g++ {filename} -o {output_name} {options} >> logs/{test_name}.txt 2>&1", shell=True)
+        subprocess.call(f"g++ {filename} -o {output_name} {options} >> {directory}/logs/{test_name}.txt 2>&1", shell=True)
     else:
-        subprocess.call(f"g++ {filename} -o {output_name} >> logs/{test_name}.txt 2>&1", shell=True)
+        subprocess.call(f"g++ {filename} -o {output_name} >> {directory}/logs/{test_name}.txt 2>&1", shell=True)
     return True
 
 
 def sanitize(filename):
-    test_name = filename.removesuffix(".cpp")
-    output_name = f"obj/{test_name}"
+    directory = filename.split("/")[0]
+    test_name = filename.split("/")[1].removesuffix(".cpp")
+    output_name = f"{directory}/obj/{test_name}"
     sanitized_name = f"{output_name}_sanitized"
     subprocess.call(
-        f"$PSZ -c rida --step move_globals -c binmsan {output_name} {sanitized_name} >> logs/{test_name}.txt 2>&1",
+        f"$PSZ -c rida --step move_globals -c binmsan {output_name} {sanitized_name} >> {directory}/logs/{test_name}.txt 2>&1",
         shell=True)
 
 
 def run_test(filename):
-    test_name = filename.removesuffix(".cpp")
-    output_name = f"obj/{test_name}"
+    directory = filename.split("/")[0]
+    test_name = filename.split("/")[1].removesuffix(".cpp")
+    output_name = f"{directory}/obj/{test_name}"
     sanitized_name = f"{output_name}_sanitized"
-    return subprocess.call(f"./{sanitized_name} >> logs/{test_name}.txt 2>&1", shell=True)
+    return subprocess.call(f"./{sanitized_name} >> {directory}/logs/{test_name}.txt 2>&1", shell=True)
 
 
 def execute_test_case(file):
@@ -68,17 +71,18 @@ def execute_test_case(file):
         print(f"Run of sanitized {file} failed.")
         return
 
+    directory = file.split("/")[0]
     expected_output = get_expected_output(file)
-    log = file.removesuffix(".cpp") + ".txt"
-    log_lines = open(f"logs/{log}", "r").readlines()
+    log = file.split("/")[1].removesuffix(".cpp") + ".txt"
+    log_lines = open(f"{directory}/logs/{log}", "r").readlines()
 
     line_num = 1
     for line in log_lines:
         if expected_output in line:
-            print(f"******* {file} *******\n{GREEN}SUCCESS: Found expected output in logs/{log}. Expected: '{expected_output}'{END}")
+            print(f"******* {file} *******\n{GREEN}SUCCESS: Found expected output in {directory}/logs/{log}. Expected: '{expected_output}'{END}")
             break
         if line_num == len(log_lines):
-            print(f"******* {file} *******\n{RED}ERROR: Expected output was not in logs/{log}. Expected: '{expected_output}'{END}")
+            print(f"******* {file} *******\n{RED}ERROR: Expected output was not in {directory}/logs/{log}. Expected: '{expected_output}'{END}")
             break
         line_num += 1
 
@@ -92,7 +96,8 @@ if __name__ == '__main__':
     # TODO: fix absolute path
     dirs = [".", "MovHandlerTests"]
     for directory in dirs:
-        testfiles = [f for f in listdir(f"/home/franzi/Documents/binary-msan/test/{directory}") if isfile(join(f"", f))]
+        path = "/home/franzi/Documents/binary-msan/test/" + directory
+        testfiles = [f for f in listdir(path) if isfile(join(directory, f))]
         files = []
         for file in testfiles:
             files.append(directory + "/" + file)
