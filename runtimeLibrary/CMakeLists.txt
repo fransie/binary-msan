@@ -5,8 +5,6 @@ add_library(interface SHARED
         Interface.h
         ../common/Width.h
 )
-# TODO: only add MSAN_CFLAGS this if needed for tests
-target_compile_options(interface PUBLIC ${MSAN_CFLAGS})
 target_compile_options(interface PRIVATE -Wextra -Wpedantic)
 
 # collect include directories
@@ -28,4 +26,19 @@ target_include_directories(msan_cxx INTERFACE ${MSAN_INCLUDE_DIRS})
 # add msan libs to runtime library target
 target_link_libraries(
         interface msan msan_cxx
+)
+
+
+# Use this target for the unit tests to avoid false positives from uninstrumented code.
+add_library(interface_msanified SHARED
+        Interface.cpp
+        Interface.h
+        ../common/Width.h
+        )
+
+target_compile_options(interface_msanified PUBLIC ${MSAN_CFLAGS})
+
+# add msan libs to runtime library target
+target_link_libraries(
+        interface_msanified msan msan_cxx
 )
