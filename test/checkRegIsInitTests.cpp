@@ -15,6 +15,7 @@ TEST(checkRegIsInitTests, fullyInit64) {
 
 TEST(checkRegIsInitTests, fullyUninit64) {
     // given
+    __msan_set_keep_going(1);
     shadowRegisterState[0].set();
     EXPECT_EQ(shadowRegisterState[0].to_ullong(), UINT64_MAX);
 
@@ -24,4 +25,5 @@ TEST(checkRegIsInitTests, fullyUninit64) {
 
     // then
     __msan_set_expect_umr(0);
+    __msan_set_keep_going(0);
 }
