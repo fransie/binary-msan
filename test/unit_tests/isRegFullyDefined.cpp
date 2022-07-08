@@ -2,7 +2,7 @@
 #include <iostream>
 #include <msan.h>
 #include "gtest/gtest.h"
-#include "../runtimeLibrary/Interface.h"
+#include "../../runtimeLibrary/Interface.h"
 
 TEST(isRegFullyDefinedTests, fullyDefined){
     // given

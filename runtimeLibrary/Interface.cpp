@@ -20,36 +20,31 @@ bool eflagsDefined = true;
  * Takes two ints representing general purpose registers and propagates the shadow value of the
  * source register to the destination register. Registers numbering: see file operand_csx86.cpp in zipr.
  *
+ * This method assumes that destWidth and srcWidth are the same. Only exception: BYTE and HIGHER_BYTE can
+ * be mixed.
+ *
  * @param dest the number of the destination register
- * @param source the number of the source register
- * @param width the width of the registers in bits. "0" denominates the second-least significant byte.
+ * @param destWidth the width of the dest register in bits. "0" denominates the second-least significant byte.
+ * @param src the number of the source register
+ * @param srcWidth the width of the source registers in bits. "0" denominates the second-least significant byte.
  */
-void regToRegShadowCopy(const int dest, const int source, const int width){
-    std::cout << "regToRegShadowCopy. Dest value: " << dest << ". Source value: " << source << ". Width: " << width;
-    switch(width){
-        case QUAD_WORD:
-        case WORD:
-        case BYTE:
-            for (int position = 63; position >= (64 - width) ; position--){
-                shadowRegisterState[dest].set(position, shadowRegisterState[source][position]);
-            }
-            break;
-        case DOUBLE_WORD:
-            for (int position = 63; position >= 32 ; position--) {
-                shadowRegisterState[dest].set(position, shadowRegisterState[source][position]);
-            }
-            // Higher four bytes are zeroed for double word moves.
-            for (int position = 31; position >= 0 ; position--) {
-                    shadowRegisterState[dest].set(position, false);
-            }
-            break;
-        case HIGHER_BYTE:
-            for (int position = 63 - BYTE; position >= (64 - WORD) ; position--){
-                shadowRegisterState[dest].set(position, shadowRegisterState[source][position]);
-            }
-            break;
-        default:
-            throw std::invalid_argument("Function regToRegShadowCopy was called with an unsupported width value.");
+void regToRegShadowCopy(const int dest, int destWidth, const int src, const int srcWidth) {
+    std::cout << "regToRegShadowCopy. Dest value: " << dest << ". Source value: " << src << ". Width: " << srcWidth;
+    int positionDest = 0;
+    int positionSrc = 0;
+    if(destWidth == HIGHER_BYTE || srcWidth == HIGHER_BYTE){
+       if (destWidth == HIGHER_BYTE){
+           positionDest = 8;
+           destWidth = 16;
+       }
+        if (srcWidth == HIGHER_BYTE){
+            positionSrc = 8;
+        }
+    }
+    while(positionDest < destWidth){
+        shadowRegisterState[dest].set(positionDest, shadowRegisterState[src][positionSrc]);
+        positionDest++;
+        positionSrc++;
     }
     std::cout << ". New dest shadow: " << shadowRegisterState[dest].to_ullong() << std::endl;
 }
@@ -281,4 +276,8 @@ void setMemShadow(bool isInited, const void *mem, uptr size) {
     } else {
         __msan_poison(mem, size);
     }
+}
+
+void initUpper4Bytes(const int reg) {
+    shadowRegisterState[reg] = shadowRegisterState[reg] ^ std::bitset<64>{0x00000000ffffffff};
 }

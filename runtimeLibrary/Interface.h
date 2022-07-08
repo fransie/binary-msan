@@ -27,7 +27,8 @@ INTERFACE void checkRegIsInit(int reg, int regWidth);
 // mov
 INTERFACE void memToRegShadowCopy(int reg, int regWidth, __sanitizer::uptr memAddress);
 INTERFACE void regToMemShadowCopy(int reg, int regWidth, __sanitizer::uptr memAddress);
-INTERFACE void regToRegShadowCopy(int dest, int source, int width);
+INTERFACE void regToRegShadowCopy(const int dest, const int destWidth, const int src, const int srcWidth);
+INTERFACE void initUpper4Bytes(const int reg);
 
 // jump
 INTERFACE void checkEflags();

@@ -90,6 +90,7 @@ void MSan::registerDependencies(){
     RuntimeLib::setEflags = elfDeps->appendPltEntry("setEflags");
     RuntimeLib::setRegShadow = elfDeps->appendPltEntry("setRegShadow");
     RuntimeLib::setMemShadow = elfDeps->appendPltEntry("setMemShadow");
+    RuntimeLib::initUpper4Bytes = elfDeps->appendPltEntry("initUpper4Bytes");
 
     RuntimeLib::__msan_set_keep_going = elfDeps->appendPltEntry("__msan_set_keep_going");
     RuntimeLib::__msan_unpoison = elfDeps->appendPltEntry("__msan_unpoison");

@@ -1,6 +1,6 @@
 #include <iostream>
 #include "gtest/gtest.h"
-#include "../runtimeLibrary/Interface.h"
+#include "../../runtimeLibrary/Interface.h"
 
 TEST(isMemFullyDefinedTests, fullyDefined){
     // given

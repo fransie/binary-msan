@@ -9,7 +9,6 @@
 
 class RuntimeLib {
 public:
-    inline static IRDB_SDK::Instruction_t *defineRegShadow;
     inline static IRDB_SDK::Instruction_t *__msan_unpoison;
     inline static IRDB_SDK::Instruction_t *checkRegIsInit;
     inline static IRDB_SDK::Instruction_t *memToRegShadowCopy;
@@ -26,6 +25,7 @@ public:
     inline static IRDB_SDK::Instruction_t *setEflags;
     inline static IRDB_SDK::Instruction_t *setRegShadow;
     inline static IRDB_SDK::Instruction_t *setMemShadow;
+    inline static IRDB_SDK::Instruction_t *initUpper4Bytes;
 };
 
 
