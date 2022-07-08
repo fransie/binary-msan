@@ -3,27 +3,21 @@
 #include <assert.h>
 #include <iostream>
 #include <cstdint>
-#include "../runtimeLibrary/Interface.h"
-
-void testShadowNot0(u_int32_t *ptr){
-    auto shadow = reinterpret_cast<uint32_t*>((unsigned long long)(ptr) ^ 0x500000000000ULL);
-    assert(*shadow == UINT32_MAX);
-}
-
-void testShadow0(u_int32_t *ptr){
-    auto shadow = reinterpret_cast<uint32_t*>((unsigned long long)(ptr) ^ 0x500000000000ULL);
-    assert(*shadow == 0);
-    std::cout << "Success." << std::endl;
-}
+#include "../../runtimeLibrary/Interface.h"
 
 int main() {
+    // given
     // define rax here because "new" is not instrumented yet and returns an uninit address is rax, which is wrong.
     setRegShadow(true,0,64);
-    u_int32_t *a = new u_int32_t;
-    testShadowNot0(a);
-    asm ("mov $1, %rax");
-    asm ("mov %%eax, %0" : "=m" ( *a ));
-    testShadow0(a);
+    assert(shadowRegisterState[0].to_ullong() == 0);
+    assert(shadowRegisterState[1].to_ullong() == UINT64_MAX);
+
+    // when
+    asm ("mov %rax, %rcx");
+
+    // then
+    assert(shadowRegisterState[1].to_ullong() == 0);
+    std::cout << "Success." << std::endl;
     return 0;
 }
 

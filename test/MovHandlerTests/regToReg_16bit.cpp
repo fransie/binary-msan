@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <iostream>
 #include <cstdint>
-#include "../runtimeLibrary/Interface.h"
+#include "../../runtimeLibrary/Interface.h"
 
 int main() {
     // given
@@ -13,7 +13,7 @@ int main() {
     assert(shadowRegisterState[1].to_ullong() == UINT64_MAX);
 
     // when
-    asm ("mov %rax, %rcx");
+    asm ("mov %eax, %ecx");
 
     // then
     assert(shadowRegisterState[1].to_ullong() == 0);

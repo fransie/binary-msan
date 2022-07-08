@@ -90,6 +90,11 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         regex = sys.argv[1]
     # TODO: fix absolute path
-    testfiles = [f for f in listdir("/home/franzi/Documents/binary-msan/test") if isfile(join("", f))]
-    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-        executor.map(execute_test_case, testfiles)
+    dirs = [".", "MovHandlerTests"]
+    for directory in dirs:
+        testfiles = [f for f in listdir(f"/home/franzi/Documents/binary-msan/test/{directory}") if isfile(join(f"", f))]
+        files = []
+        for file in testfiles:
+            files.append(directory + "/" + file)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+            executor.map(execute_test_case, files)
