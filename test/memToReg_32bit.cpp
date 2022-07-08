@@ -4,7 +4,7 @@
 
 int main() {
     // given
-    setRegShadow(0,0,64);
+    setRegShadow(true,0,64);
     uint32_t *a = new uint32_t;
     checkRegIsInit(0,64);
 

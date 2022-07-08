@@ -6,7 +6,7 @@
 
 int main() {
     // define rax here because "new" is not instrumented yet and returns an uninit address in rax, which is wrong.
-    setRegShadow(0,0,64);
+    setRegShadow(true,0,64);
     char *ptr = new char;
     write(1, ptr, 1);
     return 0;
