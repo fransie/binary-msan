@@ -19,7 +19,7 @@ def get_expected_output(filename):
 def is_disabled(filename):
     lines = open(filename, "r").readlines()
     if lines[-1:].pop().__contains__("DISABLED"):
-        print("Test disabled.")
+        print(f"******* {filename} *******\nTest disabled.")
         return True
     return False
 
