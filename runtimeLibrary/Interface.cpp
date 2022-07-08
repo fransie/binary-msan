@@ -279,5 +279,5 @@ void setMemShadow(bool isInited, const void *mem, uptr size) {
 }
 
 void initUpper4Bytes(const int reg) {
-    shadowRegisterState[reg] = shadowRegisterState[reg] ^ std::bitset<64>{0x00000000ffffffff};
+    shadowRegisterState[reg] = shadowRegisterState[reg] & std::bitset<64>{0x00000000ffffffff};
 }

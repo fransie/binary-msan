@@ -4,6 +4,7 @@ find_package(GTest CONFIG REQUIRED)
 add_executable (unit_tests
         checkRegIsInitTests.cpp
         getRegisterShadowTests.cpp
+        initUpper4BytesTests.cpp
         isRegFullyDefined.cpp
         isMemFullyDefined.cpp
         isRegOrRegFullyDefined.cpp
@@ -11,25 +12,6 @@ add_executable (unit_tests
         regToRegShadowCopyTests.cpp
         setMemShadowTests.cpp
         setRegShadowTests.cpp
-#        immToMem_16bit.cpp
-#        immToMem_32bit.cpp
-#        immToMem_64bit.cpp
-#        memToReg_8bit.cpp
-#        memToReg_8bitHigh.cpp
-#        memToReg_16bit.cpp
-#        memToReg_32bit.cpp
-#        memToReg_64bit.cpp
-#        regToMem_8bit.cpp
-#        regToMem_8bitHigh.cpp
-#        regToMem_16bit.cpp
-#        regToMem_32bit.cpp
-#        regToMem_64bit.cpp
-#        stack_leaf.cpp
-#        stack_regular.cpp
-#        stack_tailcall.cpp
-#        trap_conditional_branch.cpp
-#        trap_pointer_deref.cpp
-#        trap_syscall.cpp
         )
 
 
