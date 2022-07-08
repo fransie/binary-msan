@@ -85,7 +85,7 @@ void MovHandler::instrumentRegToRegMove(Instruction_t *instruction) {
     auto destWidth = capstone->getRegWidth(instruction, 0);
     auto srcWidth = capstone->getRegWidth(instruction, 1);
     // Higher four bytes are zeroed for double word moves.
-    if(destWidth == DOUBLE_WORD){
+    if(destWidth == Utils::toHex(DOUBLE_WORD)){
         string instrumentation = string() +
                                 Utils::getPushCallerSavedRegistersInstrumentation() +
                                 "mov rdi, %%1\n" +    // dest
