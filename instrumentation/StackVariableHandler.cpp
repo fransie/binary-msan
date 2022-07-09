@@ -84,11 +84,11 @@ void StackVariableHandler::setLocalVariablesToUninit(IRDB_SDK::Function_t *funct
     }
 
     string instrumentation = string() +
-                             Utils::getPushCallerSavedRegistersInstrumentation() +
-                             "mov rdi, rsp\n" +    // first argument
-                             "mov rsi, %%1\n" +    // second argument
-                             "call 0\n" +
-                             Utils::getPopCallerSavedRegistersInstrumentation();
+                            Utils::getPushCallerSavedRegistersInstrumentation() +
+                            "lea rdi, [rbp - %%1]\n" +    // first argument
+                            "mov rsi, %%1\n" +    // second argument
+                            "call 0\n" +
+                            Utils::getPopCallerSavedRegistersInstrumentation();
     vector<basic_string<char>> instrumentationParams {to_string(Utils::toHex(stackFrameSize))};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsAfter(fileIr, nextInstruction, instrumentation, instrumentationParams);
     auto calls = CapstoneService::getCallInstructionPosition(new_instr);
