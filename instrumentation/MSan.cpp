@@ -36,15 +36,7 @@ bool MSan::executeStep()
     if(!mainFunction){
         cout << "No main function detected." << endl;
     }
-    // assume RBP and RSP registers are initialised upon entry of main function
-    initGpRegisters(mainFunction->getEntryPoint());
 
-    // disable halt_on_error if required
-    if(!halt_on_error){
-        disableHaltOnError(mainFunction->getEntryPoint());
-    }
-
-    // loop over instructions and add handlers to common functions
     auto instructions = mainFunction->getInstructions();
     for (auto instruction : instructions){
         auto decodedInstruction = DecodedInstruction_t::factory(instruction);
@@ -58,6 +50,14 @@ bool MSan::executeStep()
         }
     }
     functionHandlers.at(0)->instrument(mainFunction);
+
+    // assume RBP and RSP registers are initialised upon entry of main function
+    initGpRegisters(mainFunction->getEntryPoint());
+
+    // disable halt_on_error if required
+    if(!halt_on_error){
+        disableHaltOnError(mainFunction->getEntryPoint());
+    }
     return true; //success
 }
 
