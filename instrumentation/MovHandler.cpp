@@ -21,25 +21,20 @@ void MovHandler::instrument(Instruction_t *instruction){
     vector<shared_ptr<DecodedOperand_t>> operands = decodedInstruction->getOperands();
     if(operands[0]->isGeneralPurposeRegister()){
         if(operands[1]->isGeneralPurposeRegister()){
-            // reg to reg
             instrumentRegToRegMove(instruction);
         } else if (operands[1]->isConstant()){
-            // immediate to reg
             instrumentImmToRegMove(instruction);
         } else if (operands[1]->isMemory()) {
-            // mem to reg
             instrumentMemToRegMove(instruction);
         } else if (operands[1]->isSegmentRegister()){
             // Sreg to reg
         }
     } else if (operands[0]->isMemory()) {
         if(operands[1]->isGeneralPurposeRegister()){
-            // reg to mem
             instrumentRegToMemMove(instruction);
         } else if (operands[1]->isSegmentRegister()){
             // Sreg to mem
         } else if (operands[1]->isConstant()){
-            // immediate to mem
             instrumentImmToMemMove(instruction);
         }
     } else if (operands[0]->isSegmentRegister()){
@@ -52,23 +47,29 @@ void MovHandler::instrument(Instruction_t *instruction){
 }
 
 void MovHandler::instrumentImmToRegMove(Instruction_t *instruction) {
+    cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << endl;
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     auto dest = operands[0]->getRegNumber();
-    cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << (int) dest << " and immediate: " << operands[1]->getConstant() << endl;
-
-
     auto width = capstone->getRegWidth(instruction, 0);
     string instrumentation = string() +
                              Utils::getPushCallerSavedRegistersInstrumentation() +
-                             "mov dil, 0\n" +    // initState
+                             "mov dil, 1\n" +      // isInited
                              "mov rsi, %%1\n" +    // reg
                              "mov rdx, %%2\n" +    // regWidth
-                             "call 0\n" +
-                             Utils::getPopCallerSavedRegistersInstrumentation();
+                             "call 0\n";
+    if (width == Utils::toHex(DOUBLE_WORD)){
+        instrumentation = instrumentation +
+                             "mov rdi, %%1\n" +    // reg
+                             "call 0\n";
+    }
+    instrumentation += Utils::getPopCallerSavedRegistersInstrumentation();
     vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string(width)};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
     auto calls = CapstoneService::getCallInstructionPosition(new_instr);
-	new_instr[calls[0]]->setTarget(RuntimeLib::setRegShadow);
+    new_instr[calls[0]]->setTarget(RuntimeLib::setRegShadow);
+    if (width == Utils::toHex(DOUBLE_WORD)){
+        new_instr[calls[1]]->setTarget(RuntimeLib::initUpper4Bytes);
+    }
 }
 
 /**
@@ -84,38 +85,26 @@ void MovHandler::instrumentRegToRegMove(Instruction_t *instruction) {
 
     auto destWidth = capstone->getRegWidth(instruction, 0);
     auto srcWidth = capstone->getRegWidth(instruction, 1);
-    // Higher four bytes are zeroed for double word moves.
-    if(destWidth == Utils::toHex(DOUBLE_WORD)){
-        string instrumentation = string() +
-                                Utils::getPushCallerSavedRegistersInstrumentation() +
-                                "mov rdi, %%1\n" +    // dest
-                                "mov rsi, %%2\n" +    // destWidth
-                                "mov rdx, %%3\n"      // src
-                                "mov rcx, %%4\n"      // srcWidth
-                                "call 0\n" +
-                                "mov rdi, %%1\n" +    // reg
-                                "call 0\n" +
-                                Utils::getPopCallerSavedRegistersInstrumentation();
-        vector<basic_string<char>> instrumentationParams {to_string(dest), to_string(destWidth), to_string(source),
-                                                          to_string(srcWidth)};
-        const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
-        auto calls = CapstoneService::getCallInstructionPosition(new_instr);
-        new_instr[calls[0]]->setTarget(RuntimeLib::regToRegShadowCopy);
+    string instrumentation = string() +
+                            Utils::getPushCallerSavedRegistersInstrumentation() +
+                            "mov rdi, %%1\n" +    // dest
+                            "mov rsi, %%2\n" +    // destWidth
+                            "mov rdx, %%3\n"      // src
+                            "mov rcx, %%4\n"      // srcWidth
+                            "call 0\n";
+    if(destWidth == Utils::toHex(DOUBLE_WORD)) {
+        instrumentation = instrumentation +
+                          "mov rdi, %%1\n" +    // reg
+                          "call 0\n";
+    }
+    instrumentation += Utils::getPopCallerSavedRegistersInstrumentation();
+    vector<basic_string<char>> instrumentationParams {to_string(dest), to_string(destWidth), to_string(source),
+                                                      to_string(srcWidth)};
+    const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
+    auto calls = CapstoneService::getCallInstructionPosition(new_instr);
+    new_instr[calls[0]]->setTarget(RuntimeLib::regToRegShadowCopy);
+    if(destWidth == Utils::toHex(DOUBLE_WORD)) {
         new_instr[calls[1]]->setTarget(RuntimeLib::initUpper4Bytes);
-    } else {
-        string instrumentation = string() +
-                                 Utils::getPushCallerSavedRegistersInstrumentation() +
-                                 "mov rdi, %%1\n" +    // dest
-                                 "mov rsi, %%2\n" +    // destWidth
-                                 "mov rdx, %%3\n"      // src
-                                 "mov rcx, %%4\n"      // srcWidth
-                                 "call 0\n" +
-                                 Utils::getPopCallerSavedRegistersInstrumentation();
-        vector<basic_string<char>> instrumentationParams {to_string(dest), to_string(destWidth), to_string(source),
-                                                          to_string(srcWidth)};
-        const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
-        auto calls = CapstoneService::getCallInstructionPosition(new_instr);
-        new_instr[calls[0]]->setTarget(RuntimeLib::regToRegShadowCopy);
     }
 }
 
@@ -128,33 +117,24 @@ void MovHandler::instrumentMemToRegMove(Instruction_t *instruction) {
     auto memoryDisassembly = capstone->getMemoryOperandDisassembly(instruction);
     auto width = capstone->getRegWidth(instruction, 0);
     // Higher four bytes are zeroed for double word moves.
-    if(width == Utils::toHex(DOUBLE_WORD)){
-        string instrumentation = string() +
-                                 Utils::getPushCallerSavedRegistersInstrumentation() +
-                                 "mov rdi, %%1\n" +    // reg
-                                 "mov rsi, %%2\n" +    // regWidth
-                                 "lea rdx, %%3\n" +    // memAddr
-                                 "call 0\n" +
-                                 "mov rdi, %%1\n" +    // reg
-                                 "call 0\n" +
-                                 Utils::getPopCallerSavedRegistersInstrumentation();
-        vector<basic_string<char>> instrumentationParams {to_string(dest), to_string(width), memoryDisassembly};
-        const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
-        auto calls = CapstoneService::getCallInstructionPosition(new_instr);
-        new_instr[calls[0]]->setTarget(RuntimeLib::memToRegShadowCopy);
+    string instrumentation = string() +
+                             Utils::getPushCallerSavedRegistersInstrumentation() +
+                            "mov rdi, %%1\n" +    // reg
+                            "mov rsi, %%2\n" +    // regWidth
+                            "lea rdx, %%3\n" +    // memAddr
+                            "call 0\n";
+    if(width == Utils::toHex(DOUBLE_WORD)) {
+        instrumentation = instrumentation +
+                          "mov rdi, %%1\n" +    // reg
+                          "call 0\n";
+    }
+    instrumentation += Utils::getPopCallerSavedRegistersInstrumentation();
+    vector<basic_string<char>> instrumentationParams {to_string(dest), to_string(width), memoryDisassembly};
+    const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
+    auto calls = CapstoneService::getCallInstructionPosition(new_instr);
+    new_instr[calls[0]]->setTarget(RuntimeLib::regToRegShadowCopy);
+    if(width == Utils::toHex(DOUBLE_WORD)) {
         new_instr[calls[1]]->setTarget(RuntimeLib::initUpper4Bytes);
-    } else {
-        string instrumentation = string() +
-                                 Utils::getPushCallerSavedRegistersInstrumentation() +
-                                 "mov rdi, %%1\n" +    // reg
-                                 "mov rsi, %%2\n" +    // regWidth
-                                 "lea rdx, %%3\n" +    // memAddr
-                                 "call 0\n" +
-                                 Utils::getPopCallerSavedRegistersInstrumentation();
-        vector<basic_string<char>> instrumentationParams {to_string(dest), to_string(width), memoryDisassembly};
-        const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
-        auto calls = CapstoneService::getCallInstructionPosition(new_instr);
-        new_instr[calls[0]]->setTarget(RuntimeLib::memToRegShadowCopy);
     }
 }
 
