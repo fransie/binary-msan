@@ -104,13 +104,6 @@ void memToRegShadowCopy(int reg, int regWidth, uptr memAddress){
         }
         memShadowAddress++;
     }
-
-    // double words are zero-extended to quad words upon mov -> clear higher 4 bytes
-    if(regWidth == DOUBLE_WORD){
-        for(int x = 32; x < 64; x++){
-            shadowRegisterState[reg].set(x, false);
-        }
-    }
     std::cout << "memToRegShadowCopy. Shadow of reg " << reg << " is: 0x" << std::hex << shadowRegisterState[reg].to_ullong() << "." << std::endl;
 }
 
