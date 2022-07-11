@@ -10,6 +10,7 @@ add_executable(binmsan
         RuntimeLib.h
         StackVariableHandler.cpp
         Utils.cpp
+        ../common/RegisterNumbering.h
         ../common/Width.h
 )
 target_compile_options(binmsan PRIVATE -Wall -Wextra -Wpedantic)

@@ -33,6 +33,7 @@ target_link_libraries(
 add_library(interface_msanified SHARED
         Interface.cpp
         Interface.h
+        ../common/RegisterNumbering.h
         ../common/Width.h
         )
 
