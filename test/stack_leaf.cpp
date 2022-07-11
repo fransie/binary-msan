@@ -1,6 +1,8 @@
+// COMPILE-OPTIONS: -ggdb
+
 #include <iostream>
 
-int main(int argc, char** argv) {
+int main() {
     uint64_t a;
     if (a)
         return 1;
