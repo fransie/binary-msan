@@ -1,5 +1,3 @@
-#include <iostream>
-
 int calc(int a){
     if(a){
         return a;
@@ -12,4 +10,4 @@ int main(int argc) {
     __attribute__((musttail)) return calc(a);
 }
 
-// DISABLED
+// EXPECTED: MemorySanitizer: use-of-uninitialized-value

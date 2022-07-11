@@ -24,8 +24,10 @@ public:
 private:
     IRDB_SDK::FileIR_t *fileIr;
 
+    IRDB_SDK::Instruction_t* getBpMove(IRDB_SDK::Function_t *function);
     bool isLeafOrTailCallFunction(IRDB_SDK::Function_t *function);
-    void setLocalVariablesToUninit(IRDB_SDK::Function_t *function, int stackFrameSize);
+    std::vector<std::basic_string<char>> poisonRedZone(int stackFrameSize, std::string &instrumentation);
+    std::vector<std::basic_string<char>> poisonStackframe(int stackFrameSize, std::string &instrumentation);
 };
 
 

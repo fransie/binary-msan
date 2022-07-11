@@ -7,4 +7,4 @@ int main(int argc, char** argv) {
     return 0;
 }
 
-// DISABLED
+// EXPECTED: MemorySanitizer: use-of-uninitialized-value
