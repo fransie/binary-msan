@@ -3,6 +3,7 @@
 #include "RuntimeLib.h"
 #include "Utils.h"
 #include "CapstoneService.h"
+#include "../common/RegisterNumbering.h"
 
 using namespace std;
 
@@ -10,11 +11,12 @@ size_t RED_ZONE_SIZE = 128;
 
 StackVariableHandler::StackVariableHandler(IRDB_SDK::FileIR_t *fileIr) : fileIr(fileIr){}
 
-void StackVariableHandler::instrument(IRDB_SDK::Function_t *function) {
+void StackVariableHandler::instrument(unique_ptr<FunctionAnalysis> &functionAnalysis) {
     // getStackFrameSize() looks for the first occurrence of a `sub rsp|esp, x` instruction and returns x
+    auto function = functionAnalysis->getFunction();
     auto stackFrameSize = function->getStackFrameSize();
     bool hasStackPointerSub = (stackFrameSize != 0);
-    bool canUseRedZone = isLeafOrTailCallFunction(function);
+    bool canUseRedZone = functionAnalysis->isLeafOrTailCallFunction;
 
     if(!canUseRedZone && !hasStackPointerSub){
         // do nothing
@@ -22,15 +24,16 @@ void StackVariableHandler::instrument(IRDB_SDK::Function_t *function) {
     }
 
     string instrumentation = Utils::getPushCallerSavedRegistersInstrumentation();
-    vector<basic_string<char>> instrumentationParams = vector<basic_string<char>>{};
+    vector<basic_string<char>> instrumentationParams = vector<basic_string<char>>{"", "", ""};
 
     if(hasStackPointerSub){
-        auto params = poisonStackframe(stackFrameSize, instrumentation);
-        instrumentationParams.insert(end(instrumentationParams), begin(params), end(params));
+        auto param = poisonStackframe(stackFrameSize, instrumentation);
+        instrumentationParams[0] = param;
     }
     if(canUseRedZone){
-        auto params = poisonRedZone(0, instrumentation);
-        instrumentationParams.insert(end(instrumentationParams), begin(params), end(params));
+        auto params = poisonRedZone(stackFrameSize, instrumentation);
+        instrumentationParams[1] = params[0];
+        instrumentationParams[2] = params[1];
     }
     instrumentation += Utils::getPopCallerSavedRegistersInstrumentation();
 
@@ -41,24 +44,6 @@ void StackVariableHandler::instrument(IRDB_SDK::Function_t *function) {
         new_instr[call]->setTarget(RuntimeLib::__msan_poison_stack);
     }
 }
-
-/**
- * Checks whether the input function is a leaf function or uses a tail call by
- * looking for a <code>call</code> instruction.
- * @param function input function.
- * @return true if there is no <code>call</code> in the function.
- */
-bool StackVariableHandler::isLeafOrTailCallFunction(IRDB_SDK::Function_t *function) {
-    auto instructions = function->getInstructions();
-    for(auto instruction : instructions){
-        auto decodedInstruction = IRDB_SDK::DecodedInstruction_t::factory(instruction);
-        if (decodedInstruction->getMnemonic() == "call"){
-            return false;
-        }
-    }
-    return true;
-}
-
 
 /**
  *  Adds instrumentation after the function prologue (push rbp; mov rbp, rsp; sub rsp, X) to set the shadow
@@ -83,31 +68,38 @@ bool StackVariableHandler::isLeafOrTailCallFunction(IRDB_SDK::Function_t *functi
  * </pre>
  * @param instruction function in which to insert the instrumentation
  */
-vector<basic_string<char>> StackVariableHandler::poisonStackframe(int stackFrameSize, string &instrumentation) {
+basic_string<char> StackVariableHandler::poisonStackframe(int stackFrameSize, string &instrumentation) {
     instrumentation = instrumentation +
                             "lea rdi, [rbp - %%1]\n" +    // first argument
                             "mov rsi, %%1\n" +            // second argument
                             "call 0\n";
-    return vector<basic_string<char>>({to_string(Utils::toHex(stackFrameSize))});
+    return to_string(Utils::toHex(stackFrameSize));
 }
 
 vector<basic_string<char>> StackVariableHandler::poisonRedZone(int stackFrameSize, string &instrumentation) {
+    int redZoneOffset = RED_ZONE_SIZE + stackFrameSize;
     instrumentation = instrumentation +
-                             "lea rdi, [rbp - %%1]\n" +    // first argument
-                             "mov rsi, %%2\n" +            // second argument
+                             "lea rdi, [rbp - %%2]\n" +    // first argument
+                             "mov rsi, %%3\n" +            // second argument
                              "call 0\n";
-    return vector<basic_string<char>>({to_string(Utils::toHex(stackFrameSize)), to_string(Utils::toHex(RED_ZONE_SIZE))});
+    return vector<basic_string<char>>({to_string(Utils::toHex(redZoneOffset)), to_string(Utils::toHex(RED_ZONE_SIZE))});
 }
 
 IRDB_SDK::Instruction_t* StackVariableHandler::getBpMove(IRDB_SDK::Function_t *function) {
-    auto prologueStart = function->getEntryPoint();
-    auto instruction = prologueStart;
-    auto nextInstruction = instruction->getFallthrough();
-    auto decodedNextInstruction = IRDB_SDK::DecodedInstruction_t::factory(nextInstruction);
-    while (decodedNextInstruction->getMnemonic() != "sub"){
-        instruction = nextInstruction;
-        nextInstruction = instruction->getFallthrough();
-        decodedNextInstruction = IRDB_SDK::DecodedInstruction_t::factory(nextInstruction);
+    auto instruction = function->getEntryPoint();
+    auto decodedInstruction = IRDB_SDK::DecodedInstruction_t::factory(instruction);
+    auto operands = decodedInstruction->getOperands();
+    while (
+            decodedInstruction->getMnemonic() != "mov" ||
+            !operands[0]->isGeneralPurposeRegister() || operands[0]->getRegNumber() != RBP ||
+            !operands[1]->isGeneralPurposeRegister() || operands[1]->getRegNumber() != RSP)
+    {
+        instruction = instruction->getFallthrough();
+        if(instruction == nullptr){
+            throw std::invalid_argument("Function " + function->getName() + " does not set base pointer in prologue.");
+        }
+        decodedInstruction = IRDB_SDK::DecodedInstruction_t::factory(instruction);
+        operands = decodedInstruction->getOperands();
     }
     return instruction;
 }

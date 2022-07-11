@@ -6,6 +6,7 @@
 #define BINARY_MSAN_STACKVARIABLEHANDLER_H
 
 #include "FunctionHandler.h"
+#include "FunctionAnalysis.h"
 
 /**
  * TODO: document this
@@ -20,14 +21,15 @@
 class StackVariableHandler : public FunctionHandler{
 public:
     explicit StackVariableHandler(IRDB_SDK::FileIR_t *fileIr);
-    void instrument(IRDB_SDK::Function_t *function) override;
+
+    void instrument(std::unique_ptr<FunctionAnalysis> &functionAnalysis);
+
 private:
     IRDB_SDK::FileIR_t *fileIr;
 
     IRDB_SDK::Instruction_t* getBpMove(IRDB_SDK::Function_t *function);
-    bool isLeafOrTailCallFunction(IRDB_SDK::Function_t *function);
     std::vector<std::basic_string<char>> poisonRedZone(int stackFrameSize, std::string &instrumentation);
-    std::vector<std::basic_string<char>> poisonStackframe(int stackFrameSize, std::string &instrumentation);
+    std::basic_string<char> poisonStackframe(int stackFrameSize, std::string &instrumentation);
 };
 
 

@@ -2,6 +2,7 @@
 add_executable(binmsan
         CapstoneService.cpp
         EflagsHandler.cpp
+        FunctionAnalysis.cpp
         JumpHandler.cpp
         MemoryAccessInstrumentation.cpp
         MovHandler.cpp

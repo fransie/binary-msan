@@ -3,6 +3,7 @@
 //
 
 #include "EflagsHandler.h"
+#include "FunctionAnalysis.h"
 #include "MSan.h"
 #include "JumpHandler.h"
 #include "MovHandler.h"
@@ -26,10 +27,12 @@ bool MSan::executeStep()
 {
     registerDependencies();
     Function_t* mainFunction = nullptr;
+    unique_ptr<FunctionAnalysis> mainFunctionAnalysis = nullptr;
     auto functions = getFileIR()->getFunctions();
     for (auto const &function : functions){
         if(function->getName() == "main"){
             mainFunction = function;
+            mainFunctionAnalysis = make_unique<FunctionAnalysis>(mainFunction);
             break;
         }
     }
@@ -49,7 +52,7 @@ bool MSan::executeStep()
             }
         }
     }
-    functionHandlers.at(0)->instrument(mainFunction);
+    functionHandlers.at(0)->instrument(mainFunctionAnalysis);
 
     // assume RBP and RSP registers are initialised upon entry of main function
     initGpRegisters(mainFunction->getEntryPoint());

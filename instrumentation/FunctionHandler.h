@@ -6,10 +6,11 @@
 #define BINARY_MSAN_FUNCTIONHANDLER_H
 
 #include <irdb-core>
+#include "FunctionAnalysis.h"
 
 class FunctionHandler {
 public:
-    virtual void instrument(IRDB_SDK::Function_t *function) = 0;
+    virtual void instrument(std::unique_ptr<FunctionAnalysis> &functionAnalysis) = 0;
 };
 
 
