@@ -1,7 +1,3 @@
-//
-// Created by Franziska Mäckel on 03.04.22.
-//
-
 #ifndef BINARY_MSAN_MSAN_H
 #define BINARY_MSAN_MSAN_H
 

@@ -4,19 +4,20 @@
 #include <iostream>
 #include <cstdint>
 #include "../../runtimeLibrary/Interface.h"
+#include "../../common/RegisterNumbering.h"
 
 int main() {
     // given
     // define rax here because "new" is not instrumented yet and returns an uninit address is rax, which is wrong.
-    setRegShadow(true,0,64);
-    assert(shadowRegisterState[0].to_ullong() == 0);
-    assert(shadowRegisterState[1].to_ullong() == UINT64_MAX);
+    setRegShadow(true,RAX,64);
+    assert(shadowRegisterState[RAX].to_ullong() == 0);
+    assert(shadowRegisterState[RCX].to_ullong() == UINT64_MAX);
 
     // when
     asm ("mov %ax, %cx");
 
     // then
-    assert(shadowRegisterState[1].to_ullong() == 0xffffffffffff0000);
+    assert(shadowRegisterState[RCX].to_ullong() == 0xffffffffffff0000);
     std::cout << "Success." << std::endl;
     return 0;
 }

@@ -1,7 +1,3 @@
-//
-// Created by Franziska Mäckel on 07.04.22.
-//
-
 #ifndef BINARY_MSAN_INTERFACE_H
 #define BINARY_MSAN_INTERFACE_H
 

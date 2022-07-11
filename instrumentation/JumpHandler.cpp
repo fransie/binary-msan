@@ -1,8 +1,5 @@
-//
-// Created by Franziska Mäckel on 07.06.22.
-//
-
 #include "JumpHandler.h"
+#include "../common/RegisterNumbering.h"
 
 using namespace IRDB_SDK;
 using namespace std;
@@ -46,14 +43,13 @@ void JumpHandler::checkCx(unique_ptr<IRDB_SDK::DecodedInstruction_t> &decodedIns
     } else if (decodedInstr->getMnemonic() == "jrcxz"){
         width = QUAD_WORD;
     }
-    int rcxNumber = 1;
     string instrumentation = string() +
                              Utils::getPushCallerSavedRegistersInstrumentation() +
                              "mov rdi, %%1" +
                              "mov rsi, %%2"
                              "call 0\n" +
                              Utils::getPopCallerSavedRegistersInstrumentation();
-    const auto new_instr = insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,{to_string(rcxNumber), to_string(Utils::toHex(width))});
+    const auto new_instr = insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,{to_string(RCX), to_string(Utils::toHex(width))});
     auto calls = CapstoneService::getCallInstructionPosition(new_instr);
 	new_instr[calls[0]]->setTarget(RuntimeLib::checkRegIsInit);
 }

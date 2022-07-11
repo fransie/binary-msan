@@ -1,7 +1,3 @@
-//
-// Created by Franziska Mäckel on 01.07.22.
-//
-
 #ifndef BINARY_MSAN_EFLAGSHANDLER_H
 #define BINARY_MSAN_EFLAGSHANDLER_H
 

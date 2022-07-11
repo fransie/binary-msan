@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cstdint>
 #include "../../runtimeLibrary/Interface.h"
+#include "../../common/RegisterNumbering.h"
 
 
 void testShadowNot0(u_int16_t *ptr){
@@ -19,7 +20,7 @@ void testShadow0(u_int16_t *ptr){
 
 int main() {
     // define rax here because "new" is not instrumented yet and returns an uninit address in rax, which is wrong.
-    setRegShadow(true,0,64);
+    setRegShadow(true,RAX,64);
     u_int16_t *a = new u_int16_t;
     testShadowNot0(a);
     asm ("mov $1, %rax");

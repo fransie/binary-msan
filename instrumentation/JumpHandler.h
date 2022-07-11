@@ -1,6 +1,3 @@
-//
-// Created by Franziska Mäckel on 07.06.22.
-//
 
 #ifndef BINARY_MSAN_JUMPHANDLER_H
 #define BINARY_MSAN_JUMPHANDLER_H

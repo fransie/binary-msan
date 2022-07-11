@@ -1,6 +1,3 @@
-//
-// Created by Franziska Mäckel on 07.04.22.
-//
 
 #include <iostream>
 #include <irdb-core>

@@ -1,6 +1,3 @@
-//
-// Created by Franziska Mäckel on 30.06.22.
-//
 
 #ifndef BINARY_MSAN_STACKVARIABLEHANDLER_H
 #define BINARY_MSAN_STACKVARIABLEHANDLER_H

@@ -1,7 +1,3 @@
-//
-// Created by Franziska Mäckel on 01.07.22.
-//
-
 #include <irdb-transform>
 #include "EflagsHandler.h"
 #include "RuntimeLib.h"

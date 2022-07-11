@@ -1,6 +1,3 @@
-//
-// Created by Franziska Mäckel on 05.06.22.
-//
 
 #include "MemoryAccessInstrumentation.h"
 

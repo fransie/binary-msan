@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <iostream>
 #include "../../runtimeLibrary/Interface.h"
+#include "../../common/RegisterNumbering.h"
 
 void testShadowNot0(uint64_t *ptr){
     auto shadow = reinterpret_cast<uint64_t*>((unsigned long long)(ptr) ^ 0x500000000000ULL);
@@ -17,7 +18,7 @@ void testShadow0(uint64_t *ptr){
 
 int main() {
     // define rax here because "new" is not instrumented yet and returns an uninit address is rax, which in wrong.
-    setRegShadow(true,0,64);
+    setRegShadow(true,RAX,64);
     uint64_t *a = new uint64_t;
     testShadowNot0(a);
     asm ("mov $1, %rax");

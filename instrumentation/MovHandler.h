@@ -1,6 +1,3 @@
-//
-// Created by Franziska Mäckel on 04.06.22.
-//
 
 #ifndef BINARY_MSAN_MOVHANDLER_H
 #define BINARY_MSAN_MOVHANDLER_H

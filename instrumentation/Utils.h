@@ -1,6 +1,3 @@
-//
-// Created by Franziska Mäckel on 12.04.22.
-//
 
 #ifndef BINARY_MSAN_UTILS_H
 #define BINARY_MSAN_UTILS_H

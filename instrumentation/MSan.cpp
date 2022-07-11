@@ -1,7 +1,3 @@
-//
-// Created by Franziska Mäckel on 03.04.22.
-//
-
 #include "EflagsHandler.h"
 #include "FunctionAnalysis.h"
 #include "MSan.h"

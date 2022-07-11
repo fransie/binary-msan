@@ -1,6 +1,3 @@
-//
-// Created by Franziska Mäckel on 12.04.22.
-//
 
 #include "Utils.h"
 

@@ -1,6 +1,3 @@
-//
-// Created by Franziska Mäckel on 04.06.22.
-//
 
 #include "MovHandler.h"
 #include "CapstoneService.h"

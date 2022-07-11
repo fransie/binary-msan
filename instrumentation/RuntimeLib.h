@@ -1,6 +1,3 @@
-//
-// Created by Franziska Mäckel on 05.06.22.
-//
 
 #ifndef BINARY_MSAN_RUNTIMELIB_H
 #define BINARY_MSAN_RUNTIMELIB_H

@@ -1,14 +1,15 @@
 #include "gtest/gtest.h"
 #include "../../runtimeLibrary/Interface.h"
+#include "../../common/RegisterNumbering.h"
 
 
 TEST(checkRegIsInitTests, fullyInit64) {
     // given
-    shadowRegisterState[0].reset();
-    EXPECT_EQ(shadowRegisterState[0].to_ullong(), 0);
+    shadowRegisterState[RAX].reset();
+    EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), 0);
 
     // when
-    checkRegIsInit(0, QUAD_WORD);
+    checkRegIsInit(RAX, QUAD_WORD);
 
     // then no error occurs
 }
@@ -16,12 +17,12 @@ TEST(checkRegIsInitTests, fullyInit64) {
 TEST(checkRegIsInitTests, fullyUninit64) {
     // given
     __msan_set_keep_going(1);
-    shadowRegisterState[0].set();
-    EXPECT_EQ(shadowRegisterState[0].to_ullong(), UINT64_MAX);
+    shadowRegisterState[RAX].set();
+    EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), UINT64_MAX);
 
     // when/then
     __msan_set_expect_umr(1);
-    checkRegIsInit(0, QUAD_WORD);
+    checkRegIsInit(RAX, QUAD_WORD);
 
     // then
     __msan_set_expect_umr(0);

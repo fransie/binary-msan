@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include "../runtimeLibrary/Interface.h"
+#include "../../common/RegisterNumbering.h"
 
 int main(int argc, char** argv) {
     // define rax here because "new" is not instrumented yet and returns an uninit address in rax, which is wrong.

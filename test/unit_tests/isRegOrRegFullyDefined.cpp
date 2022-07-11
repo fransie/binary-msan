@@ -2,16 +2,17 @@
 #include <msan.h>
 #include "gtest/gtest.h"
 #include "../../runtimeLibrary/Interface.h"
+#include "../../common/RegisterNumbering.h"
 
 TEST(isRegOrRegFullyDefinedTests, bothFullyDefined){
     // given
-    shadowRegisterState[0].reset();
-    shadowRegisterState[1].reset();
-    EXPECT_EQ(shadowRegisterState[0].to_ullong(), 0);
-    EXPECT_EQ(shadowRegisterState[1].to_ullong(), 0);
+    shadowRegisterState[RAX].reset();
+    shadowRegisterState[RCX].reset();
+    EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), 0);
+    EXPECT_EQ(shadowRegisterState[RCX].to_ullong(), 0);
 
     // when
-    auto result = isRegOrRegFullyDefined(0,QUAD_WORD, 1, QUAD_WORD);
+    auto result = isRegOrRegFullyDefined(RAX,QUAD_WORD, RCX, QUAD_WORD);
 
     // then
     EXPECT_EQ(result, true);
@@ -19,13 +20,13 @@ TEST(isRegOrRegFullyDefinedTests, bothFullyDefined){
 
 TEST(isRegOrRegFullyDefinedTests, bothFullyUndefined){
     // given
-    shadowRegisterState[0].set();
-    shadowRegisterState[1].set();
-    EXPECT_EQ(shadowRegisterState[0].to_ullong(), UINT64_MAX);
-    EXPECT_EQ(shadowRegisterState[1].to_ullong(), UINT64_MAX);
+    shadowRegisterState[RAX].set();
+    shadowRegisterState[RCX].set();
+    EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), UINT64_MAX);
+    EXPECT_EQ(shadowRegisterState[RCX].to_ullong(), UINT64_MAX);
 
     // when
-    auto result = isRegOrRegFullyDefined(0,QUAD_WORD, 1, QUAD_WORD);
+    auto result = isRegOrRegFullyDefined(RAX,QUAD_WORD, RCX, QUAD_WORD);
 
     // then
     EXPECT_EQ(result, false);
@@ -33,13 +34,13 @@ TEST(isRegOrRegFullyDefinedTests, bothFullyUndefined){
 
 TEST(isRegOrRegFullyDefinedTests, oneFullyUndefined){
     // given
-    shadowRegisterState[0].set();
-    shadowRegisterState[1].reset();
-    EXPECT_EQ(shadowRegisterState[0].to_ullong(), UINT64_MAX);
-    EXPECT_EQ(shadowRegisterState[1].to_ullong(), 0);
+    shadowRegisterState[RAX].set();
+    shadowRegisterState[RCX].reset();
+    EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), UINT64_MAX);
+    EXPECT_EQ(shadowRegisterState[RCX].to_ullong(), 0);
 
     // when
-    auto result = isRegOrRegFullyDefined(0,QUAD_WORD, 1, QUAD_WORD);
+    auto result = isRegOrRegFullyDefined(RAX,QUAD_WORD, RCX, QUAD_WORD);
 
     // then
     EXPECT_EQ(result, false);
@@ -47,14 +48,14 @@ TEST(isRegOrRegFullyDefinedTests, oneFullyUndefined){
 
 TEST(isRegOrRegFullyDefinedTests, oneUndefined32){
     // given
-    shadowRegisterState[0].reset();
-    shadowRegisterState[1].reset();
-    shadowRegisterState[1].set(8, true);
-    EXPECT_EQ(shadowRegisterState[0].to_ullong(), 0);
-    EXPECT_EQ(shadowRegisterState[1].to_ullong(), 0x100);
+    shadowRegisterState[RAX].reset();
+    shadowRegisterState[RCX].reset();
+    shadowRegisterState[RCX].set(8, true);
+    EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), 0);
+    EXPECT_EQ(shadowRegisterState[RCX].to_ullong(), 0x100);
 
     // when
-    auto result = isRegOrRegFullyDefined(0,DOUBLE_WORD, 1, DOUBLE_WORD);
+    auto result = isRegOrRegFullyDefined(RAX,DOUBLE_WORD, RCX, DOUBLE_WORD);
 
     // then
     EXPECT_EQ(result, false);
@@ -62,14 +63,14 @@ TEST(isRegOrRegFullyDefinedTests, oneUndefined32){
 
 TEST(isRegOrRegFullyDefinedTests, oneUndefined8High){
     // given
-    shadowRegisterState[0].reset();
-    shadowRegisterState[1].reset();
-    shadowRegisterState[1].set(8, true);
-    EXPECT_EQ(shadowRegisterState[0].to_ullong(), 0);
-    EXPECT_EQ(shadowRegisterState[1].to_ullong(), 0x100);
+    shadowRegisterState[RAX].reset();
+    shadowRegisterState[RCX].reset();
+    shadowRegisterState[RCX].set(8, true);
+    EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), 0);
+    EXPECT_EQ(shadowRegisterState[RCX].to_ullong(), 0x100);
 
     // when
-    auto result = isRegOrRegFullyDefined(0,HIGHER_BYTE, 1, HIGHER_BYTE);
+    auto result = isRegOrRegFullyDefined(RAX,HIGHER_BYTE, RCX, HIGHER_BYTE);
 
     // then
     EXPECT_EQ(result, false);

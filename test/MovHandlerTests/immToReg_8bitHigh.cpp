@@ -3,17 +3,19 @@
 #include <cassert>
 #include <iostream>
 #include "../../runtimeLibrary/Interface.h"
+#include "../../common/RegisterNumbering.h"
+
 
 int main() {
     // given
-    assert(shadowRegisterState[0].to_ullong() == UINT64_MAX);
+    assert(shadowRegisterState[RAX].to_ullong() == UINT64_MAX);
 
     // when
     asm ("mov $5, %ah");
 
     // then
-    std::cout << shadowRegisterState[0].to_ullong() << std::endl;
-    assert(shadowRegisterState[0].to_ullong() == 0xffffffffffff00ff);
+    std::cout << shadowRegisterState[RAX].to_ullong() << std::endl;
+    assert(shadowRegisterState[RAX].to_ullong() == 0xffffffffffff00ff);
     std::cout << "Success." << std::endl;
     return 0;
 }

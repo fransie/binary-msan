@@ -1,8 +1,5 @@
-//
-// Created by Franziska Mäckel on 07.04.22.
-//
-
 #include "Interface.h"
+#include "../common/RegisterNumbering.h"
 
 // TODO: global variable is probably a bad idea
 /**
@@ -121,8 +118,8 @@ void checkEflags() {
  */
 void initGpRegisters() {
     std::cout << "Init rbp and rsp." << std::endl;
-    shadowRegisterState[4].reset();
-    shadowRegisterState[5].reset();
+    shadowRegisterState[RSP].reset();
+    shadowRegisterState[RBP].reset();
 }
 
 void regToMemShadowCopy(int reg, int regWidth, uptr memAddress) {
