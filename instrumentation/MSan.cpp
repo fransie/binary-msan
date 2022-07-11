@@ -1,3 +1,7 @@
+#include <irdb-elfdep>
+#include <unistd.h>
+#include "RuntimeLib.h"
+#include "Utils.h"
 #include "EflagsHandler.h"
 #include "FunctionAnalysis.h"
 #include "MSan.h"

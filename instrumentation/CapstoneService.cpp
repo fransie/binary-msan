@@ -1,6 +1,6 @@
-
 #include "CapstoneService.h"
-
+#include "Utils.h"
+#include "../common/Width.h"
 
 CapstoneService::CapstoneService() {
     if (cs_open(CS_ARCH_X86, CS_MODE_64, &capstoneHandle) != CS_ERR_OK){

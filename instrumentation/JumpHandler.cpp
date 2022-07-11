@@ -1,5 +1,8 @@
 #include "JumpHandler.h"
 #include "../common/RegisterNumbering.h"
+#include "../common/Width.h"
+#include "RuntimeLib.h"
+#include "Utils.h"
 
 using namespace IRDB_SDK;
 using namespace std;

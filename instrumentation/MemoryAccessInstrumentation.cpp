@@ -1,5 +1,8 @@
-
+#include <irdb-elfdep>
+#include <memory>
 #include "MemoryAccessInstrumentation.h"
+#include "RuntimeLib.h"
+#include "Utils.h"
 
 using namespace IRDB_SDK;
 

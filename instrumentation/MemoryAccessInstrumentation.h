@@ -1,12 +1,7 @@
-
 #ifndef BINARY_MSAN_MEMORYACCESSINSTRUMENTATION_H
 #define BINARY_MSAN_MEMORYACCESSINSTRUMENTATION_H
 
-#include <memory>
 #include <irdb-core>
-#include <irdb-elfdep>
-#include "Utils.h"
-#include "RuntimeLib.h"
 #include "CapstoneService.h"
 
 

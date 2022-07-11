@@ -3,6 +3,8 @@
 #include "gtest/gtest.h"
 #include "../../runtimeLibrary/Interface.h"
 #include "../../common/RegisterNumbering.h"
+#include "../../common/Width.h"
+
 
 TEST(isRegOrRegFullyDefinedTests, bothFullyDefined){
     // given

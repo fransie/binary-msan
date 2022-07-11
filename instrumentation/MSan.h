@@ -3,16 +3,8 @@
 
 #include <irdb-core>
 #include <irdb-transform>
-#include <irdb-elfdep>
-#include <memory>
-#include "RuntimeLib.h"
-#include "Utils.h"
 #include "FunctionHandler.h"
 #include "InstructionHandler.h"
-#include <cctype>
-#include <cstdio>
-#include <cstdlib>
-#include <unistd.h>
 
 class MSan : protected IRDB_SDK::Transform_t
 {

@@ -1,14 +1,9 @@
-
 #ifndef BINARY_MSAN_MOVHANDLER_H
 #define BINARY_MSAN_MOVHANDLER_H
 
 #include <irdb-core>
-#include <irdb-transform>
 #include "CapstoneService.h"
-#include "RuntimeLib.h"
 #include "InstructionHandler.h"
-#include "Utils.h"
-#include "MemoryAccessInstrumentation.h"
 
 class MovHandler : public InstructionHandler {
 public:
@@ -16,7 +11,6 @@ public:
 
     void instrument(IRDB_SDK::Instruction_t *instruction) override;
     const std::vector<std::string> &getAssociatedInstructions() override;
-
 
 private:
     std::vector<std::string> associatedInstructions {"mov"};

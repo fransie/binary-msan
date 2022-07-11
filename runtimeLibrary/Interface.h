@@ -5,13 +5,7 @@
     #define INTERFACE __attribute__((visibility ("default")))
 #endif
 
-#include <vector>
-#include <bitset>
-#include <memory>
-#include <msan_interface_internal.h>
-#include <iostream>
 #include <msan.h>
-#include "../common/Width.h"
 
 extern "C"{
 

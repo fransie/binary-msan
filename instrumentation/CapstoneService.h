@@ -4,8 +4,6 @@
 
 #include <capstone.h>
 #include <irdb-core>
-#include "Utils.h"
-#include "../common/Width.h"
 
 class CapstoneService {
 public:

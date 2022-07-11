@@ -1,6 +1,9 @@
-
+#include <irdb-transform>
+#include "../common/Width.h"
 #include "MovHandler.h"
-#include "CapstoneService.h"
+#include "RuntimeLib.h"
+#include "Utils.h"
+#include "MemoryAccessInstrumentation.h"
 
 using namespace IRDB_SDK;
 using namespace std;

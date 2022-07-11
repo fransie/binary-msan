@@ -1,9 +1,9 @@
 #include <irdb-transform>
-#include "StackVariableHandler.h"
-#include "RuntimeLib.h"
-#include "Utils.h"
-#include "CapstoneService.h"
 #include "../common/RegisterNumbering.h"
+#include "CapstoneService.h"
+#include "RuntimeLib.h"
+#include "StackVariableHandler.h"
+#include "Utils.h"
 
 using namespace std;
 
