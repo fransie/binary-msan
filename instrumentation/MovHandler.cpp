@@ -132,7 +132,7 @@ void MovHandler::instrumentMemToRegMove(Instruction_t *instruction) {
     vector<basic_string<char>> instrumentationParams {to_string(dest), to_string(width), memoryDisassembly};
     const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
     auto calls = CapstoneService::getCallInstructionPosition(new_instr);
-    new_instr[calls[0]]->setTarget(RuntimeLib::regToRegShadowCopy);
+    new_instr[calls[0]]->setTarget(RuntimeLib::memToRegShadowCopy);
     if(width == Utils::toHex(DOUBLE_WORD)) {
         new_instr[calls[1]]->setTarget(RuntimeLib::initUpper4Bytes);
     }
