@@ -1,17 +1,20 @@
-#ifndef BINARY_MSAN_CAPSTONESERVICE_H
-#define BINARY_MSAN_CAPSTONESERVICE_H
+#ifndef BINARY_MSAN_DISASSEMBLYSERVICE_H
+#define BINARY_MSAN_DISASSEMBLYSERVICE_H
 
+/**
+ * Offers access to miscellaneous disassembling functionality.
+ */
 
 #include <capstone.h>
 #include <irdb-core>
 
-class CapstoneService {
+class DisassemblyService {
 public:
-    CapstoneService();
-    ~CapstoneService();
+    DisassemblyService();
+    ~DisassemblyService();
 
     x86_reg getRegister(IRDB_SDK::Instruction_t *instruction, int operandNumber);
-    bool isHigherByteRegister(x86_reg capstoneRegNumber);
+    static bool isHigherByteRegister(x86_reg capstoneRegNumber);
     unsigned int getRegWidth(IRDB_SDK::Instruction_t *instruction, int operandNum);
     int getBaseRegWidth(IRDB_SDK::Instruction_t *instruction);
     int getIndexRegWidth(IRDB_SDK::Instruction_t *instruction);
@@ -19,12 +22,11 @@ public:
     static std::vector<size_t> getCallInstructionPosition(const std::vector<IRDB_SDK::Instruction_t *> &instructions);
 
 private:
-    csh capstoneHandle;
+    csh capstoneHandle{};
     cs_insn* getCapstoneInstruction(IRDB_SDK::Instruction_t *instruction);
     static int convertX86RegNumberToWidth(x86_reg regNumber);
     static int getPositionOfMemOperand(cs_insn *capstoneInstruction);
 
 };
 
-
-#endif //BINARY_MSAN_CAPSTONESERVICE_H
+#endif //BINARY_MSAN_DISASSEMBLYSERVICE_H

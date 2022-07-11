@@ -1,6 +1,6 @@
 ############### INSTRUMENTATION ###############
 add_executable(binmsan
-        CapstoneService.cpp
+        DisassemblyService.cpp
         EflagsHandler.cpp
         FunctionAnalysis.cpp
         JumpHandler.cpp

@@ -32,7 +32,7 @@ INTERFACE bool isMemFullyDefined(const void *mem, uptr size);
 INTERFACE bool isRegOrRegFullyDefined(int dest, int destWidth, int src, int srcWidth);
 INTERFACE bool isRegOrMemFullyDefined(int reg, const void *mem, int width);
 
-INTERFACE void setEflags(bool defined);
+INTERFACE void setEflags(bool shadow);
 
 INTERFACE void setRegShadow(bool isInited, int reg, int width);
 INTERFACE void setMemShadow(bool initState, const void *mem, uptr size);

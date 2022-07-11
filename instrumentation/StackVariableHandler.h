@@ -5,14 +5,14 @@
 #include "FunctionAnalysis.h"
 
 /**
- * TODO: document this
+ * Handles the poisoning of stack variables before they are initialised upon function entry.
  *
  * | Case | Function type | Prologue    | Reaction                                                           |
  * | ---- | ------------- | ----------- | ------------------------------------------------------------------ |
  * | 1    | Non-leaf      | without sub | Nothing, no local variables                                        |
- * | 2    | Non-leaf      | with sub    | Uninit local variables based on stack pointer substraction         |
- * | 3    | Leaf/tail     | without sub | ???                |
- * | 4    | Leaf/tail     | with sub    | ??? |
+ * | 2    | Non-leaf      | with sub    | Poison local variables based on stack frame                         |
+ * | 3    | Leaf/tail     | without sub | Poison red zone (128 bytes below stack pointer)                    |
+ * | 4    | Leaf/tail     | with sub    | Poison both stack frame and red zone                               |
  */
 class StackVariableHandler : public FunctionHandler{
 public:

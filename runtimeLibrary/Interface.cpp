@@ -15,13 +15,13 @@
 std::vector<std::bitset<64>> shadowRegisterState = std::vector<std::bitset<64>>(16, std::bitset<64>{}.set());
 
 /**
- * Represents the definedness of the EFLAGS register in one bit. Hence, this is only an approximation.
+ * Represents the shadow of the EFLAGS register in one bit. Hence, this is only an approximation.
  */
 bool eflagsDefined = true;
 
 /**
  * Takes two ints representing general purpose registers and propagates the shadow value of the
- * source register to the destination register. Registers numbering: see file operand_csx86.cpp in zipr.
+ * source register to the destination register.
  *
  * This method assumes that destWidth and srcWidth are the same. Only exception: BYTE and HIGHER_BYTE can
  * be mixed.
@@ -54,10 +54,10 @@ void regToRegShadowCopy(const int dest, int destWidth, const int src, const int 
 
 /**
  * Checks whether the first regWidth bits of the register referenced by <code>reg</code> are initialised. If not,
- * an MSan Warning is issued. Registers numbering: see file operand_csx86.cpp in zipr.
+ * an MSan Warning is issued.
  * Special case: If regWidth is HIGHER_BYTE (e.g. AH), then the bits at position 8 - 15 are checked.
- * @param reg number of the register to be checked
- * @param regWidth width of the register in bits
+ * @param reg number of the register to be checked.
+ * @param regWidth width of the register in bits.
  */
 void checkRegIsInit(int reg, int regWidth) {
     std::cout << "checkRegIsInit. Register: " << reg << ". Width: " << regWidth << ". Register shadow: 0x" << std::hex << shadowRegisterState[reg].to_ullong() << std::endl;
@@ -78,8 +78,6 @@ void checkRegIsInit(int reg, int regWidth) {
 
 /**
  * Copies the shadow associated with <code>memAddress</code> into the shadow state of the register <code>reg</code>.
- * Instrument a 'mov reg, [memAddress]' with this so that the shadow is propagated correctly. Registers numbering:
- * see file operand_csx86.cpp in zipr.
  *
  * @param reg Number of the destination register.
  * @param regWidth Width of the destination register.
@@ -120,7 +118,15 @@ void checkEflags() {
 }
 
 /**
- * Sets the state of RBP and RSP to initialised.
+ * Set the shadow of the EFLAGS register where shadow = 1 or true means undefined.
+ */
+void setEflags(bool shadow) {
+    std::cout << "setEflags to " << shadow << std::endl;
+    eflagsDefined = shadow;
+}
+
+/**
+ * Unpoisons RBP and RSP.
  */
 void initGpRegisters() {
     std::cout << "Init rbp and rsp." << std::endl;
@@ -128,6 +134,12 @@ void initGpRegisters() {
     shadowRegisterState[RBP].reset();
 }
 
+/**
+ * Propagates the shadow associated with the register <code>reg</code> to <code>memAddress</code>.
+ * @param reg
+ * @param regWidth
+ * @param memAddress
+ */
 void regToMemShadowCopy(int reg, int regWidth, uptr memAddress) {
     std::cout << "regToMemShadowCopy. Register: " << reg << ". RegWidth: " << regWidth << ". MemAddress: 0x" << std::hex << memAddress << std::endl;
     int size = regWidth / BYTE;
@@ -138,6 +150,14 @@ void regToMemShadowCopy(int reg, int regWidth, uptr memAddress) {
     __msan_partial_poison(reinterpret_cast<const void *>(memAddress), shadow, size);
 }
 
+/**
+ * Gets the shadow of register <code>reg</code> based on <code>regWidth<code>. Since the width can differ,
+ * this functions returns a void pointer. To use the shadow, cast it to an appropriate pointer according to its width.
+ * For example, if you input regWidth = 16, then cast the returned void pointer to uint_16t pointer.
+ * @param reg register.
+ * @param regWidth register width in bits.
+ * @return pointer to register shadow cast to void*.
+ */
 void *getRegisterShadow(int reg, int regWidth) {
     auto shadowValue = shadowRegisterState[reg].to_ullong();
     switch (regWidth) {
@@ -172,12 +192,9 @@ void *getRegisterShadow(int reg, int regWidth) {
     }
 }
 
-
-void setEflags(bool defined) {
-    std::cout << "setEflags to " << defined << std::endl;
-    eflagsDefined = defined;
-}
-
+/**
+ * Returns true if the input register <code>reg</code> is fully defined in the bits denoted by <code>width</code>.
+ */
 bool isRegFullyDefined(int reg, int width) {
     if (shadowRegisterState[reg].none()){
         return true;
@@ -196,11 +213,17 @@ bool isRegFullyDefined(int reg, int width) {
     }
 }
 
+/**
+ * Returns true if the input memory location starting at <code>mem</code> of size <code>size</code> is fully defined.
+ */
 bool isMemFullyDefined(const void *mem, uptr size) {
     auto firstUninitByte = __msan_test_shadow(mem, size);
     return (firstUninitByte == -1);
 }
 
+/**
+ * Returns true if both input registers are fully initialised.
+ */
 bool isRegOrRegFullyDefined(int dest, int destWidth, int src, int srcWidth) {
     if(destWidth == HIGHER_BYTE || srcWidth == HIGHER_BYTE){
         int destBit = 0;
@@ -241,6 +264,9 @@ bool isRegOrRegFullyDefined(int dest, int destWidth, int src, int srcWidth) {
 
 // TODO: decide to either take bits everywhere or bytes! Or make clear which function
 // takes width in bytes and which in bits
+/**
+ * Returns true if both the input register and the input memory location are fully initialised.
+ */
 bool isRegOrMemFullyDefined(int reg, const void *mem, int width) {
     sptr firstUninitByte;
     if(width == HIGHER_BYTE){
@@ -266,6 +292,10 @@ void setRegShadow(bool isInited, int reg, int width) {
     }
 }
 
+/**
+ * Sets the shadow of the memory location denoted by <code>mem</code> and <code>size</code>.
+ * @param isInited isInited = true -> unpoison memory, isInited = false -> poison memory.
+ */
 void setMemShadow(bool isInited, const void *mem, uptr size) {
     if(isInited){
         __msan_unpoison(mem, size);
@@ -274,6 +304,9 @@ void setMemShadow(bool isInited, const void *mem, uptr size) {
     }
 }
 
+/**
+ * Unpoison the four higher bytes of <code>reg</code>.
+ */
 void initUpper4Bytes(const int reg) {
     shadowRegisterState[reg] = shadowRegisterState[reg] & std::bitset<64>{0x00000000ffffffff};
 }

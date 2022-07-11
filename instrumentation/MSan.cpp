@@ -70,7 +70,7 @@ void MSan::initGpRegisters(Instruction_t *instruction){
                              "call 0\n" +
                              Utils::getPopCallerSavedRegistersInstrumentation();
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsAfter(getFileIR(), instruction, instrumentation, {});
-    auto calls = CapstoneService::getCallInstructionPosition(new_instr);
+    auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
 	new_instr[calls[0]]->setTarget(RuntimeLib::initGpRegisters);
 }
 
@@ -146,6 +146,6 @@ void MSan::disableHaltOnError(IRDB_SDK::Instruction_t *instruction) {
                              "call 0\n" +
                              Utils::getPopCallerSavedRegistersInstrumentation();
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsAfter(getFileIR(), instruction, instrumentation, {});
-    auto calls = CapstoneService::getCallInstructionPosition(new_instr);
+    auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
 	new_instr[calls[0]]->setTarget(RuntimeLib::__msan_set_keep_going);
 }

@@ -3,7 +3,7 @@
 
 #include "irdb-transform"
 #include "InstructionHandler.h"
-#include "CapstoneService.h"
+#include "DisassemblyService.h"
 
 class JumpHandler : public InstructionHandler {
 public:
@@ -20,7 +20,7 @@ private:
                                                      "jpe", "jpo", "jrcxz", "js", "jz"};
     std::vector<std::string> cxInstructions {"jcxz", "jecxz", "jrcxz"};
 
-    std::unique_ptr<CapstoneService> capstone;
+    std::unique_ptr<DisassemblyService> capstone;
     IRDB_SDK::FileIR_t *fileIr;
 
     void checkEflags(IRDB_SDK::Instruction_t *instruction);

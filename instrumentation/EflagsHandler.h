@@ -3,7 +3,7 @@
 
 
 #include "InstructionHandler.h"
-#include "CapstoneService.h"
+#include "DisassemblyService.h"
 
 class EflagsHandler : public InstructionHandler {
 public:
@@ -14,7 +14,7 @@ public:
     const std::vector<std::string> &getAssociatedInstructions() override;
 private:
     std::vector<std::string> associatedInstructions {"cmp", "test"};
-    std::unique_ptr<CapstoneService> capstone;
+    std::unique_ptr<DisassemblyService> capstone;
 
     IRDB_SDK::FileIR_t *fileIr;
 

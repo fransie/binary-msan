@@ -19,7 +19,7 @@ using namespace IRDB_SDK;
  */
 Instruction_t* MemoryAccessInstrumentation::instrumentMemRef(const std::shared_ptr<DecodedOperand_t> &operand,
                                                              Instruction_t *instruction,
-                                                             std::unique_ptr<CapstoneService> &capstoneService,
+                                                             std::unique_ptr<DisassemblyService> &capstoneService,
                                                              FileIR_t *fileIr) {
     std::cout << "instrumentMemRef. Operand: " << operand->getString() << std::endl;
     IRDB_SDK::Instruction_t *originalInstruction = instruction;
@@ -35,7 +35,7 @@ Instruction_t* MemoryAccessInstrumentation::instrumentMemRef(const std::shared_p
                                  Utils::getPopCallerSavedRegistersInstrumentation();
         vector<basic_string<char>> instrumentationParams {to_string(baseReg), to_string(baseRegWidth)};
         const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
-        auto calls = CapstoneService::getCallInstructionPosition(new_instr);
+        auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
 	    new_instr[calls[0]]->setTarget(RuntimeLib::checkRegIsInit);
         originalInstruction = new_instr[new_instr.size()-1];
     }
@@ -51,7 +51,7 @@ Instruction_t* MemoryAccessInstrumentation::instrumentMemRef(const std::shared_p
                                  Utils::getPopCallerSavedRegistersInstrumentation();
         vector<basic_string<char>> instrumentationParams {to_string(indexReg), to_string(indexRegWidth)};
         const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
-        auto calls = CapstoneService::getCallInstructionPosition(new_instr);
+        auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
 	    new_instr[calls[0]]->setTarget(RuntimeLib::checkRegIsInit);
         originalInstruction = new_instr[new_instr.size()-1];
     }

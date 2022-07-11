@@ -1,26 +1,40 @@
-#include "CapstoneService.h"
+#include "DisassemblyService.h"
 #include "Utils.h"
 #include "../common/Width.h"
 
-CapstoneService::CapstoneService() {
+DisassemblyService::DisassemblyService() {
     if (cs_open(CS_ARCH_X86, CS_MODE_64, &capstoneHandle) != CS_ERR_OK){
         throw std::runtime_error("Error opening capstone handle. Abort.");
     }
     cs_option(capstoneHandle, CS_OPT_DETAIL, CS_OPT_ON);
 }
 
-CapstoneService::~CapstoneService() {
+DisassemblyService::~DisassemblyService() {
     cs_close(&capstoneHandle);
 }
 
-x86_reg CapstoneService::getRegister(IRDB_SDK::Instruction_t *instruction, int operandNumber) {
+/**
+ * Get the capstone register number of operand number <code>operandNumber</code>.
+ *
+ * @throws invalid_argument if operand number <code>operandNumber</code> is not a general purpose register.
+ */
+x86_reg DisassemblyService::getRegister(IRDB_SDK::Instruction_t *instruction, int operandNumber) {
+    auto operands = IRDB_SDK::DecodedInstruction_t::factory(instruction)->getOperands();
+    if(!operands[operandNumber]->isGeneralPurposeRegister()){
+        throw std::invalid_argument("Operand " + std::to_string(operandNumber) + " of " + instruction->getDisassembly() + " is not a GPR.");
+    }
     cs_insn* capstoneInstruction = getCapstoneInstruction(instruction);
     auto x86Register = capstoneInstruction->detail->x86.operands[operandNumber].reg;
     cs_free(capstoneInstruction, 1);
     return x86Register;
 }
 
-bool CapstoneService::isHigherByteRegister(x86_reg capstoneRegNumber) {
+/**
+ * Returns whether <code>capstoneRegNumber</code> refers to the second least significant byte of a register.
+ * @param capstoneRegNumber capstone register number.
+ * @return true if register number refers to the second least significant byte of a register.
+ */
+bool DisassemblyService::isHigherByteRegister(x86_reg capstoneRegNumber) {
     switch(capstoneRegNumber){
         case X86_REG_AH:
         case X86_REG_CH:
@@ -39,7 +53,7 @@ bool CapstoneService::isHigherByteRegister(x86_reg capstoneRegNumber) {
  * @param operandNum The operand number.
  * @return Hexadecimal width of the operand/register in bits.
  */
-unsigned int CapstoneService::getRegWidth(IRDB_SDK::Instruction_t *instruction, int operandNum) {
+unsigned int DisassemblyService::getRegWidth(IRDB_SDK::Instruction_t *instruction, int operandNum) {
     auto operands = IRDB_SDK::DecodedInstruction_t::factory(instruction)->getOperands();
     auto width = operands[operandNum]->getArgumentSizeInBits();
 
@@ -54,12 +68,10 @@ unsigned int CapstoneService::getRegWidth(IRDB_SDK::Instruction_t *instruction, 
  * Gets the width if the base register used in the memory operand of this instruction in bits.
  * Special case: For registers AH, CH, BH, DH the value HIGHER_BYTE (0) is returned.
  *
- * This function assumes that there is only memory operand in any given assembly instruction.
- *
- * @param instruction instruction in which to find the width of the base register used in the memory operand
- * @return width of base register in bits
+ * @param instruction instruction in which to find the width of the base register used in the memory operand.
+ * @return width of base register in bits.
  */
-int CapstoneService::getBaseRegWidth(IRDB_SDK::Instruction_t *instruction) {
+int DisassemblyService::getBaseRegWidth(IRDB_SDK::Instruction_t *instruction) {
     cs_insn* capstoneInstruction = getCapstoneInstruction(instruction);
     int numberOfMemOperand = getPositionOfMemOperand(capstoneInstruction);
 
@@ -73,12 +85,10 @@ int CapstoneService::getBaseRegWidth(IRDB_SDK::Instruction_t *instruction) {
  * Gets the width if the index register used in the memory operand of this instruction in bits.
  * Special case: For registers AH, CH, BH, DH the value HIGHER_BYTE (0) is returned.
  *
- * This function assumes that there is only memory operand in any given assembly instruction.
- *
- * @param instruction instruction in which to find the width of the index register used in the memory operand
- * @return width of index register in bits
+ * @param instruction instruction in which to find the width of the index register used in the memory operand.
+ * @return width of index register in bits.
  */
-int CapstoneService::getIndexRegWidth(IRDB_SDK::Instruction_t *instruction) {
+int DisassemblyService::getIndexRegWidth(IRDB_SDK::Instruction_t *instruction) {
     cs_insn* capstoneInstruction = getCapstoneInstruction(instruction);
     int numberOfMemOperand = getPositionOfMemOperand(capstoneInstruction);
     auto mem = capstoneInstruction->detail->x86.operands[numberOfMemOperand].mem;
@@ -88,14 +98,16 @@ int CapstoneService::getIndexRegWidth(IRDB_SDK::Instruction_t *instruction) {
 }
 
 /**
- * Converts an IRDB_SKD::Instruction to a Capstone instruction. After finishing the work with this returned pointer,
- * make sure so call `cs_free(<capstoneInstruction>, 1);` to free its memory.
- * @param instruction IRDB instruction to be transformed
- * @return cs_insn* pointer to a capstone instruction
+ * Converts an IRDB_SKD::Instruction_t to a Capstone instruction.
+ *
+ * Achtung: After finishing the work with the returned pointer, make sure so call `cs_free(<capstoneInstruction>, 1);` to free its memory.
+ *
+ * @param instruction instruction to be transformed.
+ * @return cs_insn* pointer to a capstone instruction. Free it via `cs_free(<capstoneInstruction>, 1);` after usage.
  */
-cs_insn* CapstoneService::getCapstoneInstruction(IRDB_SDK::Instruction_t *instruction){
+cs_insn* DisassemblyService::getCapstoneInstruction(IRDB_SDK::Instruction_t *instruction){
     const auto dataBits = instruction->getDataBits();
-    uint8_t* rawBytes = new uint8_t[dataBits.length()];
+    auto* rawBytes = new uint8_t[dataBits.length()];
     for (unsigned long x = 0; x < dataBits.length(); x++){
         rawBytes[x] = dataBits[x];
     }
@@ -110,10 +122,10 @@ cs_insn* CapstoneService::getCapstoneInstruction(IRDB_SDK::Instruction_t *instru
 /**
  * Takes an x86_reg enum value and returns the register's width in bits. Special case: For registers AH, CH, BH, DH the value
  * HIGHER_BYTE (0) is returned.
- * @param regNumber x86_reg enum value
- * @return register width in bits
+ * @param regNumber x86_reg enum value.
+ * @return register width in bits.
  */
-int CapstoneService::convertX86RegNumberToWidth(x86_reg regNumber) {
+int DisassemblyService::convertX86RegNumberToWidth(x86_reg regNumber) {
     switch(regNumber){
         case X86_REG_AL:
         case X86_REG_CL:
@@ -201,24 +213,30 @@ int CapstoneService::convertX86RegNumberToWidth(x86_reg regNumber) {
 
 /**
  * Returns the position of the memory operand of an instruction, assuming there can only be one memory operand.
- * @param capstoneInstruction instruction to find the mem operand in
- * @return position of the memory operand in the instruction
+ * @throws invalid_argument if there is no memory operand in the instruction.
+ * @param capstoneInstruction instruction to find the mem operand in.
+ * @return position of the memory operand in the instruction.
  */
-int CapstoneService::getPositionOfMemOperand(cs_insn *capstoneInstruction){
+int DisassemblyService::getPositionOfMemOperand(cs_insn *capstoneInstruction){
     for (int i = 0; i <= capstoneInstruction->detail->x86.operands->size; i++){
         if(capstoneInstruction->detail->x86.operands[i].type == X86_OP_MEM){
             return i;
         }
     }
-    std::cerr << "No memory operand was found in operands " << capstoneInstruction->op_str << std::endl;
+    throw std::invalid_argument("No memory operand was found in operands.");
 }
 
-std::string CapstoneService::getMemoryOperandDisassembly(IRDB_SDK::Instruction_t *instruction) {
+/**
+ * Gets the disassembly of the memory operand of a function. For example, if the instruction <code>mov rax, [rbp - 4]</code>
+ * was input, then this function returns <code>[rbp - 4]</code>.
+ * @param instruction instruction.
+ * @return memory operand disassembly including square brackets.
+ */
+std::string DisassemblyService::getMemoryOperandDisassembly(IRDB_SDK::Instruction_t *instruction) {
     auto disassembly = instruction->getDisassembly();
     auto openBracketPosition = disassembly.find_first_of('[');
     if(openBracketPosition == std::string::npos){
-        std::cerr << "movHandler: Instruction " << instruction->getDisassembly() << " does not include a memory operand. Abort." << std::endl;
-        throw std::invalid_argument("movHandler: Instruction " + instruction->getDisassembly() + " does not include a memory operand. Abort.");
+        throw std::invalid_argument("movHandler: Instruction " + instruction->getDisassembly() + " does not include a memory operand.");
     }
     auto closingBracketPosition = disassembly.find_first_of(']');
     auto len = closingBracketPosition - openBracketPosition;
@@ -226,7 +244,10 @@ std::string CapstoneService::getMemoryOperandDisassembly(IRDB_SDK::Instruction_t
     return substring;
 }
 
-std::vector<size_t> CapstoneService::getCallInstructionPosition(const std::vector<IRDB_SDK::Instruction_t *> &instructions) {
+/**
+ * Returns the indices of all call instructions in a vector of instructions.
+ */
+std::vector<size_t> DisassemblyService::getCallInstructionPosition(const std::vector<IRDB_SDK::Instruction_t *> &instructions) {
     std::vector<size_t> result {};
     for (size_t x = 0; x < instructions.size(); x++){
         auto decodedInstruction = IRDB_SDK::DecodedInstruction_t::factory(instructions[x]);

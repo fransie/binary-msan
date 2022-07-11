@@ -1,6 +1,6 @@
 #include <irdb-transform>
 #include "../common/RegisterNumbering.h"
-#include "CapstoneService.h"
+#include "DisassemblyService.h"
 #include "RuntimeLib.h"
 #include "StackVariableHandler.h"
 #include "Utils.h"
@@ -11,6 +11,21 @@ size_t RED_ZONE_SIZE = 128;
 
 StackVariableHandler::StackVariableHandler(IRDB_SDK::FileIR_t *fileIr) : fileIr(fileIr){}
 
+/**
+ * Inserts instrumentation after the <code>mov rbp, rsp</code> instruction in the function prologue to poison
+ * the stack frame and/or red zone in case there are local variables in this function.
+ *
+ * The function depends on a "regular" function prologue similar to this:
+ * push rbp
+ * mov rbp, rsp
+ * [sub rsp, x]
+ *
+ * Achtung: Currently, only the 128 bytes below the stack pointer UPON FUNCTION ENTRY are poisoned for leaf functions.
+ * However, the red zones moves along with the stack pointer if it is changed. Hence, faulty behaviour might occur
+ * if there are pushes/pops or other instruction affecting the stack pointer in a leaf function.
+ *
+ * @param functionAnalysis analysis of the function to be instrumented.
+ */
 void StackVariableHandler::instrument(unique_ptr<FunctionAnalysis> &functionAnalysis) {
     // getStackFrameSize() looks for the first occurrence of a `sub rsp|esp, x` instruction and returns x
     auto function = functionAnalysis->getFunction();
@@ -39,14 +54,19 @@ void StackVariableHandler::instrument(unique_ptr<FunctionAnalysis> &functionAnal
 
     auto movBpInstruction = getBpMove(function);
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsAfter(fileIr, movBpInstruction, instrumentation, instrumentationParams);
-    auto calls = CapstoneService::getCallInstructionPosition(new_instr);
+    auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     for(auto call : calls){
         new_instr[call]->setTarget(RuntimeLib::__msan_poison_stack);
     }
 }
 
 /**
- *  Adds instrumentation after the function prologue (push rbp; mov rbp, rsp; sub rsp, X) to set the shadow
+
+ * @param instruction function in which to insert the instrumentation
+ */
+
+/**
+ *  Adds instrumentation to the input string after the function prologue to set the shadow
  *  of the stack frame to uninitialised.
  *
  * <pre> @code
@@ -66,7 +86,9 @@ void StackVariableHandler::instrument(unique_ptr<FunctionAnalysis> &functionAnal
  * |____________________|
  *    higher addresses
  * </pre>
- * @param instruction function in which to insert the instrumentation
+ * @param stackFrameSize stack frame size based on `sub rsp, x` in function prologue.
+ * @param instrumentation string to which the instrumentation assembly will be added.
+ * @return params for the assembly.
  */
 basic_string<char> StackVariableHandler::poisonStackframe(int stackFrameSize, string &instrumentation) {
     instrumentation = instrumentation +
@@ -76,6 +98,14 @@ basic_string<char> StackVariableHandler::poisonStackframe(int stackFrameSize, st
     return to_string(Utils::toHex(stackFrameSize));
 }
 
+/**
+ * Adds instrumentation to the input string to poison the red zone based on the address of the
+ * stack pointer upon function entry.
+ * @param stackFrameSize stack frame size based on `sub rsp, x` in function prologue or 0 if
+ *                       the instruction does not exist in the prologue.
+ * @param instrumentation string to which the instrumentation assembly will be added.
+ * @return params for the assembly.
+ */
 vector<basic_string<char>> StackVariableHandler::poisonRedZone(int stackFrameSize, string &instrumentation) {
     int redZoneOffset = RED_ZONE_SIZE + stackFrameSize;
     instrumentation = instrumentation +
@@ -85,6 +115,12 @@ vector<basic_string<char>> StackVariableHandler::poisonRedZone(int stackFrameSiz
     return vector<basic_string<char>>({to_string(Utils::toHex(redZoneOffset)), to_string(Utils::toHex(RED_ZONE_SIZE))});
 }
 
+/**
+ * Returns the first <code>mov rbp, rsp</code> instruction in the function prologue.
+ * @throws invalid_argument if there is no <code>mov rbp, rsp</code>.
+ * @param function Function to be searched.
+ * @return mov rbp, rsp instruction.
+ */
 IRDB_SDK::Instruction_t* StackVariableHandler::getBpMove(IRDB_SDK::Function_t *function) {
     auto instruction = function->getEntryPoint();
     auto decodedInstruction = IRDB_SDK::DecodedInstruction_t::factory(instruction);
