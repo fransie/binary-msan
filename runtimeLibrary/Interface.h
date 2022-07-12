@@ -5,7 +5,9 @@
     #define INTERFACE __attribute__((visibility ("default")))
 #endif
 
+#include <bitset>
 #include <msan.h>
+#include <vector>
 
 extern "C"{
 

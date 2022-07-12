@@ -1,8 +1,6 @@
-#include <bitset>
 #include <iostream>
 #include <memory>
 #include <msan_interface_internal.h>
-#include <vector>
 #include "../common/Width.h"
 #include "../common/RegisterNumbering.h"
 #include "Interface.h"

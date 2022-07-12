@@ -61,11 +61,6 @@ void StackVariableHandler::instrument(unique_ptr<FunctionAnalysis> &functionAnal
 }
 
 /**
-
- * @param instruction function in which to insert the instrumentation
- */
-
-/**
  *  Adds instrumentation to the input string after the function prologue to set the shadow
  *  of the stack frame to uninitialised.
  *

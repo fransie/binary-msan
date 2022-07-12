@@ -1,13 +1,12 @@
 #ifndef BINARY_MSAN_DISASSEMBLYSERVICE_H
 #define BINARY_MSAN_DISASSEMBLYSERVICE_H
 
-/**
- * Offers access to miscellaneous disassembling functionality.
- */
-
 #include <capstone.h>
 #include <irdb-core>
 
+/**
+ * Offers access to miscellaneous disassembling functionality.
+ */
 class DisassemblyService {
 public:
     DisassemblyService();

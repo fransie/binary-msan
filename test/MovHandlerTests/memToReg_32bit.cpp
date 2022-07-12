@@ -2,6 +2,7 @@
 
 #include "../../runtimeLibrary/Interface.h"
 #include "../../common/RegisterNumbering.h"
+#include "../../common/Width.h"
 
 int main() {
     // given
