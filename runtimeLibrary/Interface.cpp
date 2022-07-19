@@ -308,3 +308,97 @@ void setMemShadow(bool isInited, const void *mem, uptr size) {
 void initUpper4Bytes(const int reg) {
     shadowRegisterState[reg] = shadowRegisterState[reg] & std::bitset<64>{0x00000000ffffffff};
 }
+
+void propagateRegOrRegShadow(int dest, int destWidth, int src, int srcWidth) {
+    auto destShadow = getRegisterShadow(dest, destWidth);
+    auto srcShadow = getRegisterShadow(src, srcWidth);
+    uint64_t newDestShadow = 0;
+    uint64_t operationShadow = 0;
+    switch (destWidth) {
+        case QUAD_WORD:
+            newDestShadow = *((uint64_t*)destShadow) | *((uint64_t*)srcShadow);
+            break;
+        case DOUBLE_WORD:
+            newDestShadow = *((uint32_t*)destShadow) | *((uint32_t*)srcShadow);
+            // Higher four bytes are zeroed in double word operations.
+            newDestShadow = newDestShadow & 0x00000000ffffffff;
+            break;
+        case WORD:
+            // preserve shadow of higher 6 bytes of dest
+            operationShadow = *((uint16_t*)destShadow) | *((uint16_t*)srcShadow);
+            newDestShadow = shadowRegisterState[dest].to_ullong() | operationShadow;
+            break;
+        case BYTE:
+            // preserve shadow of higher 6 bytes of dest
+            operationShadow = *((uint8_t*)destShadow) | *((uint8_t*)srcShadow);
+            newDestShadow = shadowRegisterState[dest].to_ullong() | operationShadow;
+            break;
+        case HIGHER_BYTE:
+            // preserve shadow of higher 6 bytes of dest
+            operationShadow = *((uint8_t*)destShadow) | *((uint8_t*)srcShadow);
+            operationShadow = operationShadow << BYTE;
+            newDestShadow = shadowRegisterState[dest].to_ullong() | operationShadow;
+            break;
+    }
+    shadowRegisterState[dest] = std::bitset<64>{newDestShadow};
+}
+
+void propagateRegOrMemShadow(int reg, const void *mem, int width) {
+    auto destShadow = getRegisterShadow(reg, width);
+    auto srcShadow = reinterpret_cast<char*>(MEM_TO_SHADOW(mem));
+    uint64_t newDestShadow = 0;
+    uint64_t operationShadow = 0;
+    switch (width) {
+        case QUAD_WORD:
+            newDestShadow = *((uint64_t*)destShadow) | *((uint64_t*)srcShadow);
+            break;
+        case DOUBLE_WORD:
+            newDestShadow = *((uint32_t*)destShadow) | *((uint32_t*)srcShadow);
+            // Higher four bytes are zeroed in double word operations.
+            newDestShadow = newDestShadow & 0x00000000ffffffff;
+            break;
+        case WORD:
+            // preserve shadow of higher 6 bytes of dest
+            operationShadow = *((uint16_t*)destShadow) | *((uint16_t*)srcShadow);
+            newDestShadow = shadowRegisterState[reg].to_ullong() | operationShadow;
+            break;
+        case BYTE:
+            // preserve shadow of higher 6 bytes of dest
+            operationShadow = *((uint8_t*)destShadow) | *((uint8_t*)srcShadow);
+            newDestShadow = shadowRegisterState[reg].to_ullong() | operationShadow;
+            break;
+        case HIGHER_BYTE:
+            // preserve shadow of higher 6 bytes of dest
+            operationShadow = *((uint8_t*)destShadow) | *((uint8_t*)srcShadow);
+            operationShadow = operationShadow << BYTE;
+            newDestShadow = shadowRegisterState[reg].to_ullong() | operationShadow;
+            break;
+    }
+    shadowRegisterState[reg] = std::bitset<64>{newDestShadow};
+}
+
+void propagateMemOrRegShadow(int reg, const void *mem, int width) {
+    auto destShadow = reinterpret_cast<char*>(MEM_TO_SHADOW(mem));
+    auto srcShadow = getRegisterShadow(reg, width);
+    uint64_t newDestShadow = 0;
+    uint64_t operationShadow = 0;
+    switch (width) {
+        case QUAD_WORD:
+            newDestShadow = *((uint64_t*)destShadow) | *((uint64_t*)srcShadow);
+            break;
+        case DOUBLE_WORD:
+            newDestShadow = *((uint32_t*)destShadow) | *((uint32_t*)srcShadow);
+            break;
+        case WORD:
+            newDestShadow = *((uint16_t*)destShadow) | *((uint16_t*)srcShadow);
+            break;
+        case BYTE:
+        case HIGHER_BYTE:
+            newDestShadow = *((uint8_t*)destShadow) | *((uint8_t*)srcShadow);
+            break;
+    }
+    if (width == HIGHER_BYTE){
+        width = BYTE;
+    }
+    __msan_partial_poison(mem, (void*)newDestShadow, width / BYTE);
+}

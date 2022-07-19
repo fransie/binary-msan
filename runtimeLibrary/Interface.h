@@ -22,8 +22,9 @@ INTERFACE void regToMemShadowCopy(int reg, int regWidth, __sanitizer::uptr memAd
 INTERFACE void regToRegShadowCopy(const int dest, const int destWidth, const int src, const int srcWidth);
 INTERFACE void initUpper4Bytes(const int reg);
 
-// jump
+// eflags
 INTERFACE void checkEflags();
+INTERFACE void setEflags(bool shadow);
 
 // helpers
 INTERFACE void initGpRegisters();
@@ -34,7 +35,9 @@ INTERFACE bool isMemFullyDefined(const void *mem, uptr size);
 INTERFACE bool isRegOrRegFullyDefined(int dest, int destWidth, int src, int srcWidth);
 INTERFACE bool isRegOrMemFullyDefined(int reg, const void *mem, int width);
 
-INTERFACE void setEflags(bool shadow);
+INTERFACE void propagateRegOrRegShadow(int dest, int destWidth, int src, int srcWidth);
+INTERFACE void propagateRegOrMemShadow(int reg, const void *mem, int width);
+INTERFACE void propagateMemOrRegShadow(int reg, const void *mem, int width);
 
 INTERFACE void setRegShadow(bool isInited, int reg, int width);
 INTERFACE void setMemShadow(bool initState, const void *mem, uptr size);
