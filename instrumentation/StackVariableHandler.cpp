@@ -20,9 +20,10 @@ StackVariableHandler::StackVariableHandler(IRDB_SDK::FileIR_t *fileIr) : fileIr(
  * mov rbp, rsp
  * [sub rsp, x]
  *
- * Achtung: Currently, only the 128 bytes below the stack pointer UPON FUNCTION ENTRY are poisoned for leaf functions.
- * However, the red zones moves along with the stack pointer if it is changed. Hence, faulty behaviour might occur
- * if there are pushes/pops or other instruction affecting the stack pointer in a leaf function.
+ * Achtung: Currently, only the 256 bytes below the stack pointer UPON FUNCTION ENTRY are poisoned for leaf functions.
+ * However, the red zones moves along with the stack pointer if it is changed. Hence, false negatives might occur
+ * if there are pushes/pops or other instruction affecting the stack pointer in a leaf function. This function
+ * poisons double the size of the red zone (128 byte) as a "buffer" but this might not always be enough.
  *
  * @param functionAnalysis analysis of the function to be instrumented.
  */
@@ -102,12 +103,12 @@ basic_string<char> StackVariableHandler::poisonStackframe(int stackFrameSize, st
  * @return params for the assembly.
  */
 vector<basic_string<char>> StackVariableHandler::poisonRedZone(int stackFrameSize, string &instrumentation) {
-    int redZoneOffset = RED_ZONE_SIZE + stackFrameSize;
+    int redZoneOffset = RED_ZONE_SIZE * 2 + stackFrameSize;
     instrumentation = instrumentation +
                              "lea rdi, [rbp - %%2]\n" +    // first argument
                              "mov rsi, %%3\n" +            // second argument
                              "call 0\n";
-    return vector<basic_string<char>>({to_string(Utils::toHex(redZoneOffset)), to_string(Utils::toHex(RED_ZONE_SIZE))});
+    return vector<basic_string<char>>({to_string(Utils::toHex(redZoneOffset)), to_string(Utils::toHex(RED_ZONE_SIZE * 2))});
 }
 
 /**
