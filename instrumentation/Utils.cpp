@@ -10,6 +10,7 @@
  */
 std::string Utils::getPushCallerSavedRegistersInstrumentation(){
     return std::string() +
+           "lea rsp, [rsp - 100]\n" +
            "pushfq\n" +
            "push   rax\n" +
            "push   rcx\n" +
@@ -39,8 +40,8 @@ std::string Utils::getPopCallerSavedRegistersInstrumentation(){
            "pop   rdx\n" +
            "pop   rcx\n" +
            "pop   rax\n" +
-           "popfq\n";
-
+           "popfq\n" +
+           "lea rsp, [rsp + 100]\n";
 }
 
 unsigned int Utils::toHex(int num) {
