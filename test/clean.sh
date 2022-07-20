@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for dir in MovHandlerTests .
+for dir in MovHandlerTests . BasicInstructionHandlerTests
 do
   # create dirs
   mkdir -p "$dir"/obj
