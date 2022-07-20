@@ -39,7 +39,7 @@ void StackVariableHandler::instrument(unique_ptr<FunctionAnalysis> &functionAnal
         return;
     }
 
-    string instrumentation = Utils::getPushCallerSavedRegistersInstrumentation();
+    string instrumentation = Utils::getStateSavingInstrumentation();
     vector<basic_string<char>> instrumentationParams = vector<basic_string<char>>{"", "", ""};
 
     if(hasStackPointerSub){
@@ -51,7 +51,7 @@ void StackVariableHandler::instrument(unique_ptr<FunctionAnalysis> &functionAnal
         instrumentationParams[1] = params[0];
         instrumentationParams[2] = params[1];
     }
-    instrumentation += Utils::getPopCallerSavedRegistersInstrumentation();
+    instrumentation += Utils::getStateRestoringInstrumentation();
 
     auto movBpInstruction = getBpMove(function);
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsAfter(fileIr, movBpInstruction, instrumentation, instrumentationParams);

@@ -66,9 +66,9 @@ bool MSan::executeStep()
 
 void MSan::initGpRegisters(Instruction_t *instruction){
     string instrumentation = string() +
-                             Utils::getPushCallerSavedRegistersInstrumentation() +
+            Utils::getStateSavingInstrumentation() +
                              "call 0\n" +
-                             Utils::getPopCallerSavedRegistersInstrumentation();
+            Utils::getStateRestoringInstrumentation();
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsAfter(getFileIR(), instruction, instrumentation, {});
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
 	new_instr[calls[0]]->setTarget(RuntimeLib::initGpRegisters);
@@ -141,10 +141,10 @@ bool MSan::parseArgs(int argc, char **argv) {
 
 void MSan::disableHaltOnError(IRDB_SDK::Instruction_t *instruction) {
     string instrumentation = string() +
-                             Utils::getPushCallerSavedRegistersInstrumentation() +
+            Utils::getStateSavingInstrumentation() +
                              "mov rdi, 1\n" +
                              "call 0\n" +
-                             Utils::getPopCallerSavedRegistersInstrumentation();
+            Utils::getStateRestoringInstrumentation();
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsAfter(getFileIR(), instruction, instrumentation, {});
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
 	new_instr[calls[0]]->setTarget(RuntimeLib::__msan_set_keep_going);

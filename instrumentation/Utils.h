@@ -3,8 +3,8 @@
 
 class Utils {
 public:
-    static std::string getPushCallerSavedRegistersInstrumentation();
-    static std::string getPopCallerSavedRegistersInstrumentation();
+    static std::string getStateSavingInstrumentation();
+    static std::string getStateRestoringInstrumentation();
     static unsigned int toHex(int num);
 };
 

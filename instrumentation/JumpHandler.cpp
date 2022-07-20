@@ -35,9 +35,9 @@ void JumpHandler::instrument(Instruction_t *instruction) {
  */
 void JumpHandler::checkEflags(Instruction_t *instruction) {
     string instrumentation = string() +
-                             Utils::getPushCallerSavedRegistersInstrumentation() +
+            Utils::getStateSavingInstrumentation() +
                              "call 0\n" +
-                             Utils::getPopCallerSavedRegistersInstrumentation();
+            Utils::getStateRestoringInstrumentation();
     const auto new_instr = insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,{});
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::checkEflags);
@@ -56,11 +56,11 @@ void JumpHandler::checkCx(unique_ptr<IRDB_SDK::DecodedInstruction_t> &decodedIns
         width = QUAD_WORD;
     }
     string instrumentation = string() +
-                             Utils::getPushCallerSavedRegistersInstrumentation() +
+            Utils::getStateSavingInstrumentation() +
                              "mov rdi, %%1" +
                              "mov rsi, %%2"
                              "call 0\n" +
-                             Utils::getPopCallerSavedRegistersInstrumentation();
+            Utils::getStateRestoringInstrumentation();
     const auto new_instr = insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,{to_string(RCX), to_string(Utils::toHex(width))});
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
 	new_instr[calls[0]]->setTarget(RuntimeLib::checkRegIsInit);

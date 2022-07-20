@@ -28,11 +28,11 @@ Instruction_t* MemoryAccessInstrumentation::instrumentMemRef(const std::shared_p
         auto baseRegWidth = capstoneService->getBaseRegWidth(instruction);
 
         std::string instrumentation = std::string() +
-                                 Utils::getPushCallerSavedRegistersInstrumentation() +
-                                 "mov rdi, %%1\n" +    // first argument
+                Utils::getStateSavingInstrumentation() +
+                                      "mov rdi, %%1\n" +    // first argument
                                  "mov rsi, %%2\n" +    // second argument
                                  "call 0\n" +
-                                 Utils::getPopCallerSavedRegistersInstrumentation();
+                Utils::getStateRestoringInstrumentation();
         vector<basic_string<char>> instrumentationParams {to_string(baseReg), to_string(baseRegWidth)};
         const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
         auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
@@ -44,11 +44,11 @@ Instruction_t* MemoryAccessInstrumentation::instrumentMemRef(const std::shared_p
         auto indexRegWidth = capstoneService->getIndexRegWidth(instruction);
 
         std::string instrumentation = std::string() +
-                                 Utils::getPushCallerSavedRegistersInstrumentation() +
-                                 "mov rdi, %%1\n" +    // first argument
+                Utils::getStateSavingInstrumentation() +
+                                      "mov rdi, %%1\n" +    // first argument
                                  "mov rsi, %%2\n" +    // second argument
                                  "call 0\n" +
-                                 Utils::getPopCallerSavedRegistersInstrumentation();
+                Utils::getStateRestoringInstrumentation();
         vector<basic_string<char>> instrumentationParams {to_string(indexReg), to_string(indexRegWidth)};
         const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
         auto calls = DisassemblyService::getCallInstructionPosition(new_instr);

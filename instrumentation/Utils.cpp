@@ -1,14 +1,14 @@
 #include <sstream>
 #include "Utils.h"
 
-// TODO: save state sse and fpu registers + red zone
+// TODO: save state sse and fpu registers
 /**
  * Returns a string containing pushes to EFLAGS and all caller-saved general purpose registers, namely
- *  RAX, RCX, RDX, RSI, RDI, R8, R9, R10 , R11.
- *  Number of instructions: 10.
- * @return string of assembly push instructions
+ *  RAX, RCX, RDX, RSI, RDI, R8, R9, R10 , R11 as well as a decrement of the stack pointer to avoid
+ *  overwriting values in the red zone.
+ * @return string of assembly instructions
  */
-std::string Utils::getPushCallerSavedRegistersInstrumentation(){
+std::string Utils::getStateSavingInstrumentation(){
     return std::string() +
            "lea rsp, [rsp - 100]\n" +
            "pushfq\n" +
@@ -24,12 +24,12 @@ std::string Utils::getPushCallerSavedRegistersInstrumentation(){
 }
 
 /**
- * Returns a string containing pops into EFLAGS and all general purpose registers, namely
- *  RAX, RCX, RDX, RSI, RDI, R8, R9, R10 , R11 to restore caller-saved registers.
- *  Number of instructions: 10.
- * @return string of assembly pop instructions
+ * Returns a string containing pops into EFLAGS and all caller-saved general purpose registers, namely
+ *  RAX, RCX, RDX, RSI, RDI, R8, R9, R10 , R11 as well as an increment to the stack pointer to avoid
+ *  overwriting values in the red zone.
+ * @return string of assembly instructions
  */
-std::string Utils::getPopCallerSavedRegistersInstrumentation(){
+std::string Utils::getStateRestoringInstrumentation(){
     return std::string() +
            "pop   r11\n" +
            "pop   r10\n" +

@@ -64,11 +64,11 @@ void MovHandler::instrumentImmToMemMove(IRDB_SDK::Instruction_t *instruction) {
     auto dest = capstone->getMemoryOperandDisassembly(instruction);
     auto destWidth = operands[0]->getArgumentSizeInBytes();
     string instrumentation = string() +
-                             Utils::getPushCallerSavedRegistersInstrumentation() +
+            Utils::getStateSavingInstrumentation() +
                              "lea rdi, %%1\n" +    // first argument
                              "mov rsi, %%2\n" +    // second argument
                              "call 0\n" +
-                             Utils::getPopCallerSavedRegistersInstrumentation();
+            Utils::getStateRestoringInstrumentation();
     vector<basic_string<char>> instrumentationParams {dest, to_string(Utils::toHex(destWidth))};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
@@ -86,7 +86,7 @@ void MovHandler::instrumentImmToRegMove(Instruction_t *instruction) {
     auto dest = operands[0]->getRegNumber();
     auto width = capstone->getRegWidth(instruction, 0);
     string instrumentation = string() +
-                             Utils::getPushCallerSavedRegistersInstrumentation() +
+            Utils::getStateSavingInstrumentation() +
                              "mov dil, 1\n" +      // isInited
                              "mov rsi, %%1\n" +    // reg
                              "mov rdx, %%2\n" +    // regWidth
@@ -96,7 +96,7 @@ void MovHandler::instrumentImmToRegMove(Instruction_t *instruction) {
                              "mov rdi, %%1\n" +    // reg
                              "call 0\n";
     }
-    instrumentation += Utils::getPopCallerSavedRegistersInstrumentation();
+    instrumentation += Utils::getStateRestoringInstrumentation();
     vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string(width)};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
@@ -122,7 +122,7 @@ void MovHandler::instrumentMemToRegMove(Instruction_t *instruction) {
     auto width = capstone->getRegWidth(instruction, 0);
     // Higher four bytes are zeroed for double word moves.
     string instrumentation = string() +
-                             Utils::getPushCallerSavedRegistersInstrumentation() +
+            Utils::getStateSavingInstrumentation() +
                              "mov rdi, %%1\n" +    // reg
                              "mov rsi, %%2\n" +    // regWidth
                              "lea rdx, %%3\n" +    // memAddr
@@ -132,7 +132,7 @@ void MovHandler::instrumentMemToRegMove(Instruction_t *instruction) {
                           "mov rdi, %%1\n" +    // reg
                           "call 0\n";
     }
-    instrumentation += Utils::getPopCallerSavedRegistersInstrumentation();
+    instrumentation += Utils::getStateRestoringInstrumentation();
     vector<basic_string<char>> instrumentationParams {to_string(dest), to_string(width), memoryDisassembly};
     const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
@@ -157,12 +157,12 @@ void MovHandler::instrumentRegToMemMove(IRDB_SDK::Instruction_t *instruction) {
     auto width = capstone->getRegWidth(instruction, 1);
     auto memoryDisassembly = capstone->getMemoryOperandDisassembly(instruction);
     string instrumentation = string() +
-                             Utils::getPushCallerSavedRegistersInstrumentation() +
+            Utils::getStateSavingInstrumentation() +
                              "mov rdi, %%1\n" +    // reg
                              "mov rsi, %%2\n" +    // regWidth
                              "lea rdx, %%3\n" +    // memAddr
                              "call 0\n" +
-                             Utils::getPopCallerSavedRegistersInstrumentation();
+            Utils::getStateRestoringInstrumentation();
     vector<basic_string<char>> instrumentationParams {to_string(src), to_string(width), memoryDisassembly};
     const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
@@ -183,8 +183,8 @@ void MovHandler::instrumentRegToRegMove(Instruction_t *instruction) {
     auto destWidth = capstone->getRegWidth(instruction, 0);
     auto srcWidth = capstone->getRegWidth(instruction, 1);
     string instrumentation = string() +
-                            Utils::getPushCallerSavedRegistersInstrumentation() +
-                            "mov rdi, %%1\n" +    // dest
+            Utils::getStateSavingInstrumentation() +
+                             "mov rdi, %%1\n" +    // dest
                             "mov rsi, %%2\n" +    // destWidth
                             "mov rdx, %%3\n"      // src
                             "mov rcx, %%4\n"      // srcWidth
@@ -194,7 +194,7 @@ void MovHandler::instrumentRegToRegMove(Instruction_t *instruction) {
                           "mov rdi, %%1\n" +    // reg
                           "call 0\n";
     }
-    instrumentation += Utils::getPopCallerSavedRegistersInstrumentation();
+    instrumentation += Utils::getStateRestoringInstrumentation();
     vector<basic_string<char>> instrumentationParams {to_string(dest), to_string(destWidth), to_string(source),
                                                       to_string(srcWidth)};
     const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
