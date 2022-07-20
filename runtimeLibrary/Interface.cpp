@@ -341,6 +341,7 @@ void propagateRegOrRegShadow(int dest, int destWidth, int src, int srcWidth) {
             break;
     }
     shadowRegisterState[dest] = std::bitset<64>{newDestShadow};
+    eflagsDefined = newDestShadow == 0;
 }
 
 void propagateRegOrMemShadow(int reg, const void *mem, int width) {
@@ -375,6 +376,7 @@ void propagateRegOrMemShadow(int reg, const void *mem, int width) {
             break;
     }
     shadowRegisterState[reg] = std::bitset<64>{newDestShadow};
+    eflagsDefined = newDestShadow == 0;
 }
 
 void propagateMemOrRegShadow(int reg, const void *mem, int width) {
@@ -402,4 +404,5 @@ void propagateMemOrRegShadow(int reg, const void *mem, int width) {
         width = BYTE;
     }
     __msan_partial_poison(mem, (void*)newDestShadow, width / BYTE);
+    eflagsDefined = *newDestShadow == 0;
 }
