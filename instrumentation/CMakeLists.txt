@@ -1,5 +1,6 @@
 ############### INSTRUMENTATION ###############
 add_executable(binmsan
+        BasicInstructionHandler.cpp
         DisassemblyService.cpp
         EflagsHandler.cpp
         FunctionAnalysis.cpp

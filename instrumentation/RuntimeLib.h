@@ -23,6 +23,9 @@ public:
     inline static IRDB_SDK::Instruction_t *setRegShadow;
     inline static IRDB_SDK::Instruction_t *setMemShadow;
     inline static IRDB_SDK::Instruction_t *initUpper4Bytes;
+    inline static IRDB_SDK::Instruction_t *propagateRegOrRegShadow;
+    inline static IRDB_SDK::Instruction_t *propagateRegOrMemShadow;
+    inline static IRDB_SDK::Instruction_t *propagateMemOrRegShadow;
 };
 
 

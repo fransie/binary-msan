@@ -6,6 +6,7 @@
 #include "FunctionAnalysis.h"
 #include "MSan.h"
 #include "JumpHandler.h"
+#include "BasicInstructionHandler.h"
 #include "MovHandler.h"
 #include "StackVariableHandler.h"
 
@@ -21,6 +22,7 @@ MSan::MSan(FileIR_t *fileIR)
     instructionHandlers.push_back(make_unique<MovHandler>(fileIR));
     instructionHandlers.push_back(make_unique<EflagsHandler>(fileIR));
     instructionHandlers.push_back(make_unique<JumpHandler>(fileIR));
+    instructionHandlers.push_back(make_unique<BasicInstructionHandler>(fileIR));
 }
 
 bool MSan::executeStep()
@@ -94,6 +96,9 @@ void MSan::registerDependencies(){
     RuntimeLib::setRegShadow = elfDeps->appendPltEntry("setRegShadow");
     RuntimeLib::setMemShadow = elfDeps->appendPltEntry("setMemShadow");
     RuntimeLib::initUpper4Bytes = elfDeps->appendPltEntry("initUpper4Bytes");
+    RuntimeLib::propagateRegOrRegShadow = elfDeps->appendPltEntry("propagateRegOrRegShadow");
+    RuntimeLib::propagateRegOrMemShadow = elfDeps->appendPltEntry("propagateRegOrMemShadow");
+    RuntimeLib::propagateMemOrRegShadow = elfDeps->appendPltEntry("propagateMemOrRegShadow");
 
     RuntimeLib::__msan_set_keep_going = elfDeps->appendPltEntry("__msan_set_keep_going");
     RuntimeLib::__msan_unpoison = elfDeps->appendPltEntry("__msan_unpoison");
