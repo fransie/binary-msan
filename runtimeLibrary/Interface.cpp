@@ -363,12 +363,12 @@ void propagateRegOrMemShadow(int reg, const void *mem, int width) {
             newDestShadow = shadowRegisterState[reg].to_ullong() | operationShadow;
             break;
         case BYTE:
-            // preserve shadow of higher 6 bytes of dest
+            // preserve shadow of higher 7 bytes of dest
             operationShadow = *((uint8_t*)destShadow) | *((uint8_t*)srcShadow);
             newDestShadow = shadowRegisterState[reg].to_ullong() | operationShadow;
             break;
         case HIGHER_BYTE:
-            // preserve shadow of higher 6 bytes of dest
+            // preserve shadow of higher 6 bytes and lower byte of dest
             operationShadow = *((uint8_t*)destShadow) | *((uint8_t*)srcShadow);
             operationShadow = operationShadow << BYTE;
             newDestShadow = shadowRegisterState[reg].to_ullong() | operationShadow;
@@ -380,22 +380,23 @@ void propagateRegOrMemShadow(int reg, const void *mem, int width) {
 void propagateMemOrRegShadow(int reg, const void *mem, int width) {
     auto destShadow = reinterpret_cast<char*>(MEM_TO_SHADOW(mem));
     auto srcShadow = getRegisterShadow(reg, width);
-    uint64_t newDestShadow = 0;
-    uint64_t operationShadow = 0;
+    uint64_t* newDestShadow = new uint64_t;
     switch (width) {
         case QUAD_WORD:
-            newDestShadow = *((uint64_t*)destShadow) | *((uint64_t*)srcShadow);
+            *newDestShadow = *((uint64_t*)destShadow) | *((uint64_t*)srcShadow);
             break;
         case DOUBLE_WORD:
-            newDestShadow = *((uint32_t*)destShadow) | *((uint32_t*)srcShadow);
+            *newDestShadow = *((uint32_t*)destShadow) | *((uint32_t*)srcShadow);
             break;
         case WORD:
-            newDestShadow = *((uint16_t*)destShadow) | *((uint16_t*)srcShadow);
+            *newDestShadow = *((uint16_t*)destShadow) | *((uint16_t*)srcShadow);
             break;
         case BYTE:
         case HIGHER_BYTE:
-            newDestShadow = *((uint8_t*)destShadow) | *((uint8_t*)srcShadow);
+            *newDestShadow = *((uint8_t*)destShadow) | *((uint8_t*)srcShadow);
             break;
+        default:
+            throw std::invalid_argument("propagateMemOrRegShadow was called with an invalid width argument.");
     }
     if (width == HIGHER_BYTE){
         width = BYTE;
