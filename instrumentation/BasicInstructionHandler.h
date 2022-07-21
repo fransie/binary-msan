@@ -4,6 +4,13 @@
 #include "InstructionHandler.h"
 #include "DisassemblyService.h"
 
+/**
+ * Handles the correct shadow propagation of basic instructions such as add, xor, and so on.
+ * Two steps will be performed: 1) The shadow of the result will be computed as the OR of the
+ * shadow of the two operands and 2) the definedness of the EFLAGS register will be set according
+ * to whether the result of the instruction is fully defined. Hence, this Handler should only be used
+ * for instructions that affect at least one of the EFLAGS flags.
+ */
 class BasicInstructionHandler : public InstructionHandler {
 public:
     explicit BasicInstructionHandler(IRDB_SDK::FileIR_t *fileIr);
@@ -12,7 +19,7 @@ public:
     void instrument(IRDB_SDK::Instruction_t *instruction) override;
     const std::vector<std::string> &getAssociatedInstructions() override;
 private:
-    std::vector<std::string> associatedInstructions {"add", "xor"};
+    std::vector<std::string> associatedInstructions {"add", "and", "or", "sub", "xor"};
     std::unique_ptr<DisassemblyService> capstone;
     IRDB_SDK::FileIR_t *fileIr;
 
