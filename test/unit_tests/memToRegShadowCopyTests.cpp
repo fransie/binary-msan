@@ -10,7 +10,7 @@ TEST(memToRegShadowCopyTests, width64) {
     EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), 0);
 
     // when
-    memToRegShadowCopy(RAX, QUAD_WORD,(unsigned long) a);
+    memToRegShadowCopy((unsigned long) a, RAX, QUAD_WORD);
 
     // then
     EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), UINT64_MAX);
@@ -23,7 +23,7 @@ TEST(memToRegShadowCopyTests, width32) {
     EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), 0xffffffff00000000);
 
     // when
-    memToRegShadowCopy(RAX, DOUBLE_WORD,(unsigned long) a);
+    memToRegShadowCopy((unsigned long) a, RAX, DOUBLE_WORD);
 
     // then
     EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), 0xffffffffffffffff);
@@ -36,7 +36,7 @@ TEST(memToRegShadowCopyTests, width16) {
     EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), 0);
 
     // when
-    memToRegShadowCopy(RAX, WORD,(unsigned long) a);
+    memToRegShadowCopy((unsigned long) a, RAX, WORD);
 
     // then
     EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), 0x000000000000ffff);
@@ -49,7 +49,7 @@ TEST(memToRegShadowCopyTests, width8) {
     EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), 0);
 
     // when
-    memToRegShadowCopy(RAX, BYTE,(unsigned long) a);
+    memToRegShadowCopy((unsigned long) a, RAX, BYTE);
 
     // then
     EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), 0x00000000000000ff);
@@ -62,7 +62,7 @@ TEST(memToRegShadowCopyTests, width8High) {
     EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), 0);
 
     // when
-    memToRegShadowCopy(RAX, HIGHER_BYTE,(unsigned long) a);
+    memToRegShadowCopy((unsigned long) a, RAX, HIGHER_BYTE);
 
     // then
     EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), 0x000000000000ff00);

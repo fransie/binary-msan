@@ -81,7 +81,7 @@ void checkRegIsInit(int reg, int regWidth) {
  * @param regWidth Width of the destination register.
  * @param memAddress Source memory address.
  */
-void memToRegShadowCopy(int reg, int regWidth, uptr memAddress){
+void memToRegShadowCopy(__sanitizer::uptr memAddress, int reg, int regWidth) {
     std::cout << "memToRegShadowCopy. Register: " << reg << ". RegWidth: " << regWidth << ". MemAddress: 0x" << std::hex << memAddress << "." << std::endl;
     if (!MEM_IS_APP(memAddress)) {
         std::cout << memAddress << " is not an application address." << std::endl;
@@ -138,7 +138,7 @@ void initGpRegisters() {
  * @param regWidth
  * @param memAddress
  */
-void regToMemShadowCopy(int reg, int regWidth, uptr memAddress) {
+void regToMemShadowCopy(__sanitizer::uptr memAddress, int reg, int regWidth) {
     std::cout << "regToMemShadowCopy. Register: " << reg << ". RegWidth: " << regWidth << ". MemAddress: 0x" << std::hex << memAddress << std::endl;
     int size = regWidth / BYTE;
     if(regWidth == HIGHER_BYTE){
@@ -265,7 +265,7 @@ bool isRegOrRegFullyDefined(int dest, int destWidth, int src, int srcWidth) {
 /**
  * Returns true if both the input register and the input memory location are fully initialised.
  */
-bool isRegOrMemFullyDefined(int reg, const void *mem, int width) {
+bool isRegOrMemFullyDefined(const void *mem, int reg, int width) {
     sptr firstUninitByte;
     if(width == HIGHER_BYTE){
         firstUninitByte = __msan_test_shadow(mem, 1);
@@ -292,10 +292,10 @@ void setRegShadow(bool isInited, int reg, int width) {
 
 /**
  * Sets the shadow of the memory location denoted by <code>mem</code> and <code>size</code>.
- * @param isInited isInited = true -> unpoison memory, isInited = false -> poison memory.
+ * @param initState isInited = true -> unpoison memory, isInited = false -> poison memory.
  */
-void setMemShadow(bool isInited, const void *mem, uptr size) {
-    if(isInited){
+void setMemShadow(const void *mem, bool initState, uptr size) {
+    if(initState){
         __msan_unpoison(mem, size);
     } else {
         __msan_poison(mem, size);
@@ -344,7 +344,7 @@ void propagateRegOrRegShadow(int dest, int destWidth, int src, int srcWidth) {
     eflagsDefined = newDestShadow == 0;
 }
 
-void propagateRegOrMemShadow(int reg, const void *mem, int width) {
+void propagateRegOrMemShadow(const void *mem, int reg, int width) {
     auto destShadow = getRegisterShadow(reg, width);
     auto srcShadow = reinterpret_cast<char*>(MEM_TO_SHADOW(mem));
     uint64_t newDestShadow = 0;
@@ -379,7 +379,7 @@ void propagateRegOrMemShadow(int reg, const void *mem, int width) {
     eflagsDefined = newDestShadow == 0;
 }
 
-void propagateMemOrRegShadow(int reg, const void *mem, int width) {
+void propagateMemOrRegShadow(const void *mem, int reg, int width) {
     auto destShadow = reinterpret_cast<char*>(MEM_TO_SHADOW(mem));
     auto srcShadow = getRegisterShadow(reg, width);
     uint64_t* newDestShadow = new uint64_t;

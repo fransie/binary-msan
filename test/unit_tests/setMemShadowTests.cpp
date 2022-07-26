@@ -10,7 +10,7 @@ TEST(setMemShadowTests, UnpoisonBits8){
     EXPECT_EQ(*shadow, UINT8_MAX);
 
     // when
-    setMemShadow(true, a, 1);
+    setMemShadow(a, true, 1);
 
     // then
     shadow = reinterpret_cast<uint8_t*>(MEM_TO_SHADOW(a));
@@ -24,7 +24,7 @@ TEST(setMemShadowTests, UnpoisonBits16){
     EXPECT_EQ(*shadow, UINT16_MAX);
 
     // when
-    setMemShadow(true, a, 2);
+    setMemShadow(a, true, 2);
 
     // then
     shadow = reinterpret_cast<uint16_t*>(MEM_TO_SHADOW(a));
@@ -38,7 +38,7 @@ TEST(setMemShadowTests, UnpoisonBits32){
     EXPECT_EQ(*shadow, UINT32_MAX);
 
     // when
-    setMemShadow(true, a, 4);
+    setMemShadow(a, true, 4);
 
     // then
     shadow = reinterpret_cast<u_int32_t*>(MEM_TO_SHADOW(a));
@@ -52,7 +52,7 @@ TEST(setMemShadowTests, UnpoisonBits64){
     EXPECT_EQ(*shadow, UINT64_MAX);
 
     // when
-    setMemShadow(true, a, 8);
+    setMemShadow(a, true, 8);
 
     // then
     shadow = reinterpret_cast<uint64_t*>(MEM_TO_SHADOW(a));
@@ -87,7 +87,7 @@ TEST(setMemShadowTests, PoisonBits8){
     EXPECT_EQ(isMemFullyDefined(a, 1), true);
 
     // when
-    setMemShadow(false, a, 1);
+    setMemShadow(a, false, 1);
 
     // then
     EXPECT_EQ(isMemFullyDefined(a, 1), false);
@@ -99,7 +99,7 @@ TEST(setMemShadowTests, PoisonBits16){
     EXPECT_EQ(isMemFullyDefined(a, 2), true);
 
     // when
-    setMemShadow(false, a, 2);
+    setMemShadow(a, false, 2);
 
     // then
     EXPECT_EQ(isMemFullyDefined(a, 2), false);
@@ -111,7 +111,7 @@ TEST(setMemShadowTests, PoisonBits32){
     EXPECT_EQ(isMemFullyDefined(a, 4), true);
 
     // when
-    setMemShadow(false, a, 4);
+    setMemShadow(a, false, 4);
 
     // then
     EXPECT_EQ(isMemFullyDefined(a, 4), false);
@@ -123,7 +123,7 @@ TEST(setMemShadowTests, PoisonBits64){
     EXPECT_EQ(isMemFullyDefined(a, 8), true);
 
     // when
-    setMemShadow(false, a, 8);
+    setMemShadow(a, false, 8);
 
     // then
     EXPECT_EQ(isMemFullyDefined(a, 8), false);

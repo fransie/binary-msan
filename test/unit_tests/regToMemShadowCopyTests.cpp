@@ -10,7 +10,7 @@ TEST(regToMemShadowCopyTests, width64) {
     EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), 0);
 
     // when
-    regToMemShadowCopy(RAX, QUAD_WORD,(unsigned long) a);
+    regToMemShadowCopy((unsigned long) a, RAX, QUAD_WORD);
 
     // then
     EXPECT_EQ(isMemFullyDefined(a, 8), true);
@@ -23,7 +23,7 @@ TEST(regToMemShadowCopyTests, width32) {
     EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), 0);
 
     // when
-    regToMemShadowCopy(RAX, DOUBLE_WORD,(unsigned long) a);
+    regToMemShadowCopy((unsigned long) a, RAX, DOUBLE_WORD);
 
     // then
     EXPECT_EQ(isMemFullyDefined(a, 4), true);
@@ -36,7 +36,7 @@ TEST(regToMemShadowCopyTests, width16) {
     EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), 0);
 
     // when
-    regToMemShadowCopy(RAX, WORD,(unsigned long) a);
+    regToMemShadowCopy((unsigned long) a, RAX, WORD);
 
     // then
     EXPECT_EQ(isMemFullyDefined(a, 2), true);
@@ -49,7 +49,7 @@ TEST(regToMemShadowCopyTests, width8) {
     EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), 0);
 
     // when
-    regToMemShadowCopy(RAX, BYTE,(unsigned long) a);
+    regToMemShadowCopy((unsigned long) a, RAX, BYTE);
 
     // then
     EXPECT_EQ(isMemFullyDefined(a, 1), true);
@@ -62,7 +62,7 @@ TEST(regToMemShadowCopyTests, width8High) {
     EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), 0);
 
     // when
-    regToMemShadowCopy(RAX, HIGHER_BYTE,(unsigned long) a);
+    regToMemShadowCopy((unsigned long) a, RAX, HIGHER_BYTE);
 
     // then
     EXPECT_EQ(isMemFullyDefined(a, 1), true);

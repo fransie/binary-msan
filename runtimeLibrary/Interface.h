@@ -17,10 +17,10 @@ extern std::vector<std::bitset<64>> shadowRegisterState;
 INTERFACE void checkRegIsInit(int reg, int regWidth);
 
 // mov
-INTERFACE void memToRegShadowCopy(int reg, int regWidth, __sanitizer::uptr memAddress);
-INTERFACE void regToMemShadowCopy(int reg, int regWidth, __sanitizer::uptr memAddress);
-INTERFACE void regToRegShadowCopy(const int dest, const int destWidth, const int src, const int srcWidth);
-INTERFACE void initUpper4Bytes(const int reg);
+INTERFACE void memToRegShadowCopy(__sanitizer::uptr memAddress, int reg, int regWidth);
+INTERFACE void regToMemShadowCopy(__sanitizer::uptr memAddress, int reg, int regWidth);
+INTERFACE void regToRegShadowCopy(int dest, int destWidth, int src, int srcWidth);
+INTERFACE void initUpper4Bytes(int reg);
 
 // eflags
 INTERFACE void checkEflags();
@@ -33,14 +33,14 @@ INTERFACE void* getRegisterShadow(int reg, int regWidth);
 INTERFACE bool isRegFullyDefined(int reg, int width);
 INTERFACE bool isMemFullyDefined(const void *mem, uptr size);
 INTERFACE bool isRegOrRegFullyDefined(int dest, int destWidth, int src, int srcWidth);
-INTERFACE bool isRegOrMemFullyDefined(int reg, const void *mem, int width);
+INTERFACE bool isRegOrMemFullyDefined(const void *mem, int reg, int width);
 
 INTERFACE void propagateRegOrRegShadow(int dest, int destWidth, int src, int srcWidth);
-INTERFACE void propagateRegOrMemShadow(int reg, const void *mem, int width);
-INTERFACE void propagateMemOrRegShadow(int reg, const void *mem, int width);
+INTERFACE void propagateRegOrMemShadow(const void *mem, int reg, int width);
+INTERFACE void propagateMemOrRegShadow(const void *mem, int reg, int width);
 
 INTERFACE void setRegShadow(bool isInited, int reg, int width);
-INTERFACE void setMemShadow(bool initState, const void *mem, uptr size);
+INTERFACE void setMemShadow(const void *mem, bool initState, uptr size);
 
 } // extern "C"
 #endif //BINARY_MSAN_INTERFACE_H

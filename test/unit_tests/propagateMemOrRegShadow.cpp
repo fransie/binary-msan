@@ -11,7 +11,7 @@ TEST(propagateMemOrRegShadow, width64) {
     shadowRegisterState[RAX].set();
 
     // when
-    propagateMemOrRegShadow(RAX, a, QUAD_WORD);
+    propagateMemOrRegShadow(a, RAX, QUAD_WORD);
 
     // then
     EXPECT_EQ(*shadow, UINT64_MAX);
@@ -25,7 +25,7 @@ TEST(propagateMemOrRegShadow, width32) {
     shadowRegisterState[RAX] = std::bitset<64>{0x00000000ffffffff};
 
     // when
-    propagateMemOrRegShadow(RAX, a, DOUBLE_WORD);
+    propagateMemOrRegShadow(a, RAX, DOUBLE_WORD);
 
     // then
     EXPECT_EQ(*shadow, UINT32_MAX);
@@ -39,7 +39,7 @@ TEST(propagateMemOrRegShadow, width16) {
     shadowRegisterState[RAX] = std::bitset<64>{0x000000000000ffff};
 
     // when
-    propagateMemOrRegShadow(RAX, a, WORD);
+    propagateMemOrRegShadow(a, RAX, WORD);
 
     // then
     EXPECT_EQ(*shadow, UINT16_MAX);
@@ -53,7 +53,7 @@ TEST(propagateMemOrRegShadow, width8) {
     shadowRegisterState[RAX] = std::bitset<64>{0x00000000000000ff};
 
     // when
-    propagateMemOrRegShadow(RAX, a, BYTE);
+    propagateMemOrRegShadow(a, RAX, BYTE);
 
     // then
     EXPECT_EQ(*shadow, UINT8_MAX);
@@ -67,7 +67,7 @@ TEST(propagateMemOrRegShadow, width8Higher) {
     shadowRegisterState[RAX] = std::bitset<64>{0x000000000000ff00};
 
     // when
-    propagateMemOrRegShadow(RAX, a, HIGHER_BYTE);
+    propagateMemOrRegShadow(a, RAX, HIGHER_BYTE);
 
     // then
     EXPECT_EQ(*shadow, UINT8_MAX);

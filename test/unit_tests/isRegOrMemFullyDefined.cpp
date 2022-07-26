@@ -12,7 +12,7 @@ TEST(isRegOrMemFullyDefinedTests, bothFullyDefined){
     EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), 0);
 
     // when
-    auto result = isRegOrMemFullyDefined(RAX, a, QUAD_WORD);
+    auto result = isRegOrMemFullyDefined(a, RAX, QUAD_WORD);
 
     // then
     EXPECT_EQ(result, true);
@@ -25,7 +25,7 @@ TEST(isRegOrMemFullyDefinedTests, bothFullyUndefined){
     EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), UINT64_MAX);
 
     // when
-    auto result = isRegOrMemFullyDefined(RAX, a, QUAD_WORD);
+    auto result = isRegOrMemFullyDefined(a, RAX, QUAD_WORD);
 
     // then
     EXPECT_EQ(result, false);
@@ -38,7 +38,7 @@ TEST(isRegOrMemFullyDefinedTests, regFullyUndefined){
     EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), UINT64_MAX);
 
     // when
-    auto result = isRegOrMemFullyDefined(RAX, a, QUAD_WORD);
+    auto result = isRegOrMemFullyDefined(a, RAX, QUAD_WORD);
 
     // then
     EXPECT_EQ(result, false);
@@ -52,7 +52,7 @@ TEST(isRegOrMemFullyDefinedTests, regUndefined8High){
     EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), 0x100);
 
     // when
-    auto result = isRegOrMemFullyDefined(RAX, a, HIGHER_BYTE);
+    auto result = isRegOrMemFullyDefined(a, RAX, HIGHER_BYTE);
 
     // then
     EXPECT_EQ(result, false);
@@ -65,7 +65,7 @@ TEST(isRegOrMemFullyDefinedTests, memFullyUndefined){
     EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), 0);
 
     // when
-    auto result = isRegOrMemFullyDefined(RAX, a, QUAD_WORD);
+    auto result = isRegOrMemFullyDefined(a, RAX, QUAD_WORD);
 
     // then
     EXPECT_EQ(result, false);
@@ -78,7 +78,7 @@ TEST(isRegOrMemFullyDefinedTests, memUndefined8High){
     EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), 0);
 
     // when
-    auto result = isRegOrMemFullyDefined(RAX, a, HIGHER_BYTE);
+    auto result = isRegOrMemFullyDefined(a, RAX, HIGHER_BYTE);
 
     // then
     EXPECT_EQ(result, false);

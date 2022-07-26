@@ -155,14 +155,14 @@ void EflagsHandler::propagateRegOrMemShadowToEflags(IRDB_SDK::Instruction_t *ins
     auto memory = capstone->getMemoryOperandDisassembly(instruction);
     string instrumentation = string() +
             Utils::getStateSavingInstrumentation() +
-                             "mov rdi, %%1\n" +    // reg
-                             "lea rsi, %%2\n" +    // mem
+                             "lea rdi, %%1\n" +    // mem
+                             "mov rsi, %%2\n" +    // reg
                              "mov rdx, %%3\n" +    // width
                              "call 0\n" +
                              "mov dil, al\n" +
                              "call 0\n" +
             Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams {to_string(reg), memory, to_string(width)};
+    vector<basic_string<char>> instrumentationParams {memory, to_string(reg), to_string(width)};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::isRegOrMemFullyDefined);
