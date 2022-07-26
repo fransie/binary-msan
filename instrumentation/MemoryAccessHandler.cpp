@@ -74,5 +74,8 @@ bool MemoryAccessHandler::hasMemoryOperand(unique_ptr<DecodedInstruction_t> &ins
 
 bool MemoryAccessHandler::isResponsibleFor(IRDB_SDK::Instruction_t *instruction) {
     auto decodedInstruction = IRDB_SDK::DecodedInstruction_t::factory(instruction);
+    if(decodedInstruction->getMnemonic() == "lea"){
+        return false;
+    }
     return hasMemoryOperand(decodedInstruction);
 }

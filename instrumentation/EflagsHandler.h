@@ -7,14 +7,13 @@
 
 class EflagsHandler : public InstructionHandler {
 public:
-    explicit EflagsHandler(IRDB_SDK::FileIR_t *fileIr) : InstructionHandler(fileIr) {};
+    explicit EflagsHandler(IRDB_SDK::FileIR_t *fileIr) : InstructionHandler(fileIr) {
+        associatedInstructions = {"cmp", "test"};
+    };
 
-    bool isResponsibleFor(IRDB_SDK::Instruction_t *instruction) override;
     IRDB_SDK::Instruction_t* instrument(IRDB_SDK::Instruction_t *instruction) override;
 
 private:
-    std::vector<std::string> associatedInstructions {"cmp", "test"};
-
     IRDB_SDK::Instruction_t* propagateRegShadowToEflags(IRDB_SDK::Instruction_t *instruction);
     IRDB_SDK::Instruction_t* propagateMemShadowToEflags(IRDB_SDK::Instruction_t *instruction);
     IRDB_SDK::Instruction_t* propagateRegOrRegShadowToEflags(IRDB_SDK::Instruction_t *instruction);

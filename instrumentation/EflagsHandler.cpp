@@ -165,14 +165,3 @@ IRDB_SDK::Instruction_t* EflagsHandler::propagateRegOrMemShadowToEflags(IRDB_SDK
     new_instr[calls[1]]->setTarget(RuntimeLib::setEflags);
     return new_instr.back();
 }
-
-bool EflagsHandler::isResponsibleFor(IRDB_SDK::Instruction_t *instruction) {
-    auto decodedInstruction = IRDB_SDK::DecodedInstruction_t::factory(instruction);
-    auto mnemonic = decodedInstruction->getMnemonic();
-    for (const auto& associatedInstruction : associatedInstructions){
-        if (associatedInstruction == mnemonic){
-            return true;
-        }
-    }
-    return false;
-}

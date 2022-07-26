@@ -24,11 +24,21 @@ public:
      * @param instruction input instruction.
      * @return true if handler is responsible.
      */
-    virtual bool isResponsibleFor(IRDB_SDK::Instruction_t *instruction) = 0;
+    virtual bool isResponsibleFor(IRDB_SDK::Instruction_t *instruction){
+        auto decodedInstruction = IRDB_SDK::DecodedInstruction_t::factory(instruction);
+        auto mnemonic = decodedInstruction->getMnemonic();
+        for (const auto& associatedInstruction : associatedInstructions){
+            if (associatedInstruction == mnemonic){
+                return true;
+            }
+        }
+        return false;
+    }
 
 protected:
     std::unique_ptr<DisassemblyService> disassemblyService;
     IRDB_SDK::FileIR_t *fileIr;
+    std::vector<std::string> associatedInstructions {};
 };
 
 

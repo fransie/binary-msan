@@ -58,15 +58,3 @@ IRDB_SDK::Instruction_t* JumpHandler::checkCx(unique_ptr<IRDB_SDK::DecodedInstru
 	new_instr[calls[0]]->setTarget(RuntimeLib::checkRegIsInit);
     return new_instr.back();
 }
-
-bool JumpHandler::isResponsibleFor(IRDB_SDK::Instruction_t *instruction) {
-    auto decodedInstruction = IRDB_SDK::DecodedInstruction_t::factory(instruction);
-    auto mnemonic = decodedInstruction->getMnemonic();
-    for (const auto& associatedInstruction : associatedInstructions){
-        if (associatedInstruction == mnemonic){
-            return true;
-        }
-    }
-    return false;
-}
-

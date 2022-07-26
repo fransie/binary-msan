@@ -13,14 +13,13 @@
  */
 class BasicInstructionHandler : public InstructionHandler {
 public:
-    BasicInstructionHandler(IRDB_SDK::FileIR_t *fileIr) : InstructionHandler(fileIr) {}
+    explicit BasicInstructionHandler(IRDB_SDK::FileIR_t *fileIr) : InstructionHandler(fileIr) {
+        associatedInstructions = {"add", "and", "or", "sub", "xor"};
+    }
 
     IRDB_SDK::Instruction_t * instrument(IRDB_SDK::Instruction_t *instruction) override;
-    bool isResponsibleFor(IRDB_SDK::Instruction_t *instruction) override;
 
 private:
-    std::vector<std::string> associatedInstructions {"add", "and", "or", "sub", "xor"};
-
     IRDB_SDK::Instruction_t* instrumentMemRegInstruction(IRDB_SDK::Instruction_t *instruction);
     IRDB_SDK::Instruction_t* instrumentRegMemInstruction(IRDB_SDK::Instruction_t *instruction);
     IRDB_SDK::Instruction_t* instrumentRegRegInstruction(IRDB_SDK::Instruction_t *instruction);
