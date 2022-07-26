@@ -8,10 +8,6 @@
 using namespace IRDB_SDK;
 using namespace std;
 
-MovHandler::MovHandler(FileIR_t *fileIr) : fileIr(fileIr){
-    capstone = make_unique<DisassemblyService>();
-}
-
 // Achtung: there is also mov to control or debug segments -> handle every case (GPR, immediate, memory, ect.)
 // here explicitly, not with plain "else". Control and debug segments can be recognised with operand->isSpecialRegister().
 // TODO: Are moves with moffs (e.g. opcode A3) also handled as memory operands?
@@ -48,7 +44,7 @@ IRDB_SDK::Instruction_t* MovHandler::instrument(Instruction_t *instruction){
 IRDB_SDK::Instruction_t* MovHandler::instrumentImmToMemMove(IRDB_SDK::Instruction_t *instruction) {
     cout << "instrumentImmToMemMove: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << endl;
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
-    auto dest = capstone->getMemoryOperandDisassembly(instruction);
+    auto dest = disassemblyService->getMemoryOperandDisassembly(instruction);
     auto destWidth = operands[0]->getArgumentSizeInBytes();
     string instrumentation = string() +
             Utils::getStateSavingInstrumentation() +
@@ -72,7 +68,7 @@ IRDB_SDK::Instruction_t* MovHandler::instrumentImmToRegMove(Instruction_t *instr
     cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << endl;
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     auto dest = operands[0]->getRegNumber();
-    auto width = capstone->getRegWidth(instruction, 0);
+    auto width = disassemblyService->getRegWidth(instruction, 0);
     string instrumentation = string() +
             Utils::getStateSavingInstrumentation() +
                              "mov dil, 1\n" +      // isInited
@@ -106,8 +102,8 @@ IRDB_SDK::Instruction_t* MovHandler::instrumentMemToRegMove(Instruction_t *instr
     auto dest = operands[0]->getRegNumber();
     cout << "instrumentMemToRegMove. Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << (int) dest << " and mem: " << operands[1]->getString() << endl;
 
-    auto memoryDisassembly = capstone->getMemoryOperandDisassembly(instruction);
-    auto width = capstone->getRegWidth(instruction, 0);
+    auto memoryDisassembly = disassemblyService->getMemoryOperandDisassembly(instruction);
+    auto width = disassemblyService->getRegWidth(instruction, 0);
     // Higher four bytes are zeroed for double word moves.
     string instrumentation = string() +
             Utils::getStateSavingInstrumentation() +
@@ -141,8 +137,8 @@ IRDB_SDK::Instruction_t* MovHandler::instrumentRegToMemMove(IRDB_SDK::Instructio
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
 
     auto src = operands[1]->getRegNumber();
-    auto width = capstone->getRegWidth(instruction, 1);
-    auto memoryDisassembly = capstone->getMemoryOperandDisassembly(instruction);
+    auto width = disassemblyService->getRegWidth(instruction, 1);
+    auto memoryDisassembly = disassemblyService->getMemoryOperandDisassembly(instruction);
     string instrumentation = string() +
             Utils::getStateSavingInstrumentation() +
                              "lea rdi, %%1\n" +    // memAddr
@@ -168,8 +164,8 @@ IRDB_SDK::Instruction_t* MovHandler::instrumentRegToRegMove(Instruction_t *instr
     const auto source = operands[1]->getRegNumber();
     cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << dest << " and source: " << source << endl;
 
-    auto destWidth = capstone->getRegWidth(instruction, 0);
-    auto srcWidth = capstone->getRegWidth(instruction, 1);
+    auto destWidth = disassemblyService->getRegWidth(instruction, 0);
+    auto srcWidth = disassemblyService->getRegWidth(instruction, 1);
     string instrumentation = string() +
             Utils::getStateSavingInstrumentation() +
                              "mov rdi, %%1\n" +    // dest

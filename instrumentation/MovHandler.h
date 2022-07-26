@@ -7,15 +7,13 @@
 
 class MovHandler : public InstructionHandler {
 public:
-    explicit MovHandler(IRDB_SDK::FileIR_t *fileIr);
+    explicit MovHandler(IRDB_SDK::FileIR_t *fileIr) : InstructionHandler(fileIr) {};
 
     IRDB_SDK::Instruction_t* instrument(IRDB_SDK::Instruction_t *instruction) override;
     bool isResponsibleFor(IRDB_SDK::Instruction_t *instruction) override;
 
 private:
     std::vector<std::string> associatedInstructions {"mov"};
-    std::unique_ptr<DisassemblyService> capstone;
-    IRDB_SDK::FileIR_t *fileIr;
 
     IRDB_SDK::Instruction_t* instrumentImmToRegMove(IRDB_SDK::Instruction_t *instruction);
     IRDB_SDK::Instruction_t* instrumentImmToMemMove(IRDB_SDK::Instruction_t *instruction);

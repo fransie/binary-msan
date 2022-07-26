@@ -5,9 +5,6 @@
 
 using namespace IRDB_SDK;
 
-BasicInstructionHandler::BasicInstructionHandler(IRDB_SDK::FileIR_t *fileIr) : fileIr(fileIr) {
-    capstone = make_unique<DisassemblyService>();
-}
 
 Instruction_t* BasicInstructionHandler::instrument(IRDB_SDK::Instruction_t *instruction) {
     auto decodedInstruction = DecodedInstruction_t::factory(instruction);
@@ -37,8 +34,8 @@ IRDB_SDK::Instruction_t* BasicInstructionHandler::instrumentRegRegInstruction(IR
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     auto dest = operands[0]->getRegNumber();
     auto src = operands[1]->getRegNumber();
-    auto destWidth = capstone->getRegWidth(instruction, 0);
-    auto srcWidth = capstone->getRegWidth(instruction, 1);
+    auto destWidth = disassemblyService->getRegWidth(instruction, 0);
+    auto srcWidth = disassemblyService->getRegWidth(instruction, 1);
     string instrumentation = string() +
             Utils::getStateSavingInstrumentation() +
                              "mov rdi, %%1\n" +    // dest
@@ -57,8 +54,8 @@ IRDB_SDK::Instruction_t* BasicInstructionHandler::instrumentRegRegInstruction(IR
 IRDB_SDK::Instruction_t* BasicInstructionHandler::instrumentMemRegInstruction(IRDB_SDK::Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     int reg = operands[1]->getRegNumber();
-    int width = capstone->getRegWidth(instruction, 1);
-    auto memory = capstone->getMemoryOperandDisassembly(instruction);
+    int width = disassemblyService->getRegWidth(instruction, 1);
+    auto memory = disassemblyService->getMemoryOperandDisassembly(instruction);
     string instrumentation = string() +
                              Utils::getStateSavingInstrumentation() +
                              "lea rdi, %%1\n" +    // mem
@@ -77,8 +74,8 @@ IRDB_SDK::Instruction_t* BasicInstructionHandler::instrumentMemRegInstruction(IR
 IRDB_SDK::Instruction_t* BasicInstructionHandler::instrumentRegMemInstruction(IRDB_SDK::Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     int reg = operands[0]->getRegNumber();
-    int width = capstone->getRegWidth(instruction, 0);
-    auto memory = capstone->getMemoryOperandDisassembly(instruction);
+    int width = disassemblyService->getRegWidth(instruction, 0);
+    auto memory = disassemblyService->getMemoryOperandDisassembly(instruction);
     string instrumentation = string() +
                              Utils::getStateSavingInstrumentation() +
                              "lea rdi, %%1\n" +    // mem

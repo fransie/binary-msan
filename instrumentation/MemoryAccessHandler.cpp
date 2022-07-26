@@ -6,10 +6,6 @@
 
 using namespace IRDB_SDK;
 
-MemoryAccessHandler::MemoryAccessHandler(IRDB_SDK::FileIR_t *fileIr) : fileIr(fileIr)  {
-    disassemblyService = make_unique<DisassemblyService>();
-}
-
 /**
  * Inserts instrumentation to verify that a memory access does not use an uninitialised base or index register.
  *

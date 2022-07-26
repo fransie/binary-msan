@@ -8,16 +8,12 @@
 
 class MemoryAccessHandler : public InstructionHandler {
 public:
-    explicit MemoryAccessHandler(IRDB_SDK::FileIR_t *fileIr);
-
+    explicit MemoryAccessHandler(IRDB_SDK::FileIR_t *fileIr) : InstructionHandler(fileIr) {};
 
     IRDB_SDK::Instruction_t* instrument(IRDB_SDK::Instruction_t *instruction) override;
     bool isResponsibleFor(IRDB_SDK::Instruction_t *instruction) override;
 
 private:
-    IRDB_SDK::FileIR_t *fileIr;
-    std::unique_ptr<DisassemblyService> disassemblyService;
-
     static bool hasMemoryOperand(std::unique_ptr<IRDB_SDK::DecodedInstruction_t> &instruction);
 };
 

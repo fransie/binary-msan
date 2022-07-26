@@ -37,10 +37,6 @@ IRDB_SDK::Instruction_t* EflagsHandler::instrument(IRDB_SDK::Instruction_t *inst
     return instruction;
 }
 
-EflagsHandler::EflagsHandler(IRDB_SDK::FileIR_t *fileIr) : fileIr(fileIr){
-    capstone = make_unique<DisassemblyService>();
-}
-
 /**
  * Takes an instruction that affects the EFLAGS register and sets the shadow of the EFLAGS shadow bit
  * according to the register used in the instruction. The definedness of EFLAGS depends only
@@ -53,7 +49,7 @@ EflagsHandler::EflagsHandler(IRDB_SDK::FileIR_t *fileIr) : fileIr(fileIr){
 IRDB_SDK::Instruction_t* EflagsHandler::propagateRegShadowToEflags(IRDB_SDK::Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     auto dest = operands[0]->getRegNumber();
-    auto width = capstone->getRegWidth(instruction, 0);
+    auto width = disassemblyService->getRegWidth(instruction, 0);
     string instrumentation = string() +
             Utils::getStateSavingInstrumentation() +
                              "mov rdi, %%1\n" +
@@ -81,7 +77,7 @@ IRDB_SDK::Instruction_t* EflagsHandler::propagateRegShadowToEflags(IRDB_SDK::Ins
  */
 IRDB_SDK::Instruction_t* EflagsHandler::propagateMemShadowToEflags(IRDB_SDK::Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
-    auto dest = capstone->getMemoryOperandDisassembly(instruction);
+    auto dest = disassemblyService->getMemoryOperandDisassembly(instruction);
     auto destWidth = operands[0]->getArgumentSizeInBytes();
     string instrumentation = string() +
             Utils::getStateSavingInstrumentation() +
@@ -112,8 +108,8 @@ IRDB_SDK::Instruction_t* EflagsHandler::propagateRegOrRegShadowToEflags(IRDB_SDK
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     auto dest = operands[0]->getRegNumber();
     auto src = operands[1]->getRegNumber();
-    auto destWidth = capstone->getRegWidth(instruction, 0);
-    auto srcWidth = capstone->getRegWidth(instruction, 1);
+    auto destWidth = disassemblyService->getRegWidth(instruction, 0);
+    auto srcWidth = disassemblyService->getRegWidth(instruction, 1);
     string instrumentation = string() +
             Utils::getStateSavingInstrumentation() +
                              "mov rdi, %%1\n" +    // dest
@@ -147,12 +143,12 @@ IRDB_SDK::Instruction_t* EflagsHandler::propagateRegOrMemShadowToEflags(IRDB_SDK
     int width;
     if(operands[0]->isGeneralPurposeRegister()){
         reg = operands[0]->getRegNumber();
-        width = capstone->getRegWidth(instruction, 0);
+        width = disassemblyService->getRegWidth(instruction, 0);
     } else{
         reg = operands[1]->getRegNumber();
-        width = capstone->getRegWidth(instruction, 1);
+        width = disassemblyService->getRegWidth(instruction, 1);
     }
-    auto memory = capstone->getMemoryOperandDisassembly(instruction);
+    auto memory = disassemblyService->getMemoryOperandDisassembly(instruction);
     string instrumentation = string() +
             Utils::getStateSavingInstrumentation() +
                              "lea rdi, %%1\n" +    // mem

@@ -7,8 +7,7 @@
 
 class JumpHandler : public InstructionHandler {
 public:
-    explicit JumpHandler(IRDB_SDK::FileIR_t *fileIr);
-    ~JumpHandler() = default;
+    explicit JumpHandler(IRDB_SDK::FileIR_t *fileIr) : InstructionHandler(fileIr) {};
 
     IRDB_SDK::Instruction_t* instrument(IRDB_SDK::Instruction_t *instruction) override;
     bool isResponsibleFor(IRDB_SDK::Instruction_t *instruction) override;
@@ -19,9 +18,6 @@ private:
                                                      "jnge", "jnl", "jnle", "jno", "jnp", "jns", "jnz", "jo", "jp",
                                                      "jpe", "jpo", "jrcxz", "js", "jz"};
     std::vector<std::string> cxInstructions {"jcxz", "jecxz", "jrcxz"};
-
-    std::unique_ptr<DisassemblyService> capstone;
-    IRDB_SDK::FileIR_t *fileIr;
 
     IRDB_SDK::Instruction_t* checkEflags(IRDB_SDK::Instruction_t *instruction);
     IRDB_SDK::Instruction_t* checkCx(std::unique_ptr<IRDB_SDK::DecodedInstruction_t> &decodedInstr, IRDB_SDK::Instruction_t *instruction);

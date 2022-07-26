@@ -7,10 +7,6 @@
 using namespace IRDB_SDK;
 using namespace std;
 
-JumpHandler::JumpHandler(FileIR_t *fileIr) : fileIr(fileIr) {
-    capstone = make_unique<DisassemblyService>();
-}
-
 IRDB_SDK::Instruction_t* JumpHandler::instrument(Instruction_t *instruction) {
     cout << "JumpHandler. Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << endl;
 
