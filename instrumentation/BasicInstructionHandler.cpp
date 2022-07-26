@@ -9,31 +9,28 @@ BasicInstructionHandler::BasicInstructionHandler(IRDB_SDK::FileIR_t *fileIr) : f
     capstone = make_unique<DisassemblyService>();
 }
 
-const std::vector<std::string> &BasicInstructionHandler::getAssociatedInstructions() {
-    return associatedInstructions;
-}
-
-void BasicInstructionHandler::instrument(IRDB_SDK::Instruction_t *instruction) {
+Instruction_t* BasicInstructionHandler::instrument(IRDB_SDK::Instruction_t *instruction) {
     auto decodedInstruction = DecodedInstruction_t::factory(instruction);
     vector<shared_ptr<DecodedOperand_t>> operands = decodedInstruction->getOperands();
     if(operands[0]->isGeneralPurposeRegister()){
         if(operands[1]->isGeneralPurposeRegister()){
-            instrumentRegRegInstruction(instruction);
+            return instrumentRegRegInstruction(instruction);
         } else if (operands[1]->isMemory()) {
-            instrumentRegMemInstruction(instruction);
+            return instrumentRegMemInstruction(instruction);
         }
         // No instrumentation needed for immediate source operands since the resulting shadow value
         // of the destination register fully depends on itself.
     } else if (operands[0]->isMemory()) {
         if(operands[1]->isGeneralPurposeRegister()){
-            instrumentMemRegInstruction(instruction);
+            return instrumentMemRegInstruction(instruction);
         }
         // No instrumentation needed for immediate source operands since the resulting shadow value
         // of the destination memory location fully depends on itself.
     }
+    return instruction;
 }
 
-void BasicInstructionHandler::instrumentRegRegInstruction(IRDB_SDK::Instruction_t *instruction) {
+IRDB_SDK::Instruction_t* BasicInstructionHandler::instrumentRegRegInstruction(IRDB_SDK::Instruction_t *instruction) {
     // calculate their OR
     // propagate to destination register
 
@@ -54,9 +51,10 @@ void BasicInstructionHandler::instrumentRegRegInstruction(IRDB_SDK::Instruction_
     const auto new_instr = insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::propagateRegOrRegShadow);
+    return new_instr.back();
 }
 
-void BasicInstructionHandler::instrumentMemRegInstruction(IRDB_SDK::Instruction_t *instruction) {
+IRDB_SDK::Instruction_t* BasicInstructionHandler::instrumentMemRegInstruction(IRDB_SDK::Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     int reg = operands[1]->getRegNumber();
     int width = capstone->getRegWidth(instruction, 1);
@@ -72,9 +70,11 @@ void BasicInstructionHandler::instrumentMemRegInstruction(IRDB_SDK::Instruction_
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::propagateMemOrRegShadow);
+    return new_instr.back();
+
 }
 
-void BasicInstructionHandler::instrumentRegMemInstruction(IRDB_SDK::Instruction_t *instruction) {
+IRDB_SDK::Instruction_t* BasicInstructionHandler::instrumentRegMemInstruction(IRDB_SDK::Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     int reg = operands[0]->getRegNumber();
     int width = capstone->getRegWidth(instruction, 0);
@@ -90,4 +90,16 @@ void BasicInstructionHandler::instrumentRegMemInstruction(IRDB_SDK::Instruction_
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::propagateRegOrMemShadow);
+    return new_instr.back();
+}
+
+bool BasicInstructionHandler::isResponsibleFor(IRDB_SDK::Instruction_t *instruction) {
+    auto decodedInstruction = IRDB_SDK::DecodedInstruction_t::factory(instruction);
+    auto mnemonic = decodedInstruction->getMnemonic();
+    for (const auto& associatedInstruction : associatedInstructions){
+        if (associatedInstruction == mnemonic){
+            return true;
+        }
+    }
+    return false;
 }

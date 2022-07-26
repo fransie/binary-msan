@@ -5,7 +5,7 @@ add_executable(binmsan
         EflagsHandler.cpp
         FunctionAnalysis.cpp
         JumpHandler.cpp
-        MemoryAccessInstrumentation.cpp
+        MemoryAccessHandler.cpp
         MovHandler.cpp
         MSan.cpp
         Main.cpp

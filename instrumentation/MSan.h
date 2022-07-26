@@ -5,6 +5,7 @@
 #include <irdb-transform>
 #include "FunctionHandler.h"
 #include "InstructionHandler.h"
+#include "MemoryAccessHandler.h"
 
 class MSan : protected IRDB_SDK::Transform_t
 {

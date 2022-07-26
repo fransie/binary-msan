@@ -6,38 +6,35 @@
 using namespace IRDB_SDK;
 using namespace std;
 
-void EflagsHandler::instrument(IRDB_SDK::Instruction_t *instruction) {
+IRDB_SDK::Instruction_t* EflagsHandler::instrument(IRDB_SDK::Instruction_t *instruction) {
     auto decodedInstruction = DecodedInstruction_t::factory(instruction);
     vector<shared_ptr<DecodedOperand_t>> operands = decodedInstruction->getOperands();
     if(operands[0]->isGeneralPurposeRegister()){
         if(operands[1]->isGeneralPurposeRegister()){
             if(operands[0]->getRegNumber() == operands[1]->getRegNumber()){
                 // test regX, regX
-                propagateRegShadowToEflags(instruction);
+                return propagateRegShadowToEflags(instruction);
             } else {
                 // test regX, regY
-                propagateRegOrRegShadowToEflags(instruction);
+                return propagateRegOrRegShadowToEflags(instruction);
             }
         } else if (operands[1]->isConstant()){
             // reg and immediate
-            propagateRegShadowToEflags(instruction);
+            return propagateRegShadowToEflags(instruction);
         } else if (operands[1]->isMemory()) {
             // reg and mem
-            propagateRegOrMemShadowToEflags(instruction);
+            return propagateRegOrMemShadowToEflags(instruction);
         }
     } else if (operands[0]->isMemory()) {
         if(operands[1]->isGeneralPurposeRegister()){
             // mem and reg
-            propagateRegOrMemShadowToEflags(instruction);
+            return propagateRegOrMemShadowToEflags(instruction);
         } else if (operands[1]->isConstant()){
             // mem and immediate
-            propagateMemShadowToEflags(instruction);
+            return propagateMemShadowToEflags(instruction);
         }
     }
-}
-
-const std::vector<std::string> &EflagsHandler::getAssociatedInstructions() {
-    return associatedInstructions;
+    return instruction;
 }
 
 EflagsHandler::EflagsHandler(IRDB_SDK::FileIR_t *fileIr) : fileIr(fileIr){
@@ -53,7 +50,7 @@ EflagsHandler::EflagsHandler(IRDB_SDK::FileIR_t *fileIr) : fileIr(fileIr){
  *
  * @param instruction Instruction that affects EFLAGS register.
  */
-void EflagsHandler::propagateRegShadowToEflags(IRDB_SDK::Instruction_t *instruction) {
+IRDB_SDK::Instruction_t* EflagsHandler::propagateRegShadowToEflags(IRDB_SDK::Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     auto dest = operands[0]->getRegNumber();
     auto width = capstone->getRegWidth(instruction, 0);
@@ -70,6 +67,7 @@ void EflagsHandler::propagateRegShadowToEflags(IRDB_SDK::Instruction_t *instruct
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::isRegFullyDefined);
     new_instr[calls[1]]->setTarget(RuntimeLib::setEflags);
+    return new_instr.back();
 }
 
 /**
@@ -81,7 +79,7 @@ void EflagsHandler::propagateRegShadowToEflags(IRDB_SDK::Instruction_t *instruct
  *
  * @param instruction Instruction that affects EFLAGS register.
  */
-void EflagsHandler::propagateMemShadowToEflags(IRDB_SDK::Instruction_t *instruction) {
+IRDB_SDK::Instruction_t* EflagsHandler::propagateMemShadowToEflags(IRDB_SDK::Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     auto dest = capstone->getMemoryOperandDisassembly(instruction);
     auto destWidth = operands[0]->getArgumentSizeInBytes();
@@ -98,6 +96,7 @@ void EflagsHandler::propagateMemShadowToEflags(IRDB_SDK::Instruction_t *instruct
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::isMemFullyDefined);
     new_instr[calls[1]]->setTarget(RuntimeLib::setEflags);
+    return new_instr.back();
 }
 
 /**
@@ -109,7 +108,7 @@ void EflagsHandler::propagateMemShadowToEflags(IRDB_SDK::Instruction_t *instruct
  *
  * @param instruction Instruction that affects EFLAGS register.
  */
-void EflagsHandler::propagateRegOrRegShadowToEflags(IRDB_SDK::Instruction_t *instruction) {
+IRDB_SDK::Instruction_t* EflagsHandler::propagateRegOrRegShadowToEflags(IRDB_SDK::Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     auto dest = operands[0]->getRegNumber();
     auto src = operands[1]->getRegNumber();
@@ -130,6 +129,7 @@ void EflagsHandler::propagateRegOrRegShadowToEflags(IRDB_SDK::Instruction_t *ins
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::isRegOrRegFullyDefined);
     new_instr[calls[1]]->setTarget(RuntimeLib::setEflags);
+    return new_instr.back();
 }
 
 /**
@@ -141,7 +141,7 @@ void EflagsHandler::propagateRegOrRegShadowToEflags(IRDB_SDK::Instruction_t *ins
  *
  * @param instruction Instruction that affects EFLAGS register.
  */
-void EflagsHandler::propagateRegOrMemShadowToEflags(IRDB_SDK::Instruction_t *instruction) {
+IRDB_SDK::Instruction_t* EflagsHandler::propagateRegOrMemShadowToEflags(IRDB_SDK::Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     int reg;
     int width;
@@ -167,4 +167,16 @@ void EflagsHandler::propagateRegOrMemShadowToEflags(IRDB_SDK::Instruction_t *ins
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::isRegOrMemFullyDefined);
     new_instr[calls[1]]->setTarget(RuntimeLib::setEflags);
+    return new_instr.back();
+}
+
+bool EflagsHandler::isResponsibleFor(IRDB_SDK::Instruction_t *instruction) {
+    auto decodedInstruction = IRDB_SDK::DecodedInstruction_t::factory(instruction);
+    auto mnemonic = decodedInstruction->getMnemonic();
+    for (const auto& associatedInstruction : associatedInstructions){
+        if (associatedInstruction == mnemonic){
+            return true;
+        }
+    }
+    return false;
 }

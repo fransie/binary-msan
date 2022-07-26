@@ -10,8 +10,8 @@ public:
     explicit JumpHandler(IRDB_SDK::FileIR_t *fileIr);
     ~JumpHandler() = default;
 
-    void instrument(IRDB_SDK::Instruction_t *instruction) override;
-    const std::vector<std::string> &getAssociatedInstructions() override;
+    IRDB_SDK::Instruction_t* instrument(IRDB_SDK::Instruction_t *instruction) override;
+    bool isResponsibleFor(IRDB_SDK::Instruction_t *instruction) override;
 
 private:
     std::vector<std::string> associatedInstructions {"ja", "jae", "jb", "jbe", "jc", "jcxz", "je", "jecxz", "jg", "jge",
@@ -23,8 +23,8 @@ private:
     std::unique_ptr<DisassemblyService> capstone;
     IRDB_SDK::FileIR_t *fileIr;
 
-    void checkEflags(IRDB_SDK::Instruction_t *instruction);
-    void checkCx(std::unique_ptr<IRDB_SDK::DecodedInstruction_t> &decodedInstr, IRDB_SDK::Instruction_t *instruction);
+    IRDB_SDK::Instruction_t* checkEflags(IRDB_SDK::Instruction_t *instruction);
+    IRDB_SDK::Instruction_t* checkCx(std::unique_ptr<IRDB_SDK::DecodedInstruction_t> &decodedInstr, IRDB_SDK::Instruction_t *instruction);
 };
 
 

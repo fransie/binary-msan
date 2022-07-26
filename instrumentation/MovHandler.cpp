@@ -3,17 +3,13 @@
 #include "MovHandler.h"
 #include "RuntimeLib.h"
 #include "Utils.h"
-#include "MemoryAccessInstrumentation.h"
+#include "MemoryAccessHandler.h"
 
 using namespace IRDB_SDK;
 using namespace std;
 
 MovHandler::MovHandler(FileIR_t *fileIr) : fileIr(fileIr){
     capstone = make_unique<DisassemblyService>();
-}
-
-const vector<std::string> & MovHandler::getAssociatedInstructions() {
-    return associatedInstructions;
 }
 
 // Achtung: there is also mov to control or debug segments -> handle every case (GPR, immediate, memory, ect.)
@@ -23,34 +19,25 @@ const vector<std::string> & MovHandler::getAssociatedInstructions() {
 /**
  * Takes a mov instruction and inserts instrumentation before it so that the shadow is handled correctly.
  */
-void MovHandler::instrument(Instruction_t *instruction){
+IRDB_SDK::Instruction_t* MovHandler::instrument(Instruction_t *instruction){
     auto decodedInstruction = DecodedInstruction_t::factory(instruction);
     vector<shared_ptr<DecodedOperand_t>> operands = decodedInstruction->getOperands();
     if(operands[0]->isGeneralPurposeRegister()){
         if(operands[1]->isGeneralPurposeRegister()){
-            instrumentRegToRegMove(instruction);
+            return instrumentRegToRegMove(instruction);
         } else if (operands[1]->isConstant()){
-            instrumentImmToRegMove(instruction);
+            return instrumentImmToRegMove(instruction);
         } else if (operands[1]->isMemory()) {
-            instrumentMemToRegMove(instruction);
-        } else if (operands[1]->isSegmentRegister()){
-            // Sreg to reg
+            return instrumentMemToRegMove(instruction);
         }
     } else if (operands[0]->isMemory()) {
         if(operands[1]->isGeneralPurposeRegister()){
-            instrumentRegToMemMove(instruction);
-        } else if (operands[1]->isSegmentRegister()){
-            // Sreg to mem
+            return instrumentRegToMemMove(instruction);
         } else if (operands[1]->isConstant()){
-            instrumentImmToMemMove(instruction);
-        }
-    } else if (operands[0]->isSegmentRegister()){
-        if(operands[1]->isGeneralPurposeRegister()){
-            // reg to Sreg
-        } else if (operands[1]->isMemory()){
-            // sreg to mem
+            return instrumentImmToMemMove(instruction);
         }
     }
+    return instruction;
 }
 
 /**
@@ -58,7 +45,7 @@ void MovHandler::instrument(Instruction_t *instruction){
  * to its width.
  * @param instruction mov [mem], immediate instruction
  */
-void MovHandler::instrumentImmToMemMove(IRDB_SDK::Instruction_t *instruction) {
+IRDB_SDK::Instruction_t* MovHandler::instrumentImmToMemMove(IRDB_SDK::Instruction_t *instruction) {
     cout << "instrumentImmToMemMove: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << endl;
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     auto dest = capstone->getMemoryOperandDisassembly(instruction);
@@ -73,6 +60,7 @@ void MovHandler::instrumentImmToMemMove(IRDB_SDK::Instruction_t *instruction) {
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::__msan_unpoison);
+    return new_instr.back();
 }
 
 /**
@@ -80,7 +68,7 @@ void MovHandler::instrumentImmToMemMove(IRDB_SDK::Instruction_t *instruction) {
  * to its width. Exception: If it is a double-word move, then also the higher four bytes are unpoisoned.
  * @param instruction mov reg, immediate instruction
  */
-void MovHandler::instrumentImmToRegMove(Instruction_t *instruction) {
+IRDB_SDK::Instruction_t* MovHandler::instrumentImmToRegMove(Instruction_t *instruction) {
     cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << endl;
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     auto dest = operands[0]->getRegNumber();
@@ -104,6 +92,7 @@ void MovHandler::instrumentImmToRegMove(Instruction_t *instruction) {
     if (width == Utils::toHex(DOUBLE_WORD)){
         new_instr[calls[1]]->setTarget(RuntimeLib::initUpper4Bytes);
     }
+    return new_instr.back();
 }
 
 /**
@@ -112,12 +101,11 @@ void MovHandler::instrumentImmToRegMove(Instruction_t *instruction) {
  * higher four bytes are unpoisoned.
  * @param instruction mov reg, [mem] instruction
  */
-void MovHandler::instrumentMemToRegMove(Instruction_t *instruction) {
+IRDB_SDK::Instruction_t* MovHandler::instrumentMemToRegMove(Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     auto dest = operands[0]->getRegNumber();
     cout << "instrumentMemToRegMove. Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << (int) dest << " and mem: " << operands[1]->getString() << endl;
 
-    instruction = MemoryAccessInstrumentation::instrumentMemRef(operands[1], instruction, capstone, fileIr);
     auto memoryDisassembly = capstone->getMemoryOperandDisassembly(instruction);
     auto width = capstone->getRegWidth(instruction, 0);
     // Higher four bytes are zeroed for double word moves.
@@ -140,6 +128,7 @@ void MovHandler::instrumentMemToRegMove(Instruction_t *instruction) {
     if(width == Utils::toHex(DOUBLE_WORD)) {
         new_instr[calls[1]]->setTarget(RuntimeLib::initUpper4Bytes);
     }
+    return new_instr.back();
 }
 
 
@@ -147,11 +136,9 @@ void MovHandler::instrumentMemToRegMove(Instruction_t *instruction) {
 *  to the destination memory operand according to their width.
 * @param instruction mov [mem], reg instruction
 */
-void MovHandler::instrumentRegToMemMove(IRDB_SDK::Instruction_t *instruction) {
-    // instrument mem operation
+IRDB_SDK::Instruction_t* MovHandler::instrumentRegToMemMove(IRDB_SDK::Instruction_t *instruction) {
     cout << "instrumentRegToMemMove. Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << endl;
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
-    instruction = MemoryAccessInstrumentation::instrumentMemRef(operands[0], instruction, capstone, fileIr);
 
     auto src = operands[1]->getRegNumber();
     auto width = capstone->getRegWidth(instruction, 1);
@@ -167,6 +154,7 @@ void MovHandler::instrumentRegToMemMove(IRDB_SDK::Instruction_t *instruction) {
     const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::regToMemShadowCopy);
+    return new_instr.back();
 }
 
 /**
@@ -174,7 +162,7 @@ void MovHandler::instrumentRegToMemMove(IRDB_SDK::Instruction_t *instruction) {
  * instrumentation before the instruction. If it is a double-word move, then the higher four bytes are unpoisoned.
  * @param instruction a pointer to the move instruction.
  */
-void MovHandler::instrumentRegToRegMove(Instruction_t *instruction) {
+IRDB_SDK::Instruction_t* MovHandler::instrumentRegToRegMove(Instruction_t *instruction) {
     const auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     const auto dest = operands[0]->getRegNumber();
     const auto source = operands[1]->getRegNumber();
@@ -203,4 +191,16 @@ void MovHandler::instrumentRegToRegMove(Instruction_t *instruction) {
     if(destWidth == Utils::toHex(DOUBLE_WORD)) {
         new_instr[calls[1]]->setTarget(RuntimeLib::initUpper4Bytes);
     }
+    return new_instr.back();
+}
+
+bool MovHandler::isResponsibleFor(IRDB_SDK::Instruction_t *instruction) {
+    auto decodedInstruction = IRDB_SDK::DecodedInstruction_t::factory(instruction);
+    auto mnemonic = decodedInstruction->getMnemonic();
+    for (const auto& associatedInstruction : associatedInstructions){
+        if (associatedInstruction == mnemonic){
+            return true;
+        }
+    }
+    return false;
 }

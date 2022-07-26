@@ -9,19 +9,20 @@ class EflagsHandler : public InstructionHandler {
 public:
     explicit EflagsHandler(IRDB_SDK::FileIR_t *fileIr);
     ~EflagsHandler() = default;
-    void instrument(IRDB_SDK::Instruction_t *instruction) override;
 
-    const std::vector<std::string> &getAssociatedInstructions() override;
+    bool isResponsibleFor(IRDB_SDK::Instruction_t *instruction) override;
+    IRDB_SDK::Instruction_t* instrument(IRDB_SDK::Instruction_t *instruction) override;
+
 private:
     std::vector<std::string> associatedInstructions {"cmp", "test"};
     std::unique_ptr<DisassemblyService> capstone;
 
     IRDB_SDK::FileIR_t *fileIr;
 
-    void propagateRegShadowToEflags(IRDB_SDK::Instruction_t *instruction);
-    void propagateMemShadowToEflags(IRDB_SDK::Instruction_t *instruction);
-    void propagateRegOrRegShadowToEflags(IRDB_SDK::Instruction_t *instruction);
-    void propagateRegOrMemShadowToEflags(IRDB_SDK::Instruction_t *instruction);
+    IRDB_SDK::Instruction_t* propagateRegShadowToEflags(IRDB_SDK::Instruction_t *instruction);
+    IRDB_SDK::Instruction_t* propagateMemShadowToEflags(IRDB_SDK::Instruction_t *instruction);
+    IRDB_SDK::Instruction_t* propagateRegOrRegShadowToEflags(IRDB_SDK::Instruction_t *instruction);
+    IRDB_SDK::Instruction_t* propagateRegOrMemShadowToEflags(IRDB_SDK::Instruction_t *instruction);
 };
 
 

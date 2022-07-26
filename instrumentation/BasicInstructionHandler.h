@@ -16,16 +16,17 @@ public:
     explicit BasicInstructionHandler(IRDB_SDK::FileIR_t *fileIr);
     ~BasicInstructionHandler() = default;
 
-    void instrument(IRDB_SDK::Instruction_t *instruction) override;
-    const std::vector<std::string> &getAssociatedInstructions() override;
+    IRDB_SDK::Instruction_t * instrument(IRDB_SDK::Instruction_t *instruction) override;
+    bool isResponsibleFor(IRDB_SDK::Instruction_t *instruction) override;
+
 private:
     std::vector<std::string> associatedInstructions {"add", "and", "or", "sub", "xor"};
     std::unique_ptr<DisassemblyService> capstone;
     IRDB_SDK::FileIR_t *fileIr;
 
-    void instrumentMemRegInstruction(IRDB_SDK::Instruction_t *instruction);
-    void instrumentRegMemInstruction(IRDB_SDK::Instruction_t *instruction);
-    void instrumentRegRegInstruction(IRDB_SDK::Instruction_t *instruction);
+    IRDB_SDK::Instruction_t* instrumentMemRegInstruction(IRDB_SDK::Instruction_t *instruction);
+    IRDB_SDK::Instruction_t* instrumentRegMemInstruction(IRDB_SDK::Instruction_t *instruction);
+    IRDB_SDK::Instruction_t* instrumentRegRegInstruction(IRDB_SDK::Instruction_t *instruction);
 };
 
 

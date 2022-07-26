@@ -6,8 +6,19 @@
 
 class InstructionHandler {
 public:
-    virtual void instrument(IRDB_SDK::Instruction_t *instruction) = 0;
-    virtual const std::vector<std::string> &getAssociatedInstructions() = 0;
+    /**
+     * Inserts appropriate instrumentation and return the original instruction.
+     * @param instruction instruction to be instrumented.
+     * @return original instruction.
+     */
+    virtual IRDB_SDK::Instruction_t* instrument(IRDB_SDK::Instruction_t *instruction) = 0;
+
+    /**
+     * Tells whether this handler is responsible for instrumenting the input instruction.
+     * @param instruction input instruction.
+     * @return true if handler is responsible.
+     */
+    virtual bool isResponsibleFor(IRDB_SDK::Instruction_t *instruction) = 0;
 };
 
 

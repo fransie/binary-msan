@@ -11,21 +11,16 @@ JumpHandler::JumpHandler(FileIR_t *fileIr) : fileIr(fileIr) {
     capstone = make_unique<DisassemblyService>();
 }
 
-const std::vector<std::string> &JumpHandler::getAssociatedInstructions() {
-    return associatedInstructions;
-}
-
-void JumpHandler::instrument(Instruction_t *instruction) {
+IRDB_SDK::Instruction_t* JumpHandler::instrument(Instruction_t *instruction) {
     cout << "JumpHandler. Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << endl;
 
     auto decodedInstr =  DecodedInstruction_t::factory(instruction);
     for(auto &cxInstruction : cxInstructions){
         if(decodedInstr->getMnemonic() == cxInstruction){
-            checkCx(decodedInstr, instruction);
-            return;
+            return checkCx(decodedInstr, instruction);
         }
     }
-    checkEflags(instruction);
+    return checkEflags(instruction);
 }
 
 /**
@@ -33,7 +28,7 @@ void JumpHandler::instrument(Instruction_t *instruction) {
  * it is not, an MSan warning is issued.
  * @param instruction instruction that jumps based on EFLAGS, like "je"
  */
-void JumpHandler::checkEflags(Instruction_t *instruction) {
+IRDB_SDK::Instruction_t* JumpHandler::checkEflags(Instruction_t *instruction) {
     string instrumentation = string() +
             Utils::getStateSavingInstrumentation() +
                              "call 0\n" +
@@ -41,6 +36,7 @@ void JumpHandler::checkEflags(Instruction_t *instruction) {
     const auto new_instr = insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,{});
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::checkEflags);
+    return new_instr.back();
 }
 
 /**
@@ -48,7 +44,7 @@ void JumpHandler::checkEflags(Instruction_t *instruction) {
  * RCX/ECX/CX is defined. If it is not, an MSan warning is issued.
  * @param instruction instruction that jumps based on RCX, like "jrcxz"
  */
-void JumpHandler::checkCx(unique_ptr<IRDB_SDK::DecodedInstruction_t> &decodedInstr, Instruction_t *instruction) {
+IRDB_SDK::Instruction_t* JumpHandler::checkCx(unique_ptr<IRDB_SDK::DecodedInstruction_t> &decodedInstr, Instruction_t *instruction) {
     int width = WORD;
     if(decodedInstr->getMnemonic() == "jecxz"){
         width = DOUBLE_WORD;
@@ -64,5 +60,17 @@ void JumpHandler::checkCx(unique_ptr<IRDB_SDK::DecodedInstruction_t> &decodedIns
     const auto new_instr = insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,{to_string(RCX), to_string(Utils::toHex(width))});
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
 	new_instr[calls[0]]->setTarget(RuntimeLib::checkRegIsInit);
+    return new_instr.back();
+}
+
+bool JumpHandler::isResponsibleFor(IRDB_SDK::Instruction_t *instruction) {
+    auto decodedInstruction = IRDB_SDK::DecodedInstruction_t::factory(instruction);
+    auto mnemonic = decodedInstruction->getMnemonic();
+    for (const auto& associatedInstruction : associatedInstructions){
+        if (associatedInstruction == mnemonic){
+            return true;
+        }
+    }
+    return false;
 }
 

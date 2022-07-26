@@ -7,26 +7,23 @@
 #include "MSan.h"
 #include "JumpHandler.h"
 #include "BasicInstructionHandler.h"
+#include "MemoryAccessHandler.h"
 #include "MovHandler.h"
 #include "StackVariableHandler.h"
 
 using namespace IRDB_SDK;
 using namespace std;
 
-MSan::MSan(FileIR_t *fileIR)
-        :
-        Transform_t(fileIR) // init Transform_t class for insertAssembly and getFileIR
-{
-    registerDependencies();
+MSan::MSan(FileIR_t *fileIR) : Transform_t(fileIR) {
     functionHandlers.push_back(make_unique<StackVariableHandler>(fileIR));
+    instructionHandlers.push_back(make_unique<MemoryAccessHandler>(fileIR));
     instructionHandlers.push_back(make_unique<MovHandler>(fileIR));
     instructionHandlers.push_back(make_unique<EflagsHandler>(fileIR));
     instructionHandlers.push_back(make_unique<JumpHandler>(fileIR));
     instructionHandlers.push_back(make_unique<BasicInstructionHandler>(fileIR));
 }
 
-bool MSan::executeStep()
-{
+bool MSan::executeStep() {
     registerDependencies();
     Function_t* mainFunction = nullptr;
     unique_ptr<FunctionAnalysis> mainFunctionAnalysis = nullptr;
@@ -42,15 +39,12 @@ bool MSan::executeStep()
         cout << "No main function detected." << endl;
     }
 
-    auto instructions = mainFunction->getInstructions();
-    for (auto instruction : instructions){
-        auto decodedInstruction = DecodedInstruction_t::factory(instruction);
-        auto mnemonic = decodedInstruction->getMnemonic();
-
+    const set<Instruction_t*> originalInstructions(mainFunction->getInstructions().begin(), mainFunction->getInstructions().end());
+    for (auto instruction : originalInstructions){
+        auto d = instruction->getDisassembly();
         for (auto&& handler : instructionHandlers){
-            for (const auto& associatedInstruction : handler->getAssociatedInstructions())
-            if(mnemonic == associatedInstruction){
-                handler->instrument(instruction);
+            if(handler->isResponsibleFor(instruction)){
+                instruction = handler->instrument(instruction);
             }
         }
     }
