@@ -5,6 +5,7 @@
 #include "EflagsHandler.h"
 #include "FunctionAnalysis.h"
 #include "MSan.h"
+#include "LeaHandler.h"
 #include "JumpHandler.h"
 #include "BasicInstructionHandler.h"
 #include "MemoryAccessHandler.h"
@@ -21,6 +22,7 @@ MSan::MSan(FileIR_t *fileIR) : Transform_t(fileIR) {
     instructionHandlers.push_back(make_unique<EflagsHandler>(fileIR));
     instructionHandlers.push_back(make_unique<JumpHandler>(fileIR));
     instructionHandlers.push_back(make_unique<BasicInstructionHandler>(fileIR));
+    instructionHandlers.push_back(make_unique<LeaHandler>(fileIR));
 }
 
 bool MSan::executeStep() {

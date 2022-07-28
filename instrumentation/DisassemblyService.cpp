@@ -100,7 +100,7 @@ int DisassemblyService::getIndexRegWidth(IRDB_SDK::Instruction_t *instruction) {
 /**
  * Converts an IRDB_SKD::Instruction_t to a Capstone instruction.
  *
- * Achtung: After finishing the work with the returned pointer, make sure so call `cs_free(<capstoneInstruction>, 1);` to free its memory.
+ * Achtung: After finishing the work with the returned pointer, make sure so call <code>cs_free(<capstoneInstruction>, 1);</code> to free its memory.
  *
  * @param instruction instruction to be transformed.
  * @return cs_insn* pointer to a capstone instruction. Free it via `cs_free(<capstoneInstruction>, 1);` after usage.
@@ -206,8 +206,7 @@ int DisassemblyService::convertX86RegNumberToWidth(x86_reg regNumber) {
             return QUAD_WORD;
 
         default:
-            //TODO: improve error handling
-            std::cerr << "Register was not general purpose, abort." << std::endl;
+            throw std::invalid_argument("Register was not general purpose, abort.");
     }
 }
 
@@ -256,4 +255,23 @@ std::vector<size_t> DisassemblyService::getCallInstructionPosition(const std::ve
         }
     }
     return result;
+}
+
+/**
+ * Returns the width of the registers used in a memory operand. E.g. <code>lea rax, [ebp + 0]</code> would return 32.
+ * The input instruction must contain a memory operand, otherwise an exception will be thrown.
+ * @param instruction Instruction of which to find out the memory operand register width.
+ * @return Width in bits.
+ */
+int DisassemblyService::getRegWidthInMemOperand(IRDB_SDK::Instruction_t *instruction) {
+    auto capstoneInstruction = getCapstoneInstruction(instruction);
+    auto memOperand = capstoneInstruction->detail->x86.operands[0];
+    if(capstoneInstruction->detail->x86.operands[1].type == X86_OP_MEM){
+        memOperand = memOperand = capstoneInstruction->detail->x86.operands[1];
+    }
+    // Base and index register always have the same width.
+    auto capstoneReg = memOperand.mem.base != X86_REG_INVALID ? memOperand.mem.base : memOperand.mem.index;
+    auto width = convertX86RegNumberToWidth(capstoneReg);
+    cs_free(capstoneInstruction, 1);
+    return width;
 }

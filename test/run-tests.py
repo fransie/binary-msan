@@ -94,7 +94,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         regex = sys.argv[1]
     # TODO: fix absolute path
-    dirs = [".", "MovHandlerTests", "BasicInstructionHandlerTests"]
+    dirs = [".", "MovHandlerTests", "BasicInstructionHandlerTests", "LeaHandlerTests"]
     for directory in dirs:
         path = "/home/franzi/Documents/binary-msan/test/" + directory
         testfiles = [f for f in listdir(path) if isfile(join(directory, f))]
