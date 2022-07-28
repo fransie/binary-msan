@@ -4,7 +4,6 @@ find_package(GTest CONFIG REQUIRED)
 add_executable (unit_tests
         checkRegIsInitTests.cpp
         getRegisterShadowTests.cpp
-        initUpper4BytesTests.cpp
         isRegFullyDefined.cpp
         isMemFullyDefined.cpp
         isRegOrRegFullyDefined.cpp
@@ -17,6 +16,7 @@ add_executable (unit_tests
         regToRegShadowCopyTests.cpp
         setMemShadowTests.cpp
         setRegShadowTests.cpp
+        unpoisonUpper4BytesTests.cpp
         )
 
 

@@ -8,6 +8,7 @@ enum RegisterNumbering{
     RAX = 0,
     RCX = 1,
     RDX = 2,
+    RBX = 3,
     RSP = 4,
     RBP = 5,
     RSI = 6,

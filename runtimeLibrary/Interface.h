@@ -20,7 +20,7 @@ INTERFACE void checkRegIsInit(int reg, int regWidth);
 INTERFACE void memToRegShadowCopy(__sanitizer::uptr memAddress, int reg, int regWidth);
 INTERFACE void regToMemShadowCopy(__sanitizer::uptr memAddress, int reg, int regWidth);
 INTERFACE void regToRegShadowCopy(int dest, int destWidth, int src, int srcWidth);
-INTERFACE void initUpper4Bytes(int reg);
+INTERFACE void unpoisonUpper4Bytes(int reg);
 
 // eflags
 INTERFACE void checkEflags();
@@ -32,7 +32,7 @@ INTERFACE void* getRegisterShadow(int reg, int regWidth);
 
 INTERFACE bool isRegFullyDefined(int reg, int width);
 INTERFACE bool isMemFullyDefined(const void *mem, uptr size);
-INTERFACE bool isRegOrRegFullyDefined(int dest, int destWidth, int src, int srcWidth);
+INTERFACE bool isRegOrRegFullyDefined(int reg1, int reg1Width, int reg2, int reg2Width);
 INTERFACE bool isRegOrMemFullyDefined(const void *mem, int reg, int width);
 
 INTERFACE void propagateRegOrRegShadow(int dest, int destWidth, int src, int srcWidth);

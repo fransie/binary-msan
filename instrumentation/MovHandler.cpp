@@ -86,7 +86,7 @@ IRDB_SDK::Instruction_t* MovHandler::instrumentImmToRegMove(Instruction_t *instr
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::setRegShadow);
     if (width == Utils::toHex(DOUBLE_WORD)){
-        new_instr[calls[1]]->setTarget(RuntimeLib::initUpper4Bytes);
+        new_instr[calls[1]]->setTarget(RuntimeLib::unpoisonUpper4Bytes);
     }
     return new_instr.back();
 }
@@ -122,7 +122,7 @@ IRDB_SDK::Instruction_t* MovHandler::instrumentMemToRegMove(Instruction_t *instr
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::memToRegShadowCopy);
     if(width == Utils::toHex(DOUBLE_WORD)) {
-        new_instr[calls[1]]->setTarget(RuntimeLib::initUpper4Bytes);
+        new_instr[calls[1]]->setTarget(RuntimeLib::unpoisonUpper4Bytes);
     }
     return new_instr.back();
 }
@@ -185,7 +185,7 @@ IRDB_SDK::Instruction_t* MovHandler::instrumentRegToRegMove(Instruction_t *instr
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::regToRegShadowCopy);
     if(destWidth == Utils::toHex(DOUBLE_WORD)) {
-        new_instr[calls[1]]->setTarget(RuntimeLib::initUpper4Bytes);
+        new_instr[calls[1]]->setTarget(RuntimeLib::unpoisonUpper4Bytes);
     }
     return new_instr.back();
 }

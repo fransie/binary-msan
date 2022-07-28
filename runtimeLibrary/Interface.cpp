@@ -203,7 +203,7 @@ bool isRegFullyDefined(int reg, int width) {
             width = 8;
         }
         for (int position = startFrom; position < (startFrom + width); position++){
-            if(shadowRegisterState[reg].test(startFrom) == 1){
+            if(shadowRegisterState[reg].test(position) == 1){
                 return false;
             }
         }
@@ -222,36 +222,36 @@ bool isMemFullyDefined(const void *mem, uptr size) {
 /**
  * Returns true if both input registers are fully initialised.
  */
-bool isRegOrRegFullyDefined(int dest, int destWidth, int src, int srcWidth) {
-    if(destWidth == HIGHER_BYTE || srcWidth == HIGHER_BYTE){
-        int destBit = 0;
-        if(destWidth == HIGHER_BYTE){
-            destBit = 8;
-            destWidth = 16;
+bool isRegOrRegFullyDefined(int reg1, int reg1Width, int reg2, int reg2Width) {
+    if(reg1Width == HIGHER_BYTE || reg2Width == HIGHER_BYTE){
+        int reg1Bit = 0;
+        if(reg1Width == HIGHER_BYTE){
+            reg1Bit = 8;
+            reg1Width = 16;
         }
-        for (; destBit < destWidth; destBit++){
-            if(shadowRegisterState[dest].test(destBit) == 1){
+        for (; reg1Bit < reg1Width; reg1Bit++){
+            if(shadowRegisterState[reg1].test(reg1Bit) == 1){
                 return false;
             }
         }
-        int srcBit = 0;
-        if(srcWidth == HIGHER_BYTE){
-            srcBit = 8;
-            srcWidth = 16;
+        int reg2Bit = 0;
+        if(reg2Width == HIGHER_BYTE){
+            reg2Bit = 8;
+            reg2Width = 16;
         }
-        for (; srcBit < srcWidth; srcBit++){
-            if(shadowRegisterState[src].test(srcBit) == 1){
+        for (; reg2Bit < reg2Width; reg2Bit++){
+            if(shadowRegisterState[reg2].test(reg2Bit) == 1){
                 return false;
             }
         }
         return true;
     }
 
-    auto registerOr = shadowRegisterState[dest] | shadowRegisterState[src];
+    auto registerOr = shadowRegisterState[reg1] | shadowRegisterState[reg2];
     if(registerOr.none()){
         return true;
     } else {
-        for (int bit = 0; bit < destWidth; bit++){
+        for (int bit = 0; bit < reg1Width; bit++){
             if(registerOr.test(bit) == 1){
                 return false;
             }
@@ -305,7 +305,7 @@ void setMemShadow(const void *mem, bool initState, uptr size) {
 /**
  * Unpoison the four higher bytes of <code>reg</code>.
  */
-void initUpper4Bytes(const int reg) {
+void unpoisonUpper4Bytes(const int reg) {
     shadowRegisterState[reg] = shadowRegisterState[reg] & std::bitset<64>{0x00000000ffffffff};
 }
 

@@ -8,7 +8,7 @@ TEST(initUpper4BytesTests, init){
     EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), UINT64_MAX);
 
     // when
-    initUpper4Bytes(RAX);
+    unpoisonUpper4Bytes(RAX);
 
     // then
     EXPECT_EQ(shadowRegisterState[RAX].to_ullong(), 0x0000000ffffffff);
