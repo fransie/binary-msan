@@ -119,8 +119,8 @@ bool MSan::parseArgs(int argc, char **argv) {
         switch (c)
         {
             case 'k':
-                halt_on_error = true;
-                std::cout << "Halt on error set to true." << std::endl;
+                halt_on_error = false;
+                std::cout << "Msan will keep going after warnings." << std::endl;
                 break;
             case '?':
                 if (optopt == 'c')

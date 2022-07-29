@@ -43,7 +43,7 @@ def sanitize(filename):
     output_name = f"{directory}/obj/{test_name}"
     sanitized_name = f"{output_name}_sanitized"
     subprocess.call(
-        f"$PSZ -c rida --step move_globals -c binmsan {output_name} {sanitized_name} >> {directory}/logs/{test_name}.txt 2>&1",
+        f"$PSZ -c rida --step move_globals -c binmsan {output_name} {sanitized_name} --step-option -k >> {directory}/logs/{test_name}.txt 2>&1",
         shell=True)
 
 

@@ -18,7 +18,7 @@ public:
     bool parseArgs(std::vector<std::string> step_args);
     bool parseArgs(int argc, char* argv[]);
 private:
-    bool halt_on_error = false;
+    bool halt_on_error = true;
     std::vector<std::unique_ptr<InstructionHandler>> instructionHandlers;
     std::vector<std::unique_ptr<FunctionHandler>> functionHandlers;
 
