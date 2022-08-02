@@ -1,8 +1,8 @@
 // COMPILE OPTIONS: -I/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compiler-rt/lib/msan -I/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compiler-rt/include/sanitizer/ -I/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compiler-rt/lib/  -L/home/franzi/Documents/binary-msan/plugins_install -linterface
 
 #include <stdio.h>
-#include "../runtimeLibrary/Interface.h"
-#include "../common/RegisterNumbering.h"
+#include "../../runtimeLibrary/Interface.h"
+#include "../../common/RegisterNumbering.h"
 
 int main(int argc, char** argv) {
     // define rax here because "new" is not instrumented yet and returns an uninit address in rax, which in wrong.

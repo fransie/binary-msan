@@ -1,13 +1,15 @@
 // COMPILE OPTIONS: -I/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compiler-rt/lib/msan -I/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compiler-rt/include/sanitizer/ -I/home/franzi/Documents/llvm-project-llvmorg-13.0.1/compiler-rt/lib/  -L/home/franzi/Documents/binary-msan/plugins_install -linterface
 
-#include "../runtimeLibrary/Interface.h"
-#include "../common/RegisterNumbering.h"
+#include <unistd.h>
+#include <iostream>
+#include "../../runtimeLibrary/Interface.h"
+#include "../../common/RegisterNumbering.h"
 
-int main(int argc, char** argv) {
+int main() {
     // define rax here because "new" is not instrumented yet and returns an uninit address in rax, which is wrong.
     setRegShadow(true,RAX,64);
-    int **ptr = (int **) new int;
-    int number = **ptr;
+    char *ptr = new char;
+    write(1, ptr, 1);
     return 0;
 }
 

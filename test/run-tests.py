@@ -1,3 +1,4 @@
+import os
 import re
 import subprocess
 import sys
@@ -99,13 +100,15 @@ if __name__ == '__main__':
     regex = ""
     if len(sys.argv) > 1:
         regex = sys.argv[1]
-    # TODO: fix absolute path
-    dirs = [".", "MovHandlerTests", "BasicInstructionHandlerTests", "LeaHandlerTests", "ControlFlowHandlerTests"]
-    for directory in dirs:
-        path = "/home/franzi/Documents/binary-msan/test/" + directory
+    current_wd = os.getcwd()
+    directories = [name for name in os.listdir(current_wd)
+                   if os.path.isdir(os.path.join(current_wd, name)) and name.__contains__("Tests")]
+
+    files = []
+    for directory in directories:
+        path = current_wd + "/" + directory
         testfiles = [f for f in listdir(path) if isfile(join(directory, f))]
-        files = []
         for file in testfiles:
             files.append(directory + "/" + file)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
-            executor.map(execute_test_case, files)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+        executor.map(execute_test_case, files)

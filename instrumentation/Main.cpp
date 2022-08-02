@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
         if (success) {
             std::cout << "Writing changes for " << url << std::endl;
 
-            // Stand alone transforms must manually write the IR back to the IRDB and commit the transactions
+            // Stand alone transforms must manually write the IR back to the IRDB
             firp->writeToDB();
 
             // and commit the transaction to postgres
@@ -56,14 +56,11 @@ int main(int argc, char* argv[]) {
             std::cout << "Skipping write back on failure. " << url << std::endl;
         }
     } catch (const IRDB_SDK::DatabaseError_t &db_error) {
-        // log any databse errors that might come up in the transform process
         std::cout << program_name << ": Unexpected database error: " << db_error << "file url: " << url << std::endl;
     } catch (...) {
-        // log any other errors
         std::cout<< program_name << ": Unexpected error file url: " << url << std::endl;
         return 2;
     }
 
-    // return success code to driver (as a shell-style return value).  0=success, 1=warnings, 2=errors
     return success ? 0 : 2;
 }
