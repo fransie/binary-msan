@@ -11,6 +11,7 @@ public:
 
     IRDB_SDK::Instruction_t* instrument(IRDB_SDK::Instruction_t *instruction) override;
 private:
+    IRDB_SDK::Instruction_t* instrumentImmLea(IRDB_SDK::Instruction_t *instruction);
     IRDB_SDK::Instruction_t* instrumentRegRegLea(IRDB_SDK::Instruction_t *instruction);
     IRDB_SDK::Instruction_t* instrumentRegLea(IRDB_SDK::Instruction_t *instruction);
 };

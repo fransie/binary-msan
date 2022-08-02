@@ -10,17 +10,38 @@ using namespace std;
 IRDB_SDK::Instruction_t *LeaHandler::instrument(IRDB_SDK::Instruction_t *instruction) {
     auto decodedInstruction = DecodedInstruction_t::factory(instruction);
     auto memOperand = decodedInstruction->getOperands()[1];
-    if(!memOperand->hasBaseRegister() && !memOperand->hasIndexRegister()){
-        return instruction;
-    }
-    std::cout << "LeaHandler::instrument. Operand: " << memOperand->getString() << std::endl;
 
+    std::cout << "LeaHandler::instrument. Instruction: " << decodedInstruction->getDisassembly() << std::endl;
     if(memOperand->hasBaseRegister() && memOperand->hasIndexRegister()){
         return instrumentRegRegLea(instruction);
-    } else{
+    } else if (memOperand->hasBaseRegister() != memOperand->hasIndexRegister()){
         return instrumentRegLea(instruction);
+    } else if(!memOperand->hasBaseRegister() && !memOperand->hasIndexRegister()) {
+        return instrumentImmLea(instruction);
     }
+    return instruction;
 }
+
+IRDB_SDK::Instruction_t *LeaHandler::instrumentImmLea(IRDB_SDK::Instruction_t *instruction) {
+    auto reg = DecodedInstruction_t::factory(instruction)->getOperand(0)->getRegNumber();
+    auto width = disassemblyService->getRegWidth(instruction, 0);
+    // Double-word results clear the higher 4 bytes of a general purpose register.
+    if(width == DOUBLE_WORD){
+        width = QUAD_WORD;
+    }
+    string instrumentation = Utils::getStateSavingInstrumentation() +
+        "mov dil, 1\n" +      // isInited
+        "mov rsi, %%1\n" +    // reg
+        "mov rdx, %%2\n" +    // regWidth
+        "call 0\n" +
+        Utils::getStateRestoringInstrumentation();
+    vector<basic_string<char>> instrumentationParams {to_string(reg), to_string(width)};
+    const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
+    auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
+    new_instr[calls[0]]->setTarget(RuntimeLib::setRegShadow);
+    return new_instr.back();
+}
+
 
 IRDB_SDK::Instruction_t *LeaHandler::instrumentRegRegLea(IRDB_SDK::Instruction_t *instruction) {
     auto decodedInstruction = DecodedInstruction_t::factory(instruction);
@@ -68,9 +89,13 @@ IRDB_SDK::Instruction_t *LeaHandler::instrumentRegLea(IRDB_SDK::Instruction_t *i
     auto destReg = decodedInstruction->getOperands()[0]->getRegNumber();
     auto destWidth = decodedInstruction->getOperands()[0]->getArgumentSizeInBits();
     auto memOperand = decodedInstruction->getOperands()[1];
-    auto regInMemOperand = memOperand->getBaseRegister();
-    if(regInMemOperand == X86_REG_INVALID){
+    u_int32_t regInMemOperand;
+    if(memOperand->hasBaseRegister()){
+        regInMemOperand = memOperand->getBaseRegister();
+    } else if(memOperand->hasIndexRegister()){
         regInMemOperand = memOperand->getIndexRegister();
+    } else {
+        throw invalid_argument("LeaHandler::instrumentRegLea: Memory operand of " + instruction->getDisassembly() + "doesn't have a register.");
     }
     auto width = disassemblyService->getRegWidthInMemOperand(instruction);
 
