@@ -6,15 +6,15 @@
 
 class RuntimeLib {
 public:
-    inline static IRDB_SDK::Instruction_t *__msan_unpoison;
+    inline static IRDB_SDK::Instruction_t *msan_unpoison;
     inline static IRDB_SDK::Instruction_t *checkRegIsInit;
     inline static IRDB_SDK::Instruction_t *memToRegShadowCopy;
     inline static IRDB_SDK::Instruction_t *regToRegShadowCopy;
     inline static IRDB_SDK::Instruction_t *regToMemShadowCopy;
     inline static IRDB_SDK::Instruction_t *checkEflags;
     inline static IRDB_SDK::Instruction_t *initGpRegisters;
-    inline static IRDB_SDK::Instruction_t *__msan_set_keep_going;
-    inline static IRDB_SDK::Instruction_t *__msan_poison_stack;
+    inline static IRDB_SDK::Instruction_t *msan_set_keep_going;
+    inline static IRDB_SDK::Instruction_t *msan_poison_stack;
     inline static IRDB_SDK::Instruction_t *isRegFullyDefined;
     inline static IRDB_SDK::Instruction_t *isMemFullyDefined;
     inline static IRDB_SDK::Instruction_t *isRegOrRegFullyDefined;
@@ -26,6 +26,7 @@ public:
     inline static IRDB_SDK::Instruction_t *propagateRegOrRegShadow;
     inline static IRDB_SDK::Instruction_t *propagateRegOrMemShadow;
     inline static IRDB_SDK::Instruction_t *propagateMemOrRegShadow;
+    inline static IRDB_SDK::Instruction_t *msan_check_mem_is_initialized;
 };
 
 

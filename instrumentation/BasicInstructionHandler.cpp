@@ -28,9 +28,6 @@ Instruction_t* BasicInstructionHandler::instrument(IRDB_SDK::Instruction_t *inst
 }
 
 IRDB_SDK::Instruction_t* BasicInstructionHandler::instrumentRegRegInstruction(IRDB_SDK::Instruction_t *instruction) {
-    // calculate their OR
-    // propagate to destination register
-
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     auto dest = operands[0]->getRegNumber();
     auto src = operands[1]->getRegNumber();

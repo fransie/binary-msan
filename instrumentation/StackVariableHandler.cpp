@@ -57,7 +57,7 @@ void StackVariableHandler::instrument(unique_ptr<FunctionAnalysis> &functionAnal
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsAfter(fileIr, movBpInstruction, instrumentation, instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     for(auto call : calls){
-        new_instr[call]->setTarget(RuntimeLib::__msan_poison_stack);
+        new_instr[call]->setTarget(RuntimeLib::msan_poison_stack);
     }
 }
 

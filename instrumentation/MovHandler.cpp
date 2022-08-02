@@ -55,7 +55,7 @@ IRDB_SDK::Instruction_t* MovHandler::instrumentImmToMemMove(IRDB_SDK::Instructio
     vector<basic_string<char>> instrumentationParams {dest, to_string(Utils::toHex(destWidth))};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
-    new_instr[calls[0]]->setTarget(RuntimeLib::__msan_unpoison);
+    new_instr[calls[0]]->setTarget(RuntimeLib::msan_unpoison);
     return new_instr.back();
 }
 

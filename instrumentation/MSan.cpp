@@ -96,9 +96,10 @@ void MSan::registerDependencies(){
     RuntimeLib::propagateRegOrMemShadow = elfDeps->appendPltEntry("propagateRegOrMemShadow");
     RuntimeLib::propagateMemOrRegShadow = elfDeps->appendPltEntry("propagateMemOrRegShadow");
 
-    RuntimeLib::__msan_set_keep_going = elfDeps->appendPltEntry("__msan_set_keep_going");
-    RuntimeLib::__msan_unpoison = elfDeps->appendPltEntry("__msan_unpoison");
-    RuntimeLib::__msan_poison_stack = elfDeps->appendPltEntry("__msan_poison_stack");
+    RuntimeLib::msan_check_mem_is_initialized = elfDeps->appendPltEntry("__msan_check_mem_is_initialized");
+    RuntimeLib::msan_poison_stack = elfDeps->appendPltEntry("__msan_poison_stack");
+    RuntimeLib::msan_set_keep_going = elfDeps->appendPltEntry("__msan_set_keep_going");
+    RuntimeLib::msan_unpoison = elfDeps->appendPltEntry("__msan_unpoison");
 
     const string compilerRtPath = "/home/franzi/Documents/binary-msan/clang_msan_libs/";
     elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan_cxx-x86_64.so");
@@ -148,5 +149,5 @@ void MSan::disableHaltOnError(IRDB_SDK::Instruction_t *instruction) {
             Utils::getStateRestoringInstrumentation();
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsAfter(getFileIR(), instruction, instrumentation, {});
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
-	new_instr[calls[0]]->setTarget(RuntimeLib::__msan_set_keep_going);
+	new_instr[calls[0]]->setTarget(RuntimeLib::msan_set_keep_going);
 }
