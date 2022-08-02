@@ -11,9 +11,26 @@ RED = '\033[91m'
 END = '\033[0m'
 
 
-def get_expected_output(filename):
+def verify_expected_output(filename):
+    directory = filename.split("/")[0]
     lines = open(filename, "r").readlines()
-    return lines[-1:].pop().replace("// EXPECTED: ", "").strip("\n")
+    last_line = lines[-1:].pop()
+
+    log = filename.split("/")[1].removesuffix(".cpp") + ".txt"
+    log_lines = open(f"{directory}/logs/{log}", "r").readlines()
+
+    expectation = last_line.replace("// EXPECTED: ", "").strip("\n")
+    line_num = 1
+    for line in log_lines:
+        if expectation in line:
+            print(
+                f"******* {filename} *******\n{GREEN}SUCCESS: Found expected output in {directory}/logs/{log}. Expected: '{expectation}'{END}")
+            break
+        if line_num == len(log_lines):
+            print(
+                f"******* {filename} *******\n{RED}ERROR: Expected output was not in {directory}/logs/{log}. Expected: '{expectation}'{END}")
+            break
+        line_num += 1
 
 
 def is_disabled(filename):
@@ -40,10 +57,13 @@ def build(filename):
 def sanitize(filename):
     directory = filename.split("/")[0]
     test_name = filename.split("/")[1].removesuffix(".cpp")
+    options = "--step-option -k"
+    if open(filename, "r").readlines().pop(1).__contains__("// HALT ON ERROR"):
+        options = ""
     output_name = f"{directory}/obj/{test_name}"
     sanitized_name = f"{output_name}_sanitized"
-    subprocess.call(
-        f"$PSZ -c rida --step move_globals -c binmsan {output_name} {sanitized_name} --step-option -k >> {directory}/logs/{test_name}.txt 2>&1",
+    return subprocess.call(
+        f"$PSZ -c rida --step move_globals -c binmsan {output_name} {sanitized_name} {options} >> {directory}/logs/{test_name}.txt 2>&1",
         shell=True)
 
 
@@ -65,26 +85,12 @@ def execute_test_case(file):
     if is_disabled(file):
         return
     build(file)
-    sanitize(file)
-    exit_code = run_test(file)
-    if exit_code == 2:
-        print(f"Run of sanitized {file} failed.")
+    exit_code = sanitize(file)
+    if exit_code != 0:
+        print(f"******* {file} *******\n{RED}ERROR: Sanitization failed.{END}")
         return
-
-    directory = file.split("/")[0]
-    expected_output = get_expected_output(file)
-    log = file.split("/")[1].removesuffix(".cpp") + ".txt"
-    log_lines = open(f"{directory}/logs/{log}", "r").readlines()
-
-    line_num = 1
-    for line in log_lines:
-        if expected_output in line:
-            print(f"******* {file} *******\n{GREEN}SUCCESS: Found expected output in {directory}/logs/{log}. Expected: '{expected_output}'{END}")
-            break
-        if line_num == len(log_lines):
-            print(f"******* {file} *******\n{RED}ERROR: Expected output was not in {directory}/logs/{log}. Expected: '{expected_output}'{END}")
-            break
-        line_num += 1
+    run_test(file)
+    verify_expected_output(file)
 
 
 if __name__ == '__main__':
