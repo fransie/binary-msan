@@ -29,25 +29,26 @@ MSan::MSan(FileIR_t *fileIR) : Transform_t(fileIR) {
 
 bool MSan::executeStep() {
     registerDependencies();
-    Function_t* mainFunction = nullptr;
+    Function_t *mainFunction = nullptr;
     unique_ptr<FunctionAnalysis> mainFunctionAnalysis = nullptr;
     auto functions = getFileIR()->getFunctions();
-    for (auto const &function : functions){
-        if(function->getName() == "main"){
+    for (auto const &function: functions) {
+        if (function->getName() == "main") {
             mainFunction = function;
             mainFunctionAnalysis = make_unique<FunctionAnalysis>(mainFunction);
             break;
         }
     }
-    if(!mainFunction){
+    if (!mainFunction) {
         cout << "No main function detected." << endl;
     }
 
-    const set<Instruction_t*> originalInstructions(mainFunction->getInstructions().begin(), mainFunction->getInstructions().end());
-    for (auto instruction : originalInstructions){
+    const set<Instruction_t *> originalInstructions(mainFunction->getInstructions().begin(),
+                                                    mainFunction->getInstructions().end());
+    for (auto instruction: originalInstructions) {
         auto d = instruction->getDisassembly();
-        for (auto&& handler : instructionHandlers){
-            if(handler->isResponsibleFor(instruction)){
+        for (auto &&handler: instructionHandlers) {
+            if (handler->isResponsibleFor(instruction)) {
                 instruction = handler->instrument(instruction);
             }
         }
@@ -58,8 +59,7 @@ bool MSan::executeStep() {
 }
 
 
-
-void MSan::registerDependencies(){
+void MSan::registerDependencies() {
     auto elfDeps = ElfDependencies_t::factory(getFileIR());
     // TODO: fix absolute paths
 
@@ -104,9 +104,8 @@ bool MSan::parseArgs(std::vector<std::string> step_args) {
 bool MSan::parseArgs(int argc, char **argv) {
     int c;
     opterr = 0;
-    while ((c = getopt (argc, argv, "kl")) != -1){
-        switch (c)
-        {
+    while ((c = getopt(argc, argv, "kl")) != -1) {
+        switch (c) {
             case 'k':
                 keep_going = true;
                 std::cout << "Msan will keep going after warnings." << std::endl;
@@ -117,13 +116,13 @@ bool MSan::parseArgs(int argc, char **argv) {
                 break;
             case '?':
                 if (optopt == 'c')
-                    fprintf (stderr, "Option -%c requires an argument.\n", optopt);
-                else if (isprint (optopt))
-                    fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+                    fprintf(stderr, "Option -%c requires an argument.\n", optopt);
+                else if (isprint(optopt))
+                    fprintf(stderr, "Unknown option `-%c'.\n", optopt);
                 else
-                    fprintf (stderr,
-                             "Unknown option character `\\x%x'.\n",
-                             optopt);
+                    fprintf(stderr,
+                            "Unknown option character `\\x%x'.\n",
+                            optopt);
                 return true;
             default:
                 std::cerr << "Error parsing arguments." << std::endl;
@@ -136,14 +135,14 @@ bool MSan::parseArgs(int argc, char **argv) {
 void MSan::instrumentOptions(IRDB_SDK::Instruction_t *instruction) {
     // Call to initGpRegisters: Assume RBP and RSP registers are initialised upon entry of main function
     string instrumentation = Utils::getStateSavingInstrumentation() + "call 0\n";
-    std::vector<Instruction_t*> targets = {RuntimeLib::initGpRegisters};
+    std::vector<Instruction_t *> targets = {RuntimeLib::initGpRegisters};
 
-    if(keep_going){
+    if (keep_going) {
         instrumentation = instrumentation + "mov rdi, 1\ncall 0\n";
         targets.push_back(RuntimeLib::msan_set_keep_going);
     }
 
-    if(logging){
+    if (logging) {
         instrumentation = instrumentation + "call 0\n";
         targets.push_back(RuntimeLib::enableLogging);
     }
@@ -151,7 +150,7 @@ void MSan::instrumentOptions(IRDB_SDK::Instruction_t *instruction) {
     instrumentation = instrumentation + Utils::getStateRestoringInstrumentation();
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsAfter(getFileIR(), instruction, instrumentation, {});
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
-	for (size_t x = 0; x < calls.size(); x++){
+    for (size_t x = 0; x < calls.size(); x++) {
         new_instr[calls[x]]->setTarget(targets[x]);
     }
 }

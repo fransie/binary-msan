@@ -1,10 +1,12 @@
-
 #ifndef BINARY_MSAN_INSTRUCTIONHANDLER_H
 #define BINARY_MSAN_INSTRUCTIONHANDLER_H
 
 #include <irdb-core>
 #include "DisassemblyService.h"
 
+/**
+ * Interface that handlers for instructions must implement.
+ */
 class InstructionHandler {
 public:
     explicit InstructionHandler(IRDB_SDK::FileIR_t *fileIr) : fileIr(fileIr) {

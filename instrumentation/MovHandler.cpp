@@ -8,28 +8,24 @@
 using namespace IRDB_SDK;
 using namespace std;
 
-// Achtung: there is also mov to control or debug segments -> handle every case (GPR, immediate, memory, ect.)
-// here explicitly, not with plain "else". Control and debug segments can be recognised with operand->isSpecialRegister().
-// TODO: Are moves with moffs (e.g. opcode A3) also handled as memory operands?
-// TODO: segment registers?
 /**
  * Takes a mov instruction and inserts instrumentation before it so that the shadow is handled correctly.
  */
-IRDB_SDK::Instruction_t* MovHandler::instrument(Instruction_t *instruction){
+IRDB_SDK::Instruction_t *MovHandler::instrument(Instruction_t *instruction) {
     auto decodedInstruction = DecodedInstruction_t::factory(instruction);
     vector<shared_ptr<DecodedOperand_t>> operands = decodedInstruction->getOperands();
-    if(operands[0]->isGeneralPurposeRegister()){
-        if(operands[1]->isGeneralPurposeRegister()){
+    if (operands[0]->isGeneralPurposeRegister()) {
+        if (operands[1]->isGeneralPurposeRegister()) {
             return instrumentRegToRegMove(instruction);
-        } else if (operands[1]->isConstant()){
+        } else if (operands[1]->isConstant()) {
             return instrumentImmToRegMove(instruction);
         } else if (operands[1]->isMemory()) {
             return instrumentMemToRegMove(instruction);
         }
     } else if (operands[0]->isMemory()) {
-        if(operands[1]->isGeneralPurposeRegister()){
+        if (operands[1]->isGeneralPurposeRegister()) {
             return instrumentRegToMemMove(instruction);
-        } else if (operands[1]->isConstant()){
+        } else if (operands[1]->isConstant()) {
             return instrumentImmToMemMove(instruction);
         }
     }
@@ -41,19 +37,21 @@ IRDB_SDK::Instruction_t* MovHandler::instrument(Instruction_t *instruction){
  * to its width.
  * @param instruction mov [mem], immediate instruction
  */
-IRDB_SDK::Instruction_t* MovHandler::instrumentImmToMemMove(IRDB_SDK::Instruction_t *instruction) {
-    cout << "instrumentImmToMemMove: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << endl;
+IRDB_SDK::Instruction_t *MovHandler::instrumentImmToMemMove(IRDB_SDK::Instruction_t *instruction) {
+    cout << "instrumentImmToMemMove: " << instruction->getDisassembly() << " at "
+         << instruction->getAddress()->getVirtualOffset() << endl;
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     auto dest = disassemblyService->getMemoryOperandDisassembly(instruction);
     auto destWidth = operands[0]->getArgumentSizeInBytes();
     string instrumentation = string() +
-            Utils::getStateSavingInstrumentation() +
+                             Utils::getStateSavingInstrumentation() +
                              "lea rdi, %%1\n" +    // first argument
                              "mov rsi, %%2\n" +    // second argument
                              "call 0\n" +
-            Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams {dest, to_string(Utils::toHex(destWidth))};
-    const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
+                             Utils::getStateRestoringInstrumentation();
+    vector<basic_string<char>> instrumentationParams{dest, to_string(Utils::toHex(destWidth))};
+    const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
+                                                                      instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::msan_unpoison);
     return new_instr.back();
@@ -64,28 +62,30 @@ IRDB_SDK::Instruction_t* MovHandler::instrumentImmToMemMove(IRDB_SDK::Instructio
  * to its width. Exception: If it is a double-word move, then also the higher four bytes are unpoisoned.
  * @param instruction mov reg, immediate instruction
  */
-IRDB_SDK::Instruction_t* MovHandler::instrumentImmToRegMove(Instruction_t *instruction) {
-    cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << endl;
+IRDB_SDK::Instruction_t *MovHandler::instrumentImmToRegMove(Instruction_t *instruction) {
+    cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset()
+         << endl;
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     auto dest = operands[0]->getRegNumber();
     auto width = disassemblyService->getRegWidth(instruction, 0);
     string instrumentation = string() +
-            Utils::getStateSavingInstrumentation() +
+                             Utils::getStateSavingInstrumentation() +
                              "mov dil, 1\n" +      // isInited
                              "mov rsi, %%1\n" +    // reg
                              "mov rdx, %%2\n" +    // regWidth
                              "call 0\n";
-    if (width == Utils::toHex(DOUBLE_WORD)){
+    if (width == Utils::toHex(DOUBLE_WORD)) {
         instrumentation = instrumentation +
-                             "mov rdi, %%1\n" +    // reg
-                             "call 0\n";
+                          "mov rdi, %%1\n" +    // reg
+                          "call 0\n";
     }
     instrumentation += Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string(width)};
-    const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
+    vector<basic_string<char>> instrumentationParams{to_string((int) dest), to_string(width)};
+    const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
+                                                                      instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::setRegShadow);
-    if (width == Utils::toHex(DOUBLE_WORD)){
+    if (width == Utils::toHex(DOUBLE_WORD)) {
         new_instr[calls[1]]->setTarget(RuntimeLib::unpoisonUpper4Bytes);
     }
     return new_instr.back();
@@ -97,31 +97,34 @@ IRDB_SDK::Instruction_t* MovHandler::instrumentImmToRegMove(Instruction_t *instr
  * higher four bytes are unpoisoned.
  * @param instruction mov reg, [mem] instruction
  */
-IRDB_SDK::Instruction_t* MovHandler::instrumentMemToRegMove(Instruction_t *instruction) {
+IRDB_SDK::Instruction_t *MovHandler::instrumentMemToRegMove(Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     auto dest = operands[0]->getRegNumber();
-    cout << "instrumentMemToRegMove. Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << (int) dest << " and mem: " << operands[1]->getString() << endl;
+    cout << "instrumentMemToRegMove. Instruction: " << instruction->getDisassembly() << " at "
+         << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << (int) dest << " and mem: "
+         << operands[1]->getString() << endl;
 
     auto memoryDisassembly = disassemblyService->getMemoryOperandDisassembly(instruction);
     auto width = disassemblyService->getRegWidth(instruction, 0);
     // Higher four bytes are zeroed for double word moves.
     string instrumentation = string() +
-            Utils::getStateSavingInstrumentation() +
+                             Utils::getStateSavingInstrumentation() +
                              "lea rdi, %%1\n" +    // memAddr
                              "mov rsi, %%2\n" +    // reg
                              "mov rdx, %%3\n" +    // regWidth
                              "call 0\n";
-    if(width == Utils::toHex(DOUBLE_WORD)) {
+    if (width == Utils::toHex(DOUBLE_WORD)) {
         instrumentation = instrumentation +
                           "mov rdi, %%2\n" +    // reg
                           "call 0\n";
     }
     instrumentation += Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams {memoryDisassembly, to_string(dest), to_string(width)};
-    const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
+    vector<basic_string<char>> instrumentationParams{memoryDisassembly, to_string(dest), to_string(width)};
+    const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
+                                                                        instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::memToRegShadowCopy);
-    if(width == Utils::toHex(DOUBLE_WORD)) {
+    if (width == Utils::toHex(DOUBLE_WORD)) {
         new_instr[calls[1]]->setTarget(RuntimeLib::unpoisonUpper4Bytes);
     }
     return new_instr.back();
@@ -132,22 +135,24 @@ IRDB_SDK::Instruction_t* MovHandler::instrumentMemToRegMove(Instruction_t *instr
 *  to the destination memory operand according to their width.
 * @param instruction mov [mem], reg instruction
 */
-IRDB_SDK::Instruction_t* MovHandler::instrumentRegToMemMove(IRDB_SDK::Instruction_t *instruction) {
-    cout << "instrumentRegToMemMove. Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << endl;
+IRDB_SDK::Instruction_t *MovHandler::instrumentRegToMemMove(IRDB_SDK::Instruction_t *instruction) {
+    cout << "instrumentRegToMemMove. Instruction: " << instruction->getDisassembly() << " at "
+         << instruction->getAddress()->getVirtualOffset() << endl;
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
 
     auto src = operands[1]->getRegNumber();
     auto width = disassemblyService->getRegWidth(instruction, 1);
     auto memoryDisassembly = disassemblyService->getMemoryOperandDisassembly(instruction);
     string instrumentation = string() +
-            Utils::getStateSavingInstrumentation() +
+                             Utils::getStateSavingInstrumentation() +
                              "lea rdi, %%1\n" +    // memAddr
                              "mov rsi, %%2\n" +    // reg
                              "mov rdx, %%3\n" +    // regWidth
                              "call 0\n" +
-            Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams {memoryDisassembly, to_string(src), to_string(width)};
-    const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
+                             Utils::getStateRestoringInstrumentation();
+    vector<basic_string<char>> instrumentationParams{memoryDisassembly, to_string(src), to_string(width)};
+    const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
+                                                                        instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::regToMemShadowCopy);
     return new_instr.back();
@@ -158,33 +163,35 @@ IRDB_SDK::Instruction_t* MovHandler::instrumentRegToMemMove(IRDB_SDK::Instructio
  * instrumentation before the instruction. If it is a double-word move, then the higher four bytes are unpoisoned.
  * @param instruction a pointer to the move instruction.
  */
-IRDB_SDK::Instruction_t* MovHandler::instrumentRegToRegMove(Instruction_t *instruction) {
+IRDB_SDK::Instruction_t *MovHandler::instrumentRegToRegMove(Instruction_t *instruction) {
     const auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     const auto dest = operands[0]->getRegNumber();
     const auto source = operands[1]->getRegNumber();
-    cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << dest << " and source: " << source << endl;
+    cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset()
+         << ". Destination register: " << dest << " and source: " << source << endl;
 
     auto destWidth = disassemblyService->getRegWidth(instruction, 0);
     auto srcWidth = disassemblyService->getRegWidth(instruction, 1);
     string instrumentation = string() +
-            Utils::getStateSavingInstrumentation() +
+                             Utils::getStateSavingInstrumentation() +
                              "mov rdi, %%1\n" +    // dest
-                            "mov rsi, %%2\n" +    // destWidth
-                            "mov rdx, %%3\n"      // src
-                            "mov rcx, %%4\n"      // srcWidth
-                            "call 0\n";
-    if(destWidth == Utils::toHex(DOUBLE_WORD)) {
+                             "mov rsi, %%2\n" +    // destWidth
+                             "mov rdx, %%3\n"      // src
+                             "mov rcx, %%4\n"      // srcWidth
+                             "call 0\n";
+    if (destWidth == Utils::toHex(DOUBLE_WORD)) {
         instrumentation = instrumentation +
                           "mov rdi, %%1\n" +    // reg
                           "call 0\n";
     }
     instrumentation += Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams {to_string(dest), to_string(destWidth), to_string(source),
-                                                      to_string(srcWidth)};
-    const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
+    vector<basic_string<char>> instrumentationParams{to_string(dest), to_string(destWidth), to_string(source),
+                                                     to_string(srcWidth)};
+    const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
+                                                                        instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::regToRegShadowCopy);
-    if(destWidth == Utils::toHex(DOUBLE_WORD)) {
+    if (destWidth == Utils::toHex(DOUBLE_WORD)) {
         new_instr[calls[1]]->setTarget(RuntimeLib::unpoisonUpper4Bytes);
     }
     return new_instr.back();

@@ -7,16 +7,17 @@
 #include "InstructionHandler.h"
 #include "MemoryAccessHandler.h"
 
-class MSan : protected IRDB_SDK::Transform_t
-{
+class MSan : protected IRDB_SDK::Transform_t {
 public:
     MSan(IRDB_SDK::FileIR_t *fileIR);
     //TODO: clean up in destructor
     //~MSan() override;
 
     bool executeStep();
+
     bool parseArgs(std::vector<std::string> step_args);
-    bool parseArgs(int argc, char* argv[]);
+    bool parseArgs(int argc, char *argv[]);
+
 private:
     bool keep_going = false;
     bool logging = false;

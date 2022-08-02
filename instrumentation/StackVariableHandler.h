@@ -14,18 +14,18 @@
  * | 3    | Leaf/tail     | without sub | Poison red zone (128 bytes below stack pointer)                    |
  * | 4    | Leaf/tail     | with sub    | Poison both stack frame and red zone                               |
  */
-class StackVariableHandler : public FunctionHandler{
+class StackVariableHandler : public FunctionHandler {
 public:
     explicit StackVariableHandler(IRDB_SDK::FileIR_t *fileIr);
 
-    void instrument(std::unique_ptr<FunctionAnalysis> &functionAnalysis);
+    void instrument(std::unique_ptr<FunctionAnalysis> &functionAnalysis) override;
 
 private:
     IRDB_SDK::FileIR_t *fileIr;
 
-    IRDB_SDK::Instruction_t* getBpMove(IRDB_SDK::Function_t *function);
-    std::vector<std::basic_string<char>> poisonRedZone(int stackFrameSize, std::string &instrumentation);
-    std::basic_string<char> poisonStackframe(int stackFrameSize, std::string &instrumentation);
+    static IRDB_SDK::Instruction_t *getBpMove(IRDB_SDK::Function_t *function);
+    static std::vector<std::basic_string<char>> poisonRedZone(int stackFrameSize, std::string &instrumentation);
+    static std::basic_string<char> poisonStackframe(int stackFrameSize, std::string &instrumentation);
 };
 
 

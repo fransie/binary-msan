@@ -14,13 +14,13 @@ Instruction_t *BinaryArithmeticHandler::instrument(IRDB_SDK::Instruction_t *inst
             return instrumentRegRegInstruction(instruction);
         } else if (operands[1]->isMemory()) {
             return instrumentRegMemInstruction(instruction);
-        } else if(operands[1]->isConstant()){
+        } else if (operands[1]->isConstant()) {
             return instrumentRegImm(instruction);
         }
     } else if (operands[0]->isMemory()) {
         if (operands[1]->isGeneralPurposeRegister()) {
             return instrumentMemRegInstruction(instruction);
-        } else if (operands[1]->isConstant()){
+        } else if (operands[1]->isConstant()) {
             return instrumentMemImmInstruction(instruction);
         }
     }
@@ -57,8 +57,8 @@ IRDB_SDK::Instruction_t *BinaryArithmeticHandler::instrumentRegRegInstruction(IR
 
 IRDB_SDK::Instruction_t *BinaryArithmeticHandler::instrumentMemRegInstruction(IRDB_SDK::Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
-    int reg = operands[1]->getRegNumber();
-    int width = disassemblyService->getRegWidth(instruction, 1);
+    auto reg = operands[1]->getRegNumber();
+    auto width = disassemblyService->getRegWidth(instruction, 1);
     auto memory = disassemblyService->getMemoryOperandDisassembly(instruction);
     string instrumentation =
             Utils::getStateSavingInstrumentation() +
@@ -82,8 +82,8 @@ IRDB_SDK::Instruction_t *BinaryArithmeticHandler::instrumentMemRegInstruction(IR
 
 IRDB_SDK::Instruction_t *BinaryArithmeticHandler::instrumentRegMemInstruction(IRDB_SDK::Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
-    int reg = operands[0]->getRegNumber();
-    int width = disassemblyService->getRegWidth(instruction, 0);
+    auto reg = operands[0]->getRegNumber();
+    auto width = disassemblyService->getRegWidth(instruction, 0);
     auto memory = disassemblyService->getMemoryOperandDisassembly(instruction);
     string instrumentation =
             Utils::getStateSavingInstrumentation() +
@@ -130,7 +130,7 @@ IRDB_SDK::Instruction_t *BinaryArithmeticHandler::instrumentRegImm(IRDB_SDK::Ins
 
 IRDB_SDK::Instruction_t *BinaryArithmeticHandler::instrumentMemImmInstruction(IRDB_SDK::Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
-    int width = operands[0]->getArgumentSizeInBits();
+    auto width = operands[0]->getArgumentSizeInBits();
     auto memory = disassemblyService->getMemoryOperandDisassembly(instruction);
     string instrumentation =
             Utils::getStateSavingInstrumentation() +

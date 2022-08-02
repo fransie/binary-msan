@@ -6,19 +6,19 @@
 using namespace IRDB_SDK;
 using namespace std;
 
-IRDB_SDK::Instruction_t* EflagsHandler::instrument(IRDB_SDK::Instruction_t *instruction) {
+IRDB_SDK::Instruction_t *EflagsHandler::instrument(IRDB_SDK::Instruction_t *instruction) {
     auto decodedInstruction = DecodedInstruction_t::factory(instruction);
     vector<shared_ptr<DecodedOperand_t>> operands = decodedInstruction->getOperands();
-    if(operands[0]->isGeneralPurposeRegister()){
-        if(operands[1]->isGeneralPurposeRegister()){
-            if(operands[0]->getRegNumber() == operands[1]->getRegNumber()){
+    if (operands[0]->isGeneralPurposeRegister()) {
+        if (operands[1]->isGeneralPurposeRegister()) {
+            if (operands[0]->getRegNumber() == operands[1]->getRegNumber()) {
                 // test regX, regX
                 return propagateRegShadowToEflags(instruction);
             } else {
                 // test regX, regY
                 return propagateRegOrRegShadowToEflags(instruction);
             }
-        } else if (operands[1]->isConstant()){
+        } else if (operands[1]->isConstant()) {
             // reg and immediate
             return propagateRegShadowToEflags(instruction);
         } else if (operands[1]->isMemory()) {
@@ -26,10 +26,10 @@ IRDB_SDK::Instruction_t* EflagsHandler::instrument(IRDB_SDK::Instruction_t *inst
             return propagateRegOrMemShadowToEflags(instruction);
         }
     } else if (operands[0]->isMemory()) {
-        if(operands[1]->isGeneralPurposeRegister()){
+        if (operands[1]->isGeneralPurposeRegister()) {
             // mem and reg
             return propagateRegOrMemShadowToEflags(instruction);
-        } else if (operands[1]->isConstant()){
+        } else if (operands[1]->isConstant()) {
             // mem and immediate
             return propagateMemShadowToEflags(instruction);
         }
@@ -46,20 +46,21 @@ IRDB_SDK::Instruction_t* EflagsHandler::instrument(IRDB_SDK::Instruction_t *inst
  *
  * @param instruction Instruction that affects EFLAGS register.
  */
-IRDB_SDK::Instruction_t* EflagsHandler::propagateRegShadowToEflags(IRDB_SDK::Instruction_t *instruction) {
+IRDB_SDK::Instruction_t *EflagsHandler::propagateRegShadowToEflags(IRDB_SDK::Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     auto dest = operands[0]->getRegNumber();
     auto width = disassemblyService->getRegWidth(instruction, 0);
     string instrumentation = string() +
-            Utils::getStateSavingInstrumentation() +
+                             Utils::getStateSavingInstrumentation() +
                              "mov rdi, %%1\n" +
                              "mov rsi, %%2\n" +
                              "call 0\n" +
                              "mov dil, al\n" +
                              "call 0\n" +
-            Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string(width)};
-    const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
+                             Utils::getStateRestoringInstrumentation();
+    vector<basic_string<char>> instrumentationParams{to_string((int) dest), to_string(width)};
+    const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
+                                                                      instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::isRegFullyDefined);
     new_instr[calls[1]]->setTarget(RuntimeLib::setEflags);
@@ -75,20 +76,21 @@ IRDB_SDK::Instruction_t* EflagsHandler::propagateRegShadowToEflags(IRDB_SDK::Ins
  *
  * @param instruction Instruction that affects EFLAGS register.
  */
-IRDB_SDK::Instruction_t* EflagsHandler::propagateMemShadowToEflags(IRDB_SDK::Instruction_t *instruction) {
+IRDB_SDK::Instruction_t *EflagsHandler::propagateMemShadowToEflags(IRDB_SDK::Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     auto dest = disassemblyService->getMemoryOperandDisassembly(instruction);
     auto destWidth = operands[0]->getArgumentSizeInBytes();
     string instrumentation = string() +
-            Utils::getStateSavingInstrumentation() +
+                             Utils::getStateSavingInstrumentation() +
                              "lea rdi, %%1\n" +
                              "mov rsi, %%2\n" +
                              "call 0\n" +
                              "mov dil, al\n" +
                              "call 0\n" +
-            Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams {dest, to_string(Utils::toHex(destWidth))};
-    const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
+                             Utils::getStateRestoringInstrumentation();
+    vector<basic_string<char>> instrumentationParams{dest, to_string(Utils::toHex(destWidth))};
+    const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
+                                                                      instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::isMemFullyDefined);
     new_instr[calls[1]]->setTarget(RuntimeLib::setEflags);
@@ -104,14 +106,14 @@ IRDB_SDK::Instruction_t* EflagsHandler::propagateMemShadowToEflags(IRDB_SDK::Ins
  *
  * @param instruction Instruction that affects EFLAGS register.
  */
-IRDB_SDK::Instruction_t* EflagsHandler::propagateRegOrRegShadowToEflags(IRDB_SDK::Instruction_t *instruction) {
+IRDB_SDK::Instruction_t *EflagsHandler::propagateRegOrRegShadowToEflags(IRDB_SDK::Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     auto dest = operands[0]->getRegNumber();
     auto src = operands[1]->getRegNumber();
     auto destWidth = disassemblyService->getRegWidth(instruction, 0);
     auto srcWidth = disassemblyService->getRegWidth(instruction, 1);
     string instrumentation = string() +
-            Utils::getStateSavingInstrumentation() +
+                             Utils::getStateSavingInstrumentation() +
                              "mov rdi, %%1\n" +    // dest
                              "mov rsi, %%2\n" +    // destWidth
                              "mov rdx, %%3\n" +    // src
@@ -119,9 +121,11 @@ IRDB_SDK::Instruction_t* EflagsHandler::propagateRegOrRegShadowToEflags(IRDB_SDK
                              "call 0\n" +
                              "mov dil, al\n" +
                              "call 0\n" +
-            Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string(destWidth), to_string((int)src), to_string(srcWidth)};
-    const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
+                             Utils::getStateRestoringInstrumentation();
+    vector<basic_string<char>> instrumentationParams{to_string((int) dest), to_string(destWidth), to_string((int) src),
+                                                     to_string(srcWidth)};
+    const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
+                                                                      instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::isRegOrRegFullyDefined);
     new_instr[calls[1]]->setTarget(RuntimeLib::setEflags);
@@ -137,29 +141,30 @@ IRDB_SDK::Instruction_t* EflagsHandler::propagateRegOrRegShadowToEflags(IRDB_SDK
  *
  * @param instruction Instruction that affects EFLAGS register.
  */
-IRDB_SDK::Instruction_t* EflagsHandler::propagateRegOrMemShadowToEflags(IRDB_SDK::Instruction_t *instruction) {
+IRDB_SDK::Instruction_t *EflagsHandler::propagateRegOrMemShadowToEflags(IRDB_SDK::Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
-    int reg;
-    int width;
-    if(operands[0]->isGeneralPurposeRegister()){
+    uint32_t reg;
+    uint32_t width;
+    if (operands[0]->isGeneralPurposeRegister()) {
         reg = operands[0]->getRegNumber();
         width = disassemblyService->getRegWidth(instruction, 0);
-    } else{
+    } else {
         reg = operands[1]->getRegNumber();
         width = disassemblyService->getRegWidth(instruction, 1);
     }
     auto memory = disassemblyService->getMemoryOperandDisassembly(instruction);
     string instrumentation = string() +
-            Utils::getStateSavingInstrumentation() +
+                             Utils::getStateSavingInstrumentation() +
                              "lea rdi, %%1\n" +    // mem
                              "mov rsi, %%2\n" +    // reg
                              "mov rdx, %%3\n" +    // width
                              "call 0\n" +
                              "mov dil, al\n" +
                              "call 0\n" +
-            Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams {memory, to_string(reg), to_string(width)};
-    const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
+                             Utils::getStateRestoringInstrumentation();
+    vector<basic_string<char>> instrumentationParams{memory, to_string(reg), to_string(width)};
+    const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
+                                                                      instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::isRegOrMemFullyDefined);
     new_instr[calls[1]]->setTarget(RuntimeLib::setEflags);

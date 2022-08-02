@@ -14,6 +14,6 @@ public:
 private:
     IRDB_SDK::Function_t *function;
 
-    void analyse(IRDB_SDK::Function_t *function);
+    void analyse();
 };
 #endif //BINARY_MSAN_FUNCTIONANALYSIS_H

@@ -3,7 +3,7 @@
 #include "../common/Width.h"
 
 DisassemblyService::DisassemblyService() {
-    if (cs_open(CS_ARCH_X86, CS_MODE_64, &capstoneHandle) != CS_ERR_OK){
+    if (cs_open(CS_ARCH_X86, CS_MODE_64, &capstoneHandle) != CS_ERR_OK) {
         throw std::runtime_error("Error opening capstone handle. Abort.");
     }
     cs_option(capstoneHandle, CS_OPT_DETAIL, CS_OPT_ON);
@@ -20,10 +20,11 @@ DisassemblyService::~DisassemblyService() {
  */
 x86_reg DisassemblyService::getRegister(IRDB_SDK::Instruction_t *instruction, int operandNumber) {
     auto operands = IRDB_SDK::DecodedInstruction_t::factory(instruction)->getOperands();
-    if(!operands[operandNumber]->isGeneralPurposeRegister()){
-        throw std::invalid_argument("Operand " + std::to_string(operandNumber) + " of " + instruction->getDisassembly() + " is not a GPR.");
+    if (!operands[operandNumber]->isGeneralPurposeRegister()) {
+        throw std::invalid_argument(
+                "Operand " + std::to_string(operandNumber) + " of " + instruction->getDisassembly() + " is not a GPR.");
     }
-    cs_insn* capstoneInstruction = getCapstoneInstruction(instruction);
+    cs_insn *capstoneInstruction = getCapstoneInstruction(instruction);
     auto x86Register = capstoneInstruction->detail->x86.operands[operandNumber].reg;
     cs_free(capstoneInstruction, 1);
     return x86Register;
@@ -35,7 +36,7 @@ x86_reg DisassemblyService::getRegister(IRDB_SDK::Instruction_t *instruction, in
  * @return true if register number refers to the second least significant byte of a register.
  */
 bool DisassemblyService::isHigherByteRegister(x86_reg capstoneRegNumber) {
-    switch(capstoneRegNumber){
+    switch (capstoneRegNumber) {
         case X86_REG_AH:
         case X86_REG_CH:
         case X86_REG_BH:
@@ -58,7 +59,7 @@ unsigned int DisassemblyService::getRegWidth(IRDB_SDK::Instruction_t *instructio
     auto width = operands[operandNum]->getArgumentSizeInBits();
 
     auto regNumber = getRegister(instruction, operandNum);
-    if(isHigherByteRegister(regNumber)){
+    if (isHigherByteRegister(regNumber)) {
         width = HIGHER_BYTE;
     }
     return Utils::toHex(width);
@@ -72,7 +73,7 @@ unsigned int DisassemblyService::getRegWidth(IRDB_SDK::Instruction_t *instructio
  * @return width of base register in bits.
  */
 int DisassemblyService::getBaseRegWidth(IRDB_SDK::Instruction_t *instruction) {
-    cs_insn* capstoneInstruction = getCapstoneInstruction(instruction);
+    cs_insn *capstoneInstruction = getCapstoneInstruction(instruction);
     int numberOfMemOperand = getPositionOfMemOperand(capstoneInstruction);
 
     auto mem = capstoneInstruction->detail->x86.operands[numberOfMemOperand].mem;
@@ -89,7 +90,7 @@ int DisassemblyService::getBaseRegWidth(IRDB_SDK::Instruction_t *instruction) {
  * @return width of index register in bits.
  */
 int DisassemblyService::getIndexRegWidth(IRDB_SDK::Instruction_t *instruction) {
-    cs_insn* capstoneInstruction = getCapstoneInstruction(instruction);
+    cs_insn *capstoneInstruction = getCapstoneInstruction(instruction);
     int numberOfMemOperand = getPositionOfMemOperand(capstoneInstruction);
     auto mem = capstoneInstruction->detail->x86.operands[numberOfMemOperand].mem;
     auto width = convertX86RegNumberToWidth(mem.index);
@@ -105,15 +106,15 @@ int DisassemblyService::getIndexRegWidth(IRDB_SDK::Instruction_t *instruction) {
  * @param instruction instruction to be transformed.
  * @return cs_insn* pointer to a capstone instruction. Free it via `cs_free(<capstoneInstruction>, 1);` after usage.
  */
-cs_insn* DisassemblyService::getCapstoneInstruction(IRDB_SDK::Instruction_t *instruction){
+cs_insn *DisassemblyService::getCapstoneInstruction(IRDB_SDK::Instruction_t *instruction) const {
     const auto dataBits = instruction->getDataBits();
-    auto* rawBytes = new uint8_t[dataBits.length()];
-    for (unsigned long x = 0; x < dataBits.length(); x++){
+    auto *rawBytes = new uint8_t[dataBits.length()];
+    for (unsigned long x = 0; x < dataBits.length(); x++) {
         rawBytes[x] = dataBits[x];
     }
     cs_insn *capstoneInstruction;
     size_t count = cs_disasm(capstoneHandle, rawBytes, dataBits.length(), 0x1000, 0, &capstoneInstruction);
-    if (count == 0){
+    if (count == 0) {
         throw std::runtime_error("Failed to disassemble instruction " + instruction->getDisassembly());
     }
     return capstoneInstruction;
@@ -126,7 +127,7 @@ cs_insn* DisassemblyService::getCapstoneInstruction(IRDB_SDK::Instruction_t *ins
  * @return register width in bits.
  */
 int DisassemblyService::convertX86RegNumberToWidth(x86_reg regNumber) {
-    switch(regNumber){
+    switch (regNumber) {
         case X86_REG_AL:
         case X86_REG_CL:
         case X86_REG_BL:
@@ -169,40 +170,40 @@ int DisassemblyService::convertX86RegNumberToWidth(x86_reg regNumber) {
         case X86_REG_R15W:
             return WORD;
 
-       case X86_REG_EAX:
-       case X86_REG_ECX:
-       case X86_REG_EDX:
-       case X86_REG_EBX:
-       case X86_REG_ESP:
-       case X86_REG_EBP:
-       case X86_REG_ESI:
-       case X86_REG_EDI:
-       case X86_REG_R8D:
-       case X86_REG_R9D:
-       case X86_REG_R10D:
-       case X86_REG_R11D:
-       case X86_REG_R12D:
-       case X86_REG_R13D:
-       case X86_REG_R14D:
-       case X86_REG_R15D:
+        case X86_REG_EAX:
+        case X86_REG_ECX:
+        case X86_REG_EDX:
+        case X86_REG_EBX:
+        case X86_REG_ESP:
+        case X86_REG_EBP:
+        case X86_REG_ESI:
+        case X86_REG_EDI:
+        case X86_REG_R8D:
+        case X86_REG_R9D:
+        case X86_REG_R10D:
+        case X86_REG_R11D:
+        case X86_REG_R12D:
+        case X86_REG_R13D:
+        case X86_REG_R14D:
+        case X86_REG_R15D:
             return DOUBLE_WORD;
 
-       case X86_REG_RAX:
-       case X86_REG_RCX:
-       case X86_REG_RDX:
-       case X86_REG_RBX:
-       case X86_REG_RSP:
-       case X86_REG_RBP:
-       case X86_REG_RSI:
-       case X86_REG_RDI:
-       case X86_REG_R8:
-       case X86_REG_R9:
-       case X86_REG_R10:
-       case X86_REG_R11:
-       case X86_REG_R12:
-       case X86_REG_R13:
-       case X86_REG_R14:
-       case X86_REG_R15:
+        case X86_REG_RAX:
+        case X86_REG_RCX:
+        case X86_REG_RDX:
+        case X86_REG_RBX:
+        case X86_REG_RSP:
+        case X86_REG_RBP:
+        case X86_REG_RSI:
+        case X86_REG_RDI:
+        case X86_REG_R8:
+        case X86_REG_R9:
+        case X86_REG_R10:
+        case X86_REG_R11:
+        case X86_REG_R12:
+        case X86_REG_R13:
+        case X86_REG_R14:
+        case X86_REG_R15:
             return QUAD_WORD;
 
         default:
@@ -216,9 +217,9 @@ int DisassemblyService::convertX86RegNumberToWidth(x86_reg regNumber) {
  * @param capstoneInstruction instruction to find the mem operand in.
  * @return position of the memory operand in the instruction.
  */
-int DisassemblyService::getPositionOfMemOperand(cs_insn *capstoneInstruction){
-    for (int i = 0; i <= capstoneInstruction->detail->x86.operands->size; i++){
-        if(capstoneInstruction->detail->x86.operands[i].type == X86_OP_MEM){
+int DisassemblyService::getPositionOfMemOperand(cs_insn *capstoneInstruction) {
+    for (int i = 0; i <= capstoneInstruction->detail->x86.operands->size; i++) {
+        if (capstoneInstruction->detail->x86.operands[i].type == X86_OP_MEM) {
             return i;
         }
     }
@@ -234,8 +235,9 @@ int DisassemblyService::getPositionOfMemOperand(cs_insn *capstoneInstruction){
 std::string DisassemblyService::getMemoryOperandDisassembly(IRDB_SDK::Instruction_t *instruction) {
     auto disassembly = instruction->getDisassembly();
     auto openBracketPosition = disassembly.find_first_of('[');
-    if(openBracketPosition == std::string::npos){
-        throw std::invalid_argument("movHandler: Instruction " + instruction->getDisassembly() + " does not include a memory operand.");
+    if (openBracketPosition == std::string::npos) {
+        throw std::invalid_argument(
+                "movHandler: Instruction " + instruction->getDisassembly() + " does not include a memory operand.");
     }
     auto closingBracketPosition = disassembly.find_first_of(']');
     auto len = closingBracketPosition - openBracketPosition;
@@ -246,11 +248,12 @@ std::string DisassemblyService::getMemoryOperandDisassembly(IRDB_SDK::Instructio
 /**
  * Returns the indices of all call instructions in a vector of instructions.
  */
-std::vector<size_t> DisassemblyService::getCallInstructionPosition(const std::vector<IRDB_SDK::Instruction_t *> &instructions) {
-    std::vector<size_t> result {};
-    for (size_t x = 0; x < instructions.size(); x++){
+std::vector<size_t>
+DisassemblyService::getCallInstructionPosition(const std::vector<IRDB_SDK::Instruction_t *> &instructions) {
+    std::vector<size_t> result{};
+    for (size_t x = 0; x < instructions.size(); x++) {
         auto decodedInstruction = IRDB_SDK::DecodedInstruction_t::factory(instructions[x]);
-        if(decodedInstruction->getMnemonic() == "call"){
+        if (decodedInstruction->getMnemonic() == "call") {
             result.push_back(x);
         }
     }
@@ -266,7 +269,7 @@ std::vector<size_t> DisassemblyService::getCallInstructionPosition(const std::ve
 int DisassemblyService::getRegWidthInMemOperand(IRDB_SDK::Instruction_t *instruction) {
     auto capstoneInstruction = getCapstoneInstruction(instruction);
     auto memOperand = capstoneInstruction->detail->x86.operands[0];
-    if(capstoneInstruction->detail->x86.operands[1].type == X86_OP_MEM){
+    if (capstoneInstruction->detail->x86.operands[1].type == X86_OP_MEM) {
         memOperand = memOperand = capstoneInstruction->detail->x86.operands[1];
     }
     // Base and index register always have the same width.

@@ -8,7 +8,7 @@
  *  overwriting values in the red zone.
  * @return string of assembly instructions
  */
-std::string Utils::getStateSavingInstrumentation(){
+std::string Utils::getStateSavingInstrumentation() {
     return std::string() +
            "lea rsp, [rsp - 100]\n" +
            "pushfq\n" +
@@ -29,7 +29,7 @@ std::string Utils::getStateSavingInstrumentation(){
  *  overwriting values in the red zone.
  * @return string of assembly instructions
  */
-std::string Utils::getStateRestoringInstrumentation(){
+std::string Utils::getStateRestoringInstrumentation() {
     return std::string() +
            "pop   r11\n" +
            "pop   r10\n" +

@@ -10,6 +10,7 @@
 class DisassemblyService {
 public:
     DisassemblyService();
+
     ~DisassemblyService();
 
     x86_reg getRegister(IRDB_SDK::Instruction_t *instruction, int operandNumber);
@@ -23,7 +24,8 @@ public:
 
 private:
     csh capstoneHandle{};
-    cs_insn* getCapstoneInstruction(IRDB_SDK::Instruction_t *instruction);
+
+    cs_insn *getCapstoneInstruction(IRDB_SDK::Instruction_t *instruction) const;
     static int convertX86RegNumberToWidth(x86_reg regNumber);
     static int getPositionOfMemOperand(cs_insn *capstoneInstruction);
 
