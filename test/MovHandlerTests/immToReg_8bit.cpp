@@ -13,7 +13,6 @@ int main() {
     asm ("movb $5, %al");
 
     // then
-    std::cout << shadowRegisterState[RAX].to_ullong() << std::endl;
     assert(shadowRegisterState[RAX].to_ullong() == 0xffffffffffffff00);
     std::cout << "Success." << std::endl;
     return 0;

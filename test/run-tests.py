@@ -57,13 +57,13 @@ def build(filename):
 def sanitize(filename):
     directory = filename.split("/")[0]
     test_name = filename.split("/")[1].removesuffix(".cpp")
-    options = "--step-option -k"
+    options = "-k -l"
     if open(filename, "r").readlines().pop(1).__contains__("// HALT ON ERROR"):
-        options = ""
+        options = "-l"
     output_name = f"{directory}/obj/{test_name}"
     sanitized_name = f"{output_name}_sanitized"
     return subprocess.call(
-        f"$PSZ -c rida --step move_globals -c binmsan {output_name} {sanitized_name} {options} >> {directory}/logs/{test_name}.txt 2>&1",
+        f"../run.sh {options} {output_name} {sanitized_name} >> {directory}/logs/{test_name}.txt 2>&1",
         shell=True)
 
 
