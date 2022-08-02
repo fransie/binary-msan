@@ -18,13 +18,13 @@ public:
     bool parseArgs(std::vector<std::string> step_args);
     bool parseArgs(int argc, char* argv[]);
 private:
-    bool halt_on_error = true;
+    bool keep_going = false;
+    bool logging = false;
     std::vector<std::unique_ptr<InstructionHandler>> instructionHandlers;
     std::vector<std::unique_ptr<FunctionHandler>> functionHandlers;
 
     void registerDependencies();
-    void initGpRegisters(IRDB_SDK::Instruction_t *instruction);
-    void disableHaltOnError(IRDB_SDK::Instruction_t *instruction);
+    void instrumentOptions(IRDB_SDK::Instruction_t *instruction);
 };
 
 #endif

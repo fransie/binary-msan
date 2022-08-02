@@ -9,6 +9,7 @@ printOptions(){
   echo "-?                           Display this help screen."
   echo "-h                           Display this help screen."
   echo "-k                           Keep going after MSan warning."
+  echo "-l                           Enable debug logging to stdout."
 }
 
 show_help(){
@@ -18,18 +19,32 @@ show_help(){
   exit 0
 }
 
+# init env vars
+current=$PWD
+cd ${ZIPR_PATH}
+source set_env_vars
+cd $current
+export COOKBOOK_HOME=$PWD
+export PSPATH=$PSPATH:$COOKBOOK_HOME/plugins_install
+export CAPSTONE=${PEASOUP_HOME}/irdb-libs/third_party/capstone/include/capstone
+
+
 # https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
 OPTIND=1         # Reset in case getopts has been used previously in the shell.
-halt_on_error=""
+keep_going=""
+log=""
 
-while getopts "h?k" opt; do
+while getopts "h?kl" opt; do
   case "$opt" in
     h|\?)
       show_help
       exit 0
       ;;
     k)
-      halt_on_error="-k"
+      keep_going="-k"
+      ;;
+    l)
+      log="-l"
       ;;
   esac
 done
@@ -44,9 +59,15 @@ then
 	exit 2
 fi
 
-if [ ! -z "${halt_on_error}" ]
+options=""
+if [ ! -z "${keep_going}" ]
 then
-  options="--step-option ${halt_on_error}"
+  options+="--step-option ${keep_going} "
+fi
+
+if [ ! -z "${log}" ]
+then
+  options+="--step-option ${log} "
 fi
 
 command="$PSZ -c rida --step move_globals -c binmsan $options $1 $2"

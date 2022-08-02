@@ -17,6 +17,12 @@ std::vector<std::bitset<64>> shadowRegisterState = std::vector<std::bitset<64>>(
  */
 bool eflagsDefined = true;
 
+bool loggingEnabled = false;
+
+void enableLogging() {
+    loggingEnabled = true;
+}
+
 /**
  * Takes two ints representing general purpose registers and propagates the shadow value of the
  * source register to the destination register.
@@ -30,24 +36,29 @@ bool eflagsDefined = true;
  * @param srcWidth the width of the source registers in bits. "0" denominates the second-least significant byte.
  */
 void regToRegShadowCopy(const int dest, int destWidth, const int src, const int srcWidth) {
-    std::cout << "regToRegShadowCopy. Dest value: " << dest << ". Source value: " << src << ". Width: " << srcWidth;
+    if (loggingEnabled) {
+        std::cout << "regToRegShadowCopy. Dest reg: " << dest << ", destWidth " << destWidth << ". Source reg: " << src
+                  << ", srcWidth: " << srcWidth;
+    }
     int positionDest = 0;
     int positionSrc = 0;
-    if(destWidth == HIGHER_BYTE || srcWidth == HIGHER_BYTE){
-       if (destWidth == HIGHER_BYTE){
-           positionDest = 8;
-           destWidth = 16;
-       }
-        if (srcWidth == HIGHER_BYTE){
+    if (destWidth == HIGHER_BYTE || srcWidth == HIGHER_BYTE) {
+        if (destWidth == HIGHER_BYTE) {
+            positionDest = 8;
+            destWidth = 16;
+        }
+        if (srcWidth == HIGHER_BYTE) {
             positionSrc = 8;
         }
     }
-    while(positionDest < destWidth){
+    while (positionDest < destWidth) {
         shadowRegisterState[dest].set(positionDest, shadowRegisterState[src][positionSrc]);
         positionDest++;
         positionSrc++;
     }
-    std::cout << ". New dest shadow: " << shadowRegisterState[dest].to_ullong() << std::endl;
+    if (loggingEnabled) {
+        std::cout << ". New dest shadow: " << shadowRegisterState[dest].to_ullong() << std::endl;
+    }
 }
 
 /**
@@ -58,15 +69,18 @@ void regToRegShadowCopy(const int dest, int destWidth, const int src, const int 
  * @param regWidth width of the register in bits.
  */
 void checkRegIsInit(int reg, int regWidth) {
-    std::cout << "checkRegIsInit. Register: " << reg << ". Width: " << regWidth << ". Register shadow: 0x" << std::hex << shadowRegisterState[reg].to_ullong() << std::endl;
-    if(shadowRegisterState[reg].any()){
+    if (loggingEnabled) {
+        std::cout << "checkRegIsInit. Register: " << reg << ". Width: " << regWidth << ". Register shadow: 0x"
+                  << std::hex << shadowRegisterState[reg].to_ullong() << std::dec << std::endl;
+    }
+    if (shadowRegisterState[reg].any()) {
         int bit = 0;
-        if(regWidth == HIGHER_BYTE){
+        if (regWidth == HIGHER_BYTE) {
             bit = 8;
             regWidth = 16;
         }
-        for (; bit < regWidth; bit++){
-            if(shadowRegisterState[reg].test(bit) == 1){
+        for (; bit < regWidth; bit++) {
+            if (shadowRegisterState[reg].test(bit) == 1) {
                 __msan_warning();
                 break;
             }
@@ -82,35 +96,44 @@ void checkRegIsInit(int reg, int regWidth) {
  * @param memAddress Source memory address.
  */
 void memToRegShadowCopy(__sanitizer::uptr memAddress, int reg, int regWidth) {
-    std::cout << "memToRegShadowCopy. Register: " << reg << ". RegWidth: " << regWidth << ". MemAddress: 0x" << std::hex << memAddress << "." << std::endl;
+    if (loggingEnabled) {
+        std::cout << "memToRegShadowCopy. Register: " << reg << ". RegWidth: " << regWidth << ". MemAddress: 0x"
+                  << std::hex << memAddress << std::dec;
+    }
     if (!MEM_IS_APP(memAddress)) {
         std::cout << memAddress << " is not an application address." << std::endl;
         return;
     }
     // char pointers in C++ can read memory byte by byte
-    auto memShadowAddress = reinterpret_cast<char*>(MEM_TO_SHADOW(memAddress));
+    auto memShadowAddress = reinterpret_cast<char *>(MEM_TO_SHADOW(memAddress));
     int position = 0;
-    if(regWidth == HIGHER_BYTE){
+    if (regWidth == HIGHER_BYTE) {
         regWidth = 8;
         position = 8;
     }
-    for (int byte = 0; byte < (regWidth / BYTE); byte++){
+    for (int byte = 0; byte < (regWidth / BYTE); byte++) {
         char bits = *memShadowAddress;
-        for (int x = 0; x < 8; x++){
+        for (int x = 0; x < 8; x++) {
             auto bit = (bits >> x) & 1U;
             shadowRegisterState[reg].set(position, bit);
             position++;
         }
         memShadowAddress++;
     }
-    std::cout << "memToRegShadowCopy. Shadow of reg " << reg << " is: 0x" << std::hex << shadowRegisterState[reg].to_ullong() << "." << std::endl;
+    if (loggingEnabled) {
+        std::cout << ". New shadow of reg is: 0x" << std::hex << shadowRegisterState[reg].to_ullong() << std::dec
+                  << std::endl;
+    }
 }
 
 /**
  * Verifies whether the EFLAGS register is initialised and if not, causes an msan warning.
  */
 void checkEflags() {
-    if(!eflagsDefined){
+    if (loggingEnabled) {
+        std::cout << "checkEflags" << std::endl;
+    }
+    if (!eflagsDefined) {
         __msan_warning();
     }
 }
@@ -119,7 +142,9 @@ void checkEflags() {
  * Set the shadow of the EFLAGS register where shadow = 1 or true means undefined.
  */
 void setEflags(bool shadow) {
-    std::cout << "setEflags to " << shadow << std::endl;
+    if (loggingEnabled) {
+        std::cout << "setEflags. New EFLAGS value: " << shadow << std::endl;
+    }
     eflagsDefined = shadow;
 }
 
@@ -127,7 +152,9 @@ void setEflags(bool shadow) {
  * Unpoisons RBP and RSP.
  */
 void initGpRegisters() {
-    std::cout << "Init rbp and rsp." << std::endl;
+    if (loggingEnabled) {
+        std::cout << "Init rbp and rsp." << std::endl;
+    }
     shadowRegisterState[RSP].reset();
     shadowRegisterState[RBP].reset();
 }
@@ -139,9 +166,12 @@ void initGpRegisters() {
  * @param memAddress
  */
 void regToMemShadowCopy(__sanitizer::uptr memAddress, int reg, int regWidth) {
-    std::cout << "regToMemShadowCopy. Register: " << reg << ". RegWidth: " << regWidth << ". MemAddress: 0x" << std::hex << memAddress << std::endl;
+    if (loggingEnabled) {
+        std::cout << "regToMemShadowCopy. Register: " << reg << ". RegWidth: " << regWidth << ". MemAddress: 0x"
+                  << std::hex << memAddress << std::dec << std::endl;
+    }
     int size = regWidth / BYTE;
-    if(regWidth == HIGHER_BYTE){
+    if (regWidth == HIGHER_BYTE) {
         size = 1;
     }
     auto shadow = getRegisterShadow(reg, regWidth);
@@ -159,12 +189,12 @@ void regToMemShadowCopy(__sanitizer::uptr memAddress, int reg, int regWidth) {
 void *getRegisterShadow(int reg, int regWidth) {
     auto shadowValue = shadowRegisterState[reg].to_ullong();
     switch (regWidth) {
-        case QUAD_WORD:{
+        case QUAD_WORD: {
             auto *shadow_ptr = new uint64_t;
             *shadow_ptr = shadowValue;
             return reinterpret_cast<void *>(shadow_ptr);
         }
-        case DOUBLE_WORD:{
+        case DOUBLE_WORD: {
             auto *shadow_ptr = new uint32_t;
             *shadow_ptr = static_cast<uint32_t>(shadowValue);
             return reinterpret_cast<void *>(shadow_ptr);
@@ -174,7 +204,7 @@ void *getRegisterShadow(int reg, int regWidth) {
             *shadow_ptr = static_cast<uint16_t>(shadowValue);
             return reinterpret_cast<void *>(shadow_ptr);
         }
-        case HIGHER_BYTE:{
+        case HIGHER_BYTE: {
             auto *shadow_ptr = new uint8_t;
             shadowValue = shadowValue >> 8;
             *shadow_ptr = static_cast<uint8_t>(shadowValue);
@@ -194,16 +224,19 @@ void *getRegisterShadow(int reg, int regWidth) {
  * Returns true if the input register <code>reg</code> is fully defined in the bits denoted by <code>width</code>.
  */
 bool isRegFullyDefined(int reg, int width) {
-    if (shadowRegisterState[reg].none()){
+    if (loggingEnabled) {
+        std::cout << "isRegFullyDefined. Register: " << reg << ". RegWidth: " << width << std::endl;
+    }
+    if (shadowRegisterState[reg].none()) {
         return true;
     } else {
         int startFrom = 0;
-        if(width == HIGHER_BYTE){
+        if (width == HIGHER_BYTE) {
             startFrom = 8;
             width = 8;
         }
-        for (int position = startFrom; position < (startFrom + width); position++){
-            if(shadowRegisterState[reg].test(position) == 1){
+        for (int position = startFrom; position < (startFrom + width); position++) {
+            if (shadowRegisterState[reg].test(position) == 1) {
                 return false;
             }
         }
@@ -215,6 +248,10 @@ bool isRegFullyDefined(int reg, int width) {
  * Returns true if the input memory location starting at <code>mem</code> of size <code>size</code> is fully defined.
  */
 bool isMemFullyDefined(const void *mem, uptr size) {
+    if (loggingEnabled) {
+        std::cout << "isMemFullyDefined. Mem address: 0x" << std::hex << mem << std::dec << ". Size: " << size
+                  << std::endl;
+    }
     auto firstUninitByte = __msan_test_shadow(mem, size);
     return (firstUninitByte == -1);
 }
@@ -223,24 +260,28 @@ bool isMemFullyDefined(const void *mem, uptr size) {
  * Returns true if both input registers are fully initialised.
  */
 bool isRegOrRegFullyDefined(int reg1, int reg1Width, int reg2, int reg2Width) {
-    if(reg1Width == HIGHER_BYTE || reg2Width == HIGHER_BYTE){
+    if (loggingEnabled) {
+        std::cout << "isRegOrRegFullyDefined. Register1: " << reg1 << ". RegWidth1: " << reg1 << "Register2: " << reg2
+                  << ". RegWidth2: " << reg2Width << std::endl;
+    }
+    if (reg1Width == HIGHER_BYTE || reg2Width == HIGHER_BYTE) {
         int reg1Bit = 0;
-        if(reg1Width == HIGHER_BYTE){
+        if (reg1Width == HIGHER_BYTE) {
             reg1Bit = 8;
             reg1Width = 16;
         }
-        for (; reg1Bit < reg1Width; reg1Bit++){
-            if(shadowRegisterState[reg1].test(reg1Bit) == 1){
+        for (; reg1Bit < reg1Width; reg1Bit++) {
+            if (shadowRegisterState[reg1].test(reg1Bit) == 1) {
                 return false;
             }
         }
         int reg2Bit = 0;
-        if(reg2Width == HIGHER_BYTE){
+        if (reg2Width == HIGHER_BYTE) {
             reg2Bit = 8;
             reg2Width = 16;
         }
-        for (; reg2Bit < reg2Width; reg2Bit++){
-            if(shadowRegisterState[reg2].test(reg2Bit) == 1){
+        for (; reg2Bit < reg2Width; reg2Bit++) {
+            if (shadowRegisterState[reg2].test(reg2Bit) == 1) {
                 return false;
             }
         }
@@ -248,11 +289,11 @@ bool isRegOrRegFullyDefined(int reg1, int reg1Width, int reg2, int reg2Width) {
     }
 
     auto registerOr = shadowRegisterState[reg1] | shadowRegisterState[reg2];
-    if(registerOr.none()){
+    if (registerOr.none()) {
         return true;
     } else {
-        for (int bit = 0; bit < reg1Width; bit++){
-            if(registerOr.test(bit) == 1){
+        for (int bit = 0; bit < reg1Width; bit++) {
+            if (registerOr.test(bit) == 1) {
                 return false;
             }
         }
@@ -266,26 +307,34 @@ bool isRegOrRegFullyDefined(int reg1, int reg1Width, int reg2, int reg2Width) {
  * Returns true if both the input register and the input memory location are fully initialised.
  */
 bool isRegOrMemFullyDefined(const void *mem, int reg, int width) {
+    if (loggingEnabled) {
+        std::cout << "isRegOrMemFullyDefined. Register: " << reg << ". width: " << width << ". Mem address: 0x" <<
+                  std::hex << mem << std::dec << std::endl;
+    }
     sptr firstUninitByte;
-    if(width == HIGHER_BYTE){
+    if (width == HIGHER_BYTE) {
         firstUninitByte = __msan_test_shadow(mem, 1);
-    } else{
+    } else {
         firstUninitByte = __msan_test_shadow(mem, width / BYTE);
     }
-    if (firstUninitByte != -1){
+    if (firstUninitByte != -1) {
         return false;
     }
     return isRegFullyDefined(reg, width);
 }
 
 void setRegShadow(bool isInited, int reg, int width) {
+    if (loggingEnabled) {
+        std::cout << "setRegShadow: Shadow of reg " << reg << " (width: " << width << ") will be set to " << !isInited
+                  << std::endl;
+    }
     auto shadowValue = !isInited;
     int startFrom = 0;
-    if(width == HIGHER_BYTE){
+    if (width == HIGHER_BYTE) {
         startFrom = 8;
         width = 8;
     }
-    for(int position = startFrom; position < (startFrom + width); position++){
+    for (int position = startFrom; position < (startFrom + width); position++) {
         shadowRegisterState[reg].set(position, shadowValue);
     }
 }
@@ -295,7 +344,11 @@ void setRegShadow(bool isInited, int reg, int width) {
  * @param initState isInited = true -> unpoison memory, isInited = false -> poison memory.
  */
 void setMemShadow(const void *mem, bool initState, uptr size) {
-    if(initState){
+    if (loggingEnabled) {
+        std::cout << "setMemShadow. Mem address 0x" << std::hex << mem << std::dec << ", size " << size
+                  << " will be set to " << !initState << std::endl;
+    }
+    if (initState) {
         __msan_unpoison(mem, size);
     } else {
         __msan_poison(mem, size);
@@ -306,36 +359,43 @@ void setMemShadow(const void *mem, bool initState, uptr size) {
  * Unpoison the four higher bytes of <code>reg</code>.
  */
 void unpoisonUpper4Bytes(const int reg) {
+    if (loggingEnabled) {
+        std::cout << "unpoisonUpper4Bytes. Reg: " << reg << std::endl;
+    }
     shadowRegisterState[reg] = shadowRegisterState[reg] & std::bitset<64>{0x00000000ffffffff};
 }
 
 void propagateRegOrRegShadow(int dest, int destWidth, int src, int srcWidth) {
+    if (loggingEnabled) {
+        std::cout << "propagateRegOrRegShadow. dest: " << dest << " width: " << destWidth << ", src: " << src
+                  << " srcWidth: " << srcWidth << std::endl;
+    }
     auto destShadow = getRegisterShadow(dest, destWidth);
     auto srcShadow = getRegisterShadow(src, srcWidth);
     uint64_t newDestShadow = 0;
-    uint64_t operationShadow = 0;
+    uint64_t operationShadow;
     switch (destWidth) {
         case QUAD_WORD:
-            newDestShadow = *((uint64_t*)destShadow) | *((uint64_t*)srcShadow);
+            newDestShadow = *((uint64_t *) destShadow) | *((uint64_t *) srcShadow);
             break;
         case DOUBLE_WORD:
-            newDestShadow = *((uint32_t*)destShadow) | *((uint32_t*)srcShadow);
+            newDestShadow = *((uint32_t *) destShadow) | *((uint32_t *) srcShadow);
             // Higher four bytes are zeroed in double word operations.
             newDestShadow = newDestShadow & 0x00000000ffffffff;
             break;
         case WORD:
             // preserve shadow of higher 6 bytes of dest
-            operationShadow = *((uint16_t*)destShadow) | *((uint16_t*)srcShadow);
+            operationShadow = *((uint16_t *) destShadow) | *((uint16_t *) srcShadow);
             newDestShadow = shadowRegisterState[dest].to_ullong() | operationShadow;
             break;
         case BYTE:
-            // preserve shadow of higher 6 bytes of dest
-            operationShadow = *((uint8_t*)destShadow) | *((uint8_t*)srcShadow);
+            // preserve shadow of higher 7 bytes of dest
+            operationShadow = *((uint8_t *) destShadow) | *((uint8_t *) srcShadow);
             newDestShadow = shadowRegisterState[dest].to_ullong() | operationShadow;
             break;
         case HIGHER_BYTE:
-            // preserve shadow of higher 6 bytes of dest
-            operationShadow = *((uint8_t*)destShadow) | *((uint8_t*)srcShadow);
+            // preserve shadow of higher 6 bytes and lower byte of dest
+            operationShadow = *((uint8_t *) destShadow) | *((uint8_t *) srcShadow);
             operationShadow = operationShadow << BYTE;
             newDestShadow = shadowRegisterState[dest].to_ullong() | operationShadow;
             break;
@@ -345,32 +405,36 @@ void propagateRegOrRegShadow(int dest, int destWidth, int src, int srcWidth) {
 }
 
 void propagateRegOrMemShadow(const void *mem, int reg, int width) {
+    if (loggingEnabled) {
+        std::cout << "propagateRegOrMemShadow. Mem address: 0x" << std::hex << mem << std::dec << ", reg: " << reg
+                  << " width " << width << std::endl;
+    }
     auto destShadow = getRegisterShadow(reg, width);
-    auto srcShadow = reinterpret_cast<char*>(MEM_TO_SHADOW(mem));
+    auto srcShadow = reinterpret_cast<char *>(MEM_TO_SHADOW(mem));
     uint64_t newDestShadow = 0;
     uint64_t operationShadow = 0;
     switch (width) {
         case QUAD_WORD:
-            newDestShadow = *((uint64_t*)destShadow) | *((uint64_t*)srcShadow);
+            newDestShadow = *((uint64_t *) destShadow) | *((uint64_t *) srcShadow);
             break;
         case DOUBLE_WORD:
-            newDestShadow = *((uint32_t*)destShadow) | *((uint32_t*)srcShadow);
+            newDestShadow = *((uint32_t *) destShadow) | *((uint32_t *) srcShadow);
             // Higher four bytes are zeroed in double word operations.
             newDestShadow = newDestShadow & 0x00000000ffffffff;
             break;
         case WORD:
             // preserve shadow of higher 6 bytes of dest
-            operationShadow = *((uint16_t*)destShadow) | *((uint16_t*)srcShadow);
+            operationShadow = *((uint16_t *) destShadow) | *((uint16_t *) srcShadow);
             newDestShadow = shadowRegisterState[reg].to_ullong() | operationShadow;
             break;
         case BYTE:
             // preserve shadow of higher 7 bytes of dest
-            operationShadow = *((uint8_t*)destShadow) | *((uint8_t*)srcShadow);
+            operationShadow = *((uint8_t *) destShadow) | *((uint8_t *) srcShadow);
             newDestShadow = shadowRegisterState[reg].to_ullong() | operationShadow;
             break;
         case HIGHER_BYTE:
             // preserve shadow of higher 6 bytes and lower byte of dest
-            operationShadow = *((uint8_t*)destShadow) | *((uint8_t*)srcShadow);
+            operationShadow = *((uint8_t *) destShadow) | *((uint8_t *) srcShadow);
             operationShadow = operationShadow << BYTE;
             newDestShadow = shadowRegisterState[reg].to_ullong() | operationShadow;
             break;
@@ -380,29 +444,33 @@ void propagateRegOrMemShadow(const void *mem, int reg, int width) {
 }
 
 void propagateMemOrRegShadow(const void *mem, int reg, int width) {
-    auto destShadow = reinterpret_cast<char*>(MEM_TO_SHADOW(mem));
+    if (loggingEnabled) {
+        std::cout << "propagateMemOrRegShadow. Mem address: 0x" << std::hex << mem << std::dec << ", reg: " << reg
+                  << " width " << width << std::endl;
+    }
+    auto destShadow = reinterpret_cast<char *>(MEM_TO_SHADOW(mem));
     auto srcShadow = getRegisterShadow(reg, width);
-    uint64_t* newDestShadow = new uint64_t;
+    uint64_t *newDestShadow = new uint64_t;
     switch (width) {
         case QUAD_WORD:
-            *newDestShadow = *((uint64_t*)destShadow) | *((uint64_t*)srcShadow);
+            *newDestShadow = *((uint64_t *) destShadow) | *((uint64_t *) srcShadow);
             break;
         case DOUBLE_WORD:
-            *newDestShadow = *((uint32_t*)destShadow) | *((uint32_t*)srcShadow);
+            *newDestShadow = *((uint32_t *) destShadow) | *((uint32_t *) srcShadow);
             break;
         case WORD:
-            *newDestShadow = *((uint16_t*)destShadow) | *((uint16_t*)srcShadow);
+            *newDestShadow = *((uint16_t *) destShadow) | *((uint16_t *) srcShadow);
             break;
         case BYTE:
         case HIGHER_BYTE:
-            *newDestShadow = *((uint8_t*)destShadow) | *((uint8_t*)srcShadow);
+            *newDestShadow = *((uint8_t *) destShadow) | *((uint8_t *) srcShadow);
             break;
         default:
             throw std::invalid_argument("propagateMemOrRegShadow was called with an invalid width argument.");
     }
-    if (width == HIGHER_BYTE){
+    if (width == HIGHER_BYTE) {
         width = BYTE;
     }
-    __msan_partial_poison(mem, (void*)newDestShadow, width / BYTE);
+    __msan_partial_poison(mem, (void *) newDestShadow, width / BYTE);
     eflagsDefined = *newDestShadow == 0;
 }

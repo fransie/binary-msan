@@ -28,6 +28,7 @@ INTERFACE void setEflags(bool shadow);
 
 // helpers
 INTERFACE void initGpRegisters();
+INTERFACE void enableLogging();
 INTERFACE void* getRegisterShadow(int reg, int regWidth);
 
 INTERFACE bool isRegFullyDefined(int reg, int width);

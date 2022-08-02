@@ -51,26 +51,11 @@ bool MSan::executeStep() {
         }
     }
     functionHandlers.at(0)->instrument(mainFunctionAnalysis);
-
-    // assume RBP and RSP registers are initialised upon entry of main function
-    initGpRegisters(mainFunction->getEntryPoint());
-
-    // disable halt_on_error if required
-    if(!halt_on_error){
-        disableHaltOnError(mainFunction->getEntryPoint());
-    }
+    instrumentOptions(mainFunction->getEntryPoint());
     return true; //success
 }
 
-void MSan::initGpRegisters(Instruction_t *instruction){
-    string instrumentation = string() +
-            Utils::getStateSavingInstrumentation() +
-                             "call 0\n" +
-            Utils::getStateRestoringInstrumentation();
-    const auto new_instr = IRDB_SDK::insertAssemblyInstructionsAfter(getFileIR(), instruction, instrumentation, {});
-    auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
-	new_instr[calls[0]]->setTarget(RuntimeLib::initGpRegisters);
-}
+
 
 void MSan::registerDependencies(){
     auto elfDeps = ElfDependencies_t::factory(getFileIR());
@@ -83,6 +68,7 @@ void MSan::registerDependencies(){
     RuntimeLib::memToRegShadowCopy = elfDeps->appendPltEntry("memToRegShadowCopy");
     RuntimeLib::checkEflags = elfDeps->appendPltEntry("checkEflags");
     RuntimeLib::initGpRegisters = elfDeps->appendPltEntry("initGpRegisters");
+    RuntimeLib::enableLogging = elfDeps->appendPltEntry("enableLogging");
     RuntimeLib::regToMemShadowCopy = elfDeps->appendPltEntry("regToMemShadowCopy");
     RuntimeLib::isRegFullyDefined = elfDeps->appendPltEntry("isRegFullyDefined");
     RuntimeLib::isMemFullyDefined = elfDeps->appendPltEntry("isMemFullyDefined");
@@ -116,12 +102,16 @@ bool MSan::parseArgs(std::vector<std::string> step_args) {
 bool MSan::parseArgs(int argc, char **argv) {
     int c;
     opterr = 0;
-    while ((c = getopt (argc, argv, "k")) != -1){
+    while ((c = getopt (argc, argv, "kl")) != -1){
         switch (c)
         {
             case 'k':
-                halt_on_error = false;
+                keep_going = true;
                 std::cout << "Msan will keep going after warnings." << std::endl;
+                break;
+            case 'l':
+                logging = true;
+                std::cout << "Logging enabled." << std::endl;
                 break;
             case '?':
                 if (optopt == 'c')
@@ -141,13 +131,25 @@ bool MSan::parseArgs(int argc, char **argv) {
     return true;
 }
 
-void MSan::disableHaltOnError(IRDB_SDK::Instruction_t *instruction) {
-    string instrumentation = string() +
-            Utils::getStateSavingInstrumentation() +
-                             "mov rdi, 1\n" +
-                             "call 0\n" +
-            Utils::getStateRestoringInstrumentation();
+void MSan::instrumentOptions(IRDB_SDK::Instruction_t *instruction) {
+    // Call to initGpRegisters: Assume RBP and RSP registers are initialised upon entry of main function
+    string instrumentation = Utils::getStateSavingInstrumentation() + "call 0\n";
+    std::vector<Instruction_t*> targets = {RuntimeLib::initGpRegisters};
+
+    if(keep_going){
+        instrumentation = instrumentation + "mov rdi, 1\ncall 0\n";
+        targets.push_back(RuntimeLib::msan_set_keep_going);
+    }
+
+    if(logging){
+        instrumentation = instrumentation + "call 0\n";
+        targets.push_back(RuntimeLib::enableLogging);
+    }
+
+    instrumentation = instrumentation + Utils::getStateRestoringInstrumentation();
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsAfter(getFileIR(), instruction, instrumentation, {});
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
-	new_instr[calls[0]]->setTarget(RuntimeLib::msan_set_keep_going);
+	for (size_t x = 0; x < calls.size(); x++){
+        new_instr[calls[x]]->setTarget(targets[x]);
+    }
 }
