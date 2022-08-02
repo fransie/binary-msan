@@ -1,12 +1,12 @@
 #include <irdb-transform>
-#include "BasicInstructionHandler.h"
+#include "BinaryLogicHandler.h"
 #include "RuntimeLib.h"
 #include "Utils.h"
 
 using namespace IRDB_SDK;
 
 
-Instruction_t* BasicInstructionHandler::instrument(IRDB_SDK::Instruction_t *instruction) {
+Instruction_t* BinaryLogicHandler::instrument(IRDB_SDK::Instruction_t *instruction) {
     auto decodedInstruction = DecodedInstruction_t::factory(instruction);
     vector<shared_ptr<DecodedOperand_t>> operands = decodedInstruction->getOperands();
     if(operands[0]->isGeneralPurposeRegister()){
@@ -27,7 +27,7 @@ Instruction_t* BasicInstructionHandler::instrument(IRDB_SDK::Instruction_t *inst
     return instruction;
 }
 
-IRDB_SDK::Instruction_t* BasicInstructionHandler::instrumentRegRegInstruction(IRDB_SDK::Instruction_t *instruction) {
+IRDB_SDK::Instruction_t* BinaryLogicHandler::instrumentRegRegInstruction(IRDB_SDK::Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     auto dest = operands[0]->getRegNumber();
     auto src = operands[1]->getRegNumber();
@@ -48,7 +48,7 @@ IRDB_SDK::Instruction_t* BasicInstructionHandler::instrumentRegRegInstruction(IR
     return new_instr.back();
 }
 
-IRDB_SDK::Instruction_t* BasicInstructionHandler::instrumentMemRegInstruction(IRDB_SDK::Instruction_t *instruction) {
+IRDB_SDK::Instruction_t* BinaryLogicHandler::instrumentMemRegInstruction(IRDB_SDK::Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     int reg = operands[1]->getRegNumber();
     int width = disassemblyService->getRegWidth(instruction, 1);
@@ -68,7 +68,7 @@ IRDB_SDK::Instruction_t* BasicInstructionHandler::instrumentMemRegInstruction(IR
 
 }
 
-IRDB_SDK::Instruction_t* BasicInstructionHandler::instrumentRegMemInstruction(IRDB_SDK::Instruction_t *instruction) {
+IRDB_SDK::Instruction_t* BinaryLogicHandler::instrumentRegMemInstruction(IRDB_SDK::Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     int reg = operands[0]->getRegNumber();
     int width = disassemblyService->getRegWidth(instruction, 0);

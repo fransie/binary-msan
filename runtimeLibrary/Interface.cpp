@@ -143,7 +143,7 @@ void checkEflags() {
  */
 void setEflags(bool shadow) {
     if (loggingEnabled) {
-        std::cout << "setEflags. New EFLAGS value: " << shadow << std::endl;
+        std::cout << "setEflags. New EFLAGS value: " << (bool) shadow << std::endl;
     }
     eflagsDefined = shadow;
 }
@@ -249,7 +249,7 @@ bool isRegFullyDefined(int reg, int width) {
  */
 bool isMemFullyDefined(const void *mem, uptr size) {
     if (loggingEnabled) {
-        std::cout << "isMemFullyDefined. Mem address: 0x" << std::hex << mem << std::dec << ". Size: " << size
+        std::cout << "isMemFullyDefined. Mem address: " << std::hex << mem << std::dec << ". Size: " << size
                   << std::endl;
     }
     auto firstUninitByte = __msan_test_shadow(mem, size);
@@ -323,12 +323,12 @@ bool isRegOrMemFullyDefined(const void *mem, int reg, int width) {
     return isRegFullyDefined(reg, width);
 }
 
-void setRegShadow(bool isInited, int reg, int width) {
+void setRegShadow(bool setToUnpoisoned, int reg, int width) {
     if (loggingEnabled) {
-        std::cout << "setRegShadow: Shadow of reg " << reg << " (width: " << width << ") will be set to " << !isInited
+        std::cout << "setRegShadow: Shadow of reg " << reg << " (width: " << width << ") will be set to " << !setToUnpoisoned
                   << std::endl;
     }
-    auto shadowValue = !isInited;
+    auto shadowValue = !setToUnpoisoned;
     int startFrom = 0;
     if (width == HIGHER_BYTE) {
         startFrom = 8;
@@ -341,14 +341,14 @@ void setRegShadow(bool isInited, int reg, int width) {
 
 /**
  * Sets the shadow of the memory location denoted by <code>mem</code> and <code>size</code>.
- * @param initState isInited = true -> unpoison memory, isInited = false -> poison memory.
+ * @param setToUnpoisoned = true -> unpoison memory, = false -> poison memory.
  */
-void setMemShadow(const void *mem, bool initState, uptr size) {
+void setMemShadow(const void *mem, bool setToUnpoisoned, uptr size) {
     if (loggingEnabled) {
         std::cout << "setMemShadow. Mem address 0x" << std::hex << mem << std::dec << ", size " << size
-                  << " will be set to " << !initState << std::endl;
+                  << " will be set to " << !setToUnpoisoned << std::endl;
     }
-    if (initState) {
+    if (setToUnpoisoned) {
         __msan_unpoison(mem, size);
     } else {
         __msan_poison(mem, size);

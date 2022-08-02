@@ -11,7 +11,7 @@ int main() {
     shadowRegisterState[RAX] = std::bitset<64>{0x00ff00ff00ff00ff};
 
     // when
-    asm ("add %rax, %rcx");
+    asm ("and %rax, %rcx");
 
     // then
     assert(shadowRegisterState[RAX].to_ullong() == 0x00ff00ff00ff00ff);

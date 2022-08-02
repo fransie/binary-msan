@@ -1,20 +1,20 @@
-#ifndef BINARY_MSAN_BASICINSTRUCTIONHANDLER_H
-#define BINARY_MSAN_BASICINSTRUCTIONHANDLER_H
+#ifndef BINARY_MSAN_BINARYLOGICHANDLER_H
+#define BINARY_MSAN_BINARYLOGICHANDLER_H
 
 #include "InstructionHandler.h"
 #include "DisassemblyService.h"
 
 /**
- * Handles the correct shadow propagation of basic instructions such as add, xor, and so on.
+ * Handles the correct shadow propagation of binary arithmetic instructions such as add, xor, and so on.
  * Two steps will be performed: 1) The shadow of the result will be computed as the OR of the
  * shadow of the two operands and 2) the definedness of the EFLAGS register will be set according
  * to whether the result of the instruction is fully defined. Hence, this Handler should only be used
  * for instructions that affect at least one of the EFLAGS flags.
  */
-class BasicInstructionHandler : public InstructionHandler {
+class BinaryLogicHandler : public InstructionHandler {
 public:
-    explicit BasicInstructionHandler(IRDB_SDK::FileIR_t *fileIr) : InstructionHandler(fileIr) {
-        associatedInstructions = {"add", "and", "or", "sub", "xor"};
+    explicit BinaryLogicHandler(IRDB_SDK::FileIR_t *fileIr) : InstructionHandler(fileIr) {
+        associatedInstructions = {"and", "or", "xor"};
     }
 
     IRDB_SDK::Instruction_t * instrument(IRDB_SDK::Instruction_t *instruction) override;
@@ -26,4 +26,4 @@ private:
 };
 
 
-#endif //BINARY_MSAN_BASICINSTRUCTIONHANDLER_H
+#endif //BINARY_MSAN_BINARYLOGICHANDLER_H

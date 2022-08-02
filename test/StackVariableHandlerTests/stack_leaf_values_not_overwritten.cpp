@@ -9,4 +9,4 @@ int main() {
     return 2;
 }
 
-// EXPECTED: Check manually for the exit code of this program: ./obj/stack_leaf_values_not_overwritten_sanitized && echo $? - should be 0.
+// EXPECTED: Check manually for the exit code of this program: StackVariableHandlerTests/obj/stack_leaf_values_not_overwritten_sanitized && echo $? - should be 0.

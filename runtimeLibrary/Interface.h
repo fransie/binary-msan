@@ -40,8 +40,8 @@ INTERFACE void propagateRegOrRegShadow(int dest, int destWidth, int src, int src
 INTERFACE void propagateRegOrMemShadow(const void *mem, int reg, int width);
 INTERFACE void propagateMemOrRegShadow(const void *mem, int reg, int width);
 
-INTERFACE void setRegShadow(bool isInited, int reg, int width);
-INTERFACE void setMemShadow(const void *mem, bool initState, uptr size);
+INTERFACE void setRegShadow(bool setToUnpoisoned, int reg, int width);
+INTERFACE void setMemShadow(const void *mem, bool setToUnpoisoned, uptr size);
 
 } // extern "C"
 #endif //BINARY_MSAN_INTERFACE_H

@@ -7,7 +7,8 @@
 #include "MSan.h"
 #include "LeaHandler.h"
 #include "ControlFlowHandler.h"
-#include "BasicInstructionHandler.h"
+#include "BinaryArithmeticHandler.h"
+#include "BinaryLogicHandler.h"
 #include "MemoryAccessHandler.h"
 #include "MovHandler.h"
 #include "StackVariableHandler.h"
@@ -21,7 +22,8 @@ MSan::MSan(FileIR_t *fileIR) : Transform_t(fileIR) {
     instructionHandlers.push_back(make_unique<MovHandler>(fileIR));
     instructionHandlers.push_back(make_unique<EflagsHandler>(fileIR));
     instructionHandlers.push_back(make_unique<ControlFlowHandler>(fileIR));
-    instructionHandlers.push_back(make_unique<BasicInstructionHandler>(fileIR));
+    instructionHandlers.push_back(make_unique<BinaryArithmeticHandler>(fileIR));
+    instructionHandlers.push_back(make_unique<BinaryLogicHandler>(fileIR));
     instructionHandlers.push_back(make_unique<LeaHandler>(fileIR));
 }
 
