@@ -6,7 +6,7 @@
 #include "FunctionAnalysis.h"
 #include "MSan.h"
 #include "LeaHandler.h"
-#include "JumpHandler.h"
+#include "ControlFlowHandler.h"
 #include "BasicInstructionHandler.h"
 #include "MemoryAccessHandler.h"
 #include "MovHandler.h"
@@ -20,7 +20,7 @@ MSan::MSan(FileIR_t *fileIR) : Transform_t(fileIR) {
     instructionHandlers.push_back(make_unique<MemoryAccessHandler>(fileIR));
     instructionHandlers.push_back(make_unique<MovHandler>(fileIR));
     instructionHandlers.push_back(make_unique<EflagsHandler>(fileIR));
-    instructionHandlers.push_back(make_unique<JumpHandler>(fileIR));
+    instructionHandlers.push_back(make_unique<ControlFlowHandler>(fileIR));
     instructionHandlers.push_back(make_unique<BasicInstructionHandler>(fileIR));
     instructionHandlers.push_back(make_unique<LeaHandler>(fileIR));
 }

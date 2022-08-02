@@ -4,7 +4,7 @@ add_executable(binmsan
         DisassemblyService.cpp
         EflagsHandler.cpp
         FunctionAnalysis.cpp
-        JumpHandler.cpp
+        ControlFlowHandler.cpp
         LeaHandler.cpp
         MemoryAccessHandler.cpp
         MovHandler.cpp
