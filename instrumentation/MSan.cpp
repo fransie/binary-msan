@@ -61,10 +61,19 @@ bool MSan::executeStep() {
 
 void MSan::registerDependencies() {
     auto elfDeps = ElfDependencies_t::factory(getFileIR());
-    // TODO: fix absolute paths
 
-    const string runtimeLibPath = "/home/franzi/Documents/binary-msan/plugins_install/";
+    auto binmsanHome = std::getenv("BINMSAN_HOME");
+    if(!binmsanHome){
+        throw logic_error("Env variable BINMSAN_HOME is missing!");
+    }
+    auto binmsanHomeString = std::string(binmsanHome);
+    auto runtimeLibPath = binmsanHomeString + "/plugins_install/";
     elfDeps->prependLibraryDepedencies(runtimeLibPath + "libinterface.so");
+
+    const string compilerRtPath =  binmsanHomeString + "/llvm_shared_msan_lib/";
+    elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan_cxx-x86_64.so");
+    elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan-x86_64.so");
+
     RuntimeLib::regToRegShadowCopy = elfDeps->appendPltEntry("regToRegShadowCopy");
     RuntimeLib::checkRegIsInit = elfDeps->appendPltEntry("checkRegIsInit");
     RuntimeLib::memToRegShadowCopy = elfDeps->appendPltEntry("memToRegShadowCopy");
@@ -89,14 +98,10 @@ void MSan::registerDependencies() {
     RuntimeLib::msan_set_keep_going = elfDeps->appendPltEntry("__msan_set_keep_going");
     RuntimeLib::msan_unpoison = elfDeps->appendPltEntry("__msan_unpoison");
 
-    const string compilerRtPath = "/home/franzi/Documents/binary-msan/clang_msan_libs/";
-    elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan_cxx-x86_64.so");
-    elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan-x86_64.so");
-
     getFileIR()->assembleRegistry();
 }
 
-bool MSan::parseArgs(std::vector<std::string> step_args) {
+[[maybe_unused]] bool MSan::parseArgs(std::vector<std::string> step_args) {
     return true;
 }
 

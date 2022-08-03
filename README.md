@@ -7,10 +7,13 @@ Binary-msan depends on the binary rewriting toolchain zipr (their papers:
 
 ## Set-up
 
+This set-up has been tested on Ubuntu 20.04 Focal Fossa.
+
+// TODO: document installation of libclang msan shared libraries & creation of folders: clang_msan_libs and plugins_install
 1. Build zipr and verify it works by rewriting "ls" as described here: https://git.zephyr-software.com/opensrc/zipr.
 2. Add an environment variable with the path to the zipr folder to your shell, e.g. with bash: Add
 ``export ZIPR_PATH=/your/path/to/zipr`` to your ```~/.bashrc``` file.
-3. Clone this repo, set an env variable for the path to zipr on your machine and build:
+3. Clone this repo and build:
    ```
         git clone https://github.com/fransie/binary-msan.git
         cd binary-msan
@@ -20,6 +23,13 @@ Binary-msan depends on the binary rewriting toolchain zipr (their papers:
    ```
 4. Add an environment variable with the path to the binmsan folder to your shell, e.g. with bash: Add
    ``export BINMSAN_HOME=/your/path/to/binmsan`` to your ```~/.bashrc``` file. 
+
+### Shared MSan library
+
+Binary-msan needs shared libraries of the LVVM Memory Sanitizer, which are not available in the regular build of LLVM.
+Therefore, the folder `llvm_shared_msan_lib` contains the two needed libraries for x86-64. In case you need the libraries
+for other architectures or they do not work on your machine, you can rebuild them yourself. You can find detailed
+descriptions of how to build the libraries in the folder `llvm_shared_msan_lib`.
 
 ## Usage
 Use binary-msan as follows: ```./run.sh <options> <input-file> <output-file>```, for example ```./run.sh /bin/ls ls-instrumented```. 
