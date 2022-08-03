@@ -59,27 +59,6 @@ TEST(setMemShadowTests, UnpoisonBits64){
     EXPECT_EQ(*shadow, 0);
 }
 
-// TODO: fix these tests
-/**
- * ##############################################################################
- * For some weird reason I don't know, I cannot write these tests like this:
- *
- * TEST(setMemShadowTests, PoisonBits8){
-    // given
-    auto *a = new uint8_t{12};
-    auto shadow = reinterpret_cast<uint8_t*>(MEM_TO_SHADOW(a));
-    EXPECT_EQ(*shadow, 0);
-
-    // when
-    setMemShadow(false, a, 1);
-
-    // then
-    shadow = reinterpret_cast<uint8_t*>(MEM_TO_SHADOW(a));
-    EXPECT_EQ(*shadow, UINT8_MAX);
-}
- * It fails since memory sanitizer complain about shadow being uninitialised. Oh well, it does not make sense
- * to test this since it's not application memory! I don't know why it works above.
- */
 
 TEST(setMemShadowTests, PoisonBits8){
     // given

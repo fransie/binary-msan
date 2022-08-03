@@ -1,7 +1,6 @@
 #include <sstream>
 #include "Utils.h"
 
-// TODO: save state sse and fpu registers
 /**
  * Returns a string containing pushes to EFLAGS and all caller-saved general purpose registers, namely
  *  RAX, RCX, RDX, RSI, RDI, R8, R9, R10 , R11 as well as a decrement of the stack pointer to avoid
