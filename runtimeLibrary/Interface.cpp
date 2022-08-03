@@ -5,7 +5,6 @@
 #include "../common/RegisterNumbering.h"
 #include "Interface.h"
 
-// TODO: global variable is probably a bad idea
 /**
  * This vector holds the current shadow state of the 16 general purpose registers. Upon initialisation,
  * each bit of all of them has the state "undefined" (1). Registers numbering: see file operand_csx86.cpp in zipr.
@@ -245,7 +244,7 @@ bool isRegFullyDefined(int reg, int width) {
 }
 
 /**
- * Returns true if the input memory location starting at <code>mem</code> of size <code>size</code> is fully defined.
+ * Returns true if the input memory location starting at <code>mem</code> of size <code>size</code> in bytes is fully defined.
  */
 bool isMemFullyDefined(const void *mem, uptr size) {
     if (loggingEnabled) {
@@ -301,8 +300,6 @@ bool isRegOrRegFullyDefined(int reg1, int reg1Width, int reg2, int reg2Width) {
     }
 }
 
-// TODO: decide to either take bits everywhere or bytes! Or make clear which function
-// takes width in bytes and which in bits
 /**
  * Returns true if both the input register and the input memory location are fully initialised.
  */
@@ -323,6 +320,12 @@ bool isRegOrMemFullyDefined(const void *mem, int reg, int width) {
     return isRegFullyDefined(reg, width);
 }
 
+/**
+ * Sets the whole <code>width</code> bits of the register to either poisoned or unpoisoned.
+ * @param setToUnpoisoned true = unpoison register, false = poison register.
+ * @param reg register
+ * @param width width in bits
+ */
 void setRegShadow(bool setToUnpoisoned, int reg, int width) {
     if (loggingEnabled) {
         std::cout << "setRegShadow: Shadow of reg " << reg << " (width: " << width << ") will be set to "
@@ -343,6 +346,7 @@ void setRegShadow(bool setToUnpoisoned, int reg, int width) {
 /**
  * Sets the shadow of the memory location denoted by <code>mem</code> and <code>size</code>.
  * @param setToUnpoisoned = true -> unpoison memory, = false -> poison memory.
+ * @param size size in BYTES
  */
 void setMemShadow(const void *mem, bool setToUnpoisoned, uptr size) {
     if (loggingEnabled) {
@@ -366,6 +370,14 @@ void unpoisonUpper4Bytes(const int reg) {
     shadowRegisterState[reg] = shadowRegisterState[reg] & std::bitset<64>{0x00000000ffffffff};
 }
 
+/**
+ * Calculate the shadow of an instruction result by applying OR to the two register shadows and writes
+ * this result shadow to the destination register shadow.
+ * @param dest dest register number.
+ * @param destWidth width in bits.
+ * @param src src regsiter number.
+ * @param srcWidth width in bits.
+ */
 void propagateRegOrRegShadow(int dest, int destWidth, int src, int srcWidth) {
     if (loggingEnabled) {
         std::cout << "propagateRegOrRegShadow. dest: " << dest << " width: " << destWidth << ", src: " << src
@@ -407,6 +419,13 @@ void propagateRegOrRegShadow(int dest, int destWidth, int src, int srcWidth) {
     eflagsDefined = newDestShadow == 0;
 }
 
+/**
+ * Calculate the shadow of an instruction result by applying OR to the two operand shadows and writes
+ * this result shadow to the destination register shadow.
+ * @param mem address of memory operand.
+ * @param reg dest register number.
+ * @param width width in bits.
+ */
 void propagateRegOrMemShadow(const void *mem, int reg, int width) {
     if (loggingEnabled) {
         std::cout << "propagateRegOrMemShadow. Mem address: 0x" << std::hex << mem << std::dec << ", reg: " << reg
@@ -448,6 +467,13 @@ void propagateRegOrMemShadow(const void *mem, int reg, int width) {
     eflagsDefined = newDestShadow == 0;
 }
 
+/**
+ * Calculate the shadow of an instruction result by applying OR to the two operand shadows and writes
+ * this result shadow to the destination memory shadow.
+ * @param mem address of destination memory operand.
+ * @param reg register number.
+ * @param width width in bits.
+ */
 void propagateMemOrRegShadow(const void *mem, int reg, int width) {
     if (loggingEnabled) {
         std::cout << "propagateMemOrRegShadow. Mem address: 0x" << std::hex << mem << std::dec << ", reg: " << reg
