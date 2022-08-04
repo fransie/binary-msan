@@ -57,9 +57,8 @@ target_link_libraries(irdb-sdk
         INTERFACE _irdb-sdk
         )
 
-set(MSANIFIED_LLVM_DIR "/home/franzi/Documents/llvm-project-llvmorg-13.0.1/llvmInstrumentedBuild")
-set(MSAN_CFLAGS -stdlib=libc++ -fsanitize=memory -L${MSANIFIED_LLVM_DIR}/lib -lc++ -lc++abi -I${MSANIFIED_LLVM_DIR}/include -I${MSANIFIED_LLVM_DIR}/include/c++/v1)
-
 add_subdirectory(instrumentation)
 add_subdirectory(runtimeLibrary)
-add_subdirectory(test)
+######### BEGIN UNCOMMENT UNIT TESTS #########
+# add_subdirectory(test)
+######### END UNCOMMENT UNIT TESTS #########

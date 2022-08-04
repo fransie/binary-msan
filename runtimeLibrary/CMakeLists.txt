@@ -28,18 +28,24 @@ target_link_libraries(
         interface msan msan_cxx
 )
 
+######### BEGIN UNCOMMENT UNIT TESTS #########
 
-# Use this target for the unit tests to avoid false positives from uninstrumented code.
-add_library(interface_msanified SHARED
-        Interface.cpp
-        Interface.h
-        ../common/RegisterNumbering.h
-        ../common/Width.h
-        )
+#### !! Replace this path !! ####
+# set(MSANIFIED_LLVM_DIR "/path/to/msanifiedllvmBuild")
+# set(MSAN_CFLAGS -stdlib=libc++ -fsanitize=memory -L${MSANIFIED_LLVM_DIR}/lib -lc++ -lc++abi -I${MSANIFIED_LLVM_DIR}/include -I${MSANIFIED_LLVM_DIR}/include/c++/v1)
 
-target_compile_options(interface_msanified PUBLIC ${MSAN_CFLAGS})
-
-# add msan libs to runtime library target
-target_link_libraries(
-        interface_msanified msan msan_cxx
-)
+## Use this target for the unit tests to avoid false positives from uninstrumented code.
+#add_library(interface_msanified SHARED
+#        Interface.cpp
+#        Interface.h
+#        ../common/RegisterNumbering.h
+#        ../common/Width.h
+#        )
+#
+#target_compile_options(interface_msanified PUBLIC ${MSAN_CFLAGS})
+#
+## add msan libs to runtime library target
+#target_link_libraries(
+#        interface_msanified msan msan_cxx
+#)
+######### END UNCOMMENT UNIT TESTS #########
