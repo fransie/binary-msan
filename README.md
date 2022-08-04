@@ -13,16 +13,19 @@ This set-up has been tested on Ubuntu 20.04 Focal Fossa.
 1. Build zipr and verify it works by rewriting "ls" as described here: https://git.zephyr-software.com/opensrc/zipr.
 2. Add an environment variable with the path to the zipr folder to your shell, e.g. with bash: Add
 ``export ZIPR_PATH=/your/path/to/zipr`` to your ```~/.bashrc``` file.
-3. Clone this repo and build:
+3. Clone this repo:
    ```
-        git clone https://github.com/fransie/binary-msan.git
+   git clone https://github.com/fransie/binary-msan.git
+   ```
+   and add an environment variable `BINMSAN_HOME` with the path to the binary-msan folder to your shell, e.g. with bash: Add
+   ``export BINMSAN_HOME=/your/path/to/binary-msan`` to your ```~/.bashrc``` file.
+4. Build binary-msan:
+   ```
         cd binary-msan
         source init.sh
         cmake .
         make
    ```
-4. Add an environment variable with the path to the binmsan folder to your shell, e.g. with bash: Add
-   ``export BINMSAN_HOME=/your/path/to/binmsan`` to your ```~/.bashrc``` file. 
 
 ### Shared MSan library
 

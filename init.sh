@@ -5,6 +5,5 @@ current=$PWD
 cd ${ZIPR_PATH}
 source set_env_vars
 cd $current
-source set_env_vars
-
-
+export PSPATH=$PSPATH:$BINMSAN_HOME/plugins_install
+export CAPSTONE=${PEASOUP_HOME}/irdb-libs/third_party/capstone/include/capstone
