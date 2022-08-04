@@ -49,10 +49,9 @@ def build(filename):
     lines = open(filename, "r").readlines()
     if lines[0].__contains__("COMPILE OPTIONS"):
         options = lines[0].replace("// COMPILE OPTIONS: ", "").strip("\n")
-        subprocess.call(f"g++ {filename} -o {output_name} {options} >> {directory}/logs/{test_name}.txt 2>&1", shell=True)
+        return subprocess.call(f"g++ {filename} -o {output_name} {options} >> {directory}/logs/{test_name}.txt 2>&1", shell=True)
     else:
-        subprocess.call(f"g++ {filename} -o {output_name} >> {directory}/logs/{test_name}.txt 2>&1", shell=True)
-    return True
+        return subprocess.call(f"g++ {filename} -o {output_name} >> {directory}/logs/{test_name}.txt 2>&1", shell=True)
 
 
 def sanitize(filename):
@@ -85,12 +84,18 @@ def execute_test_case(file):
             return
     if is_disabled(file):
         return
-    build(file)
+    exit_code = build(file)
+    if exit_code != 0:
+        print(f"******* {file} *******\n{RED}ERROR: Build failed.{END}")
+        return
     exit_code = sanitize(file)
     if exit_code != 0:
         print(f"******* {file} *******\n{RED}ERROR: Sanitization failed.{END}")
         return
-    run_test(file)
+    exit_code = run_test(file)
+    if exit_code != 0:
+        print(f"******* {file} *******\n{RED}ERROR: Run of sanitized binary failed.{END}")
+        return
     verify_expected_output(file)
 
 
