@@ -115,5 +115,7 @@ if __name__ == '__main__':
         testfiles = [f for f in listdir(path) if isfile(join(directory, f))]
         for file in testfiles:
             files.append(directory + "/" + file)
-    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
-        executor.map(execute_test_case, files)
+    for file in files:
+        execute_test_case(file)
+    # with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+    #     executor.map(execute_test_case, files)
