@@ -92,10 +92,7 @@ def execute_test_case(file):
     if exit_code != 0:
         print(f"******* {file} *******\n{RED}ERROR: Sanitization failed.{END}")
         return
-    exit_code = run_test(file)
-    if exit_code != 0:
-        print(f"******* {file} *******\n{RED}ERROR: Run of sanitized binary failed.{END}")
-        return
+    run_test(file)
     verify_expected_output(file)
 
 
