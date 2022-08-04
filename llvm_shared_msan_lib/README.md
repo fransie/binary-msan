@@ -1,9 +1,14 @@
-# How to build the LLVM MSan shared libraries
+# LLVM MSan
+
+This folder contains the shared libraries and in `compiler-rt` the include files needed by binary-msan for x86-64. If you
+use x86-64, there is nothing for you to do here. If you would like to build the shared libraries yourself, e.g. for other
+architecture, you can find the how-to in the following.
+
+## How to build the LLVM MSan shared libraries
 
 Tested on Ubuntu 20.04 Focal Fossa. I installed everything in the ~/Documents folder.
 
-
-## Install GCC 11.3.0
+### Install GCC 11.3.0
 
 First, you need at least version 11.2 of GCC.
 ```
@@ -64,7 +69,7 @@ sudo cp /usr/lib64/libstdc++.so.6.0.29 /lib/x86_64-linux-gnu/
 sudo ln -sf /lib/x86_64-linux-gnu/libstdc++.so.6.0.29 /lib/x86_64-linux-gnu/libstdc++.so.6
 ```
 
-## LLVM 13.0.1
+### LLVM 13.0.1
 
 This installation will take A LOT of disk space, something like 70 GB. You need to use GCC version >= 11.2 for this.
 
@@ -86,7 +91,7 @@ sudo cmake --build . --target install
 
 ```
 
-## Compiler-RT
+### Compiler-RT
 
 Compiler-RT is the project that contains all the LLVM sanitizers. You have to use an adapted version of the folder 
 `compiler-rt/lib` so that the build produces shared MSan libraries instead of static ones. Delete this folder and replace
