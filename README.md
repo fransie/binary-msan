@@ -1,6 +1,6 @@
 # binary-msan
 
-This tool is a binary-only implementation of LLVM's Memory Sanitizer ([their paper](https://doi.org/10.1109/CGO.2015.7054186)).
+This tool is a PoC of a binary-only implementation of LLVM's Memory Sanitizer ([their paper](https://doi.org/10.1109/CGO.2015.7054186)).
 It finds usage of uninitialised memory for conditional branching, syscalls and pointer dereference.
 Binary-msan depends on the binary rewriting toolchain zipr (their papers:
 [zipr](https://doi.org/10.1109/DSN.2017.27) and [zipr++](https://doi.org/10.1145/3141235.3141240)).
@@ -36,7 +36,8 @@ descriptions of how to build the libraries in the folder `llvm_shared_msan_lib`.
 
 ## Usage
 
-Use binary-msan as follows: ```./run.sh <options> <input-file> <output-file>```, for example ```./run.sh /bin/ls ls-instrumented```. 
+Use binary-msan as follows: ```./binary-msan.sh <options> <input-file> <output-file>```. This is only a prototype,
+so it will only instrument the main function of simple binary. Have a look into the test folder for example binaries.
 Available options:
 - `-k`: Keep going after MSan warning. The default behaviour of binary-msan is to abort the executing of the instrumented
 binary after the first warning. With this option, the execution will keep going after warnings.

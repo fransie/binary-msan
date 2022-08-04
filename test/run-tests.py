@@ -63,7 +63,7 @@ def sanitize(filename):
     output_name = f"{directory}/obj/{test_name}"
     sanitized_name = f"{output_name}_sanitized"
     return subprocess.call(
-        f"../run.sh {options} {output_name} {sanitized_name} >> {directory}/logs/{test_name}.txt 2>&1",
+        f"../binary-msan.sh {options} {output_name} {sanitized_name} >> {directory}/logs/{test_name}.txt 2>&1",
         shell=True)
 
 
