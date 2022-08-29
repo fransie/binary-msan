@@ -30,8 +30,6 @@ target_link_libraries(
 
 ######### BEGIN UNCOMMENT UNIT TESTS #########
 
-#### !! Replace this path !! ####
-# set(MSANIFIED_LLVM_DIR "/path/to/msanifiedllvmBuild")
 # set(MSAN_CFLAGS -stdlib=libc++ -fsanitize=memory -L${MSANIFIED_LLVM_DIR}/lib -lc++ -lc++abi -I${MSANIFIED_LLVM_DIR}/include -I${MSANIFIED_LLVM_DIR}/include/c++/v1)
 
 ## Use this target for the unit tests to avoid false positives from uninstrumented code.
