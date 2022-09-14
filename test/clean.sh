@@ -10,7 +10,7 @@ do
       # remove artifacts from last test run
       rm "$dir"/obj/* > /dev/null 2>&1
       rm "$dir"/logs/* > /dev/null 2>&1
-      rm -r "$dir"/peasoup_executable_directory* > /dev/null 2>&1
   fi
-
 done
+# remove artifacts from last test run
+rm -r peasoup_executable_directory* > /dev/null 2>&1

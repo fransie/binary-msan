@@ -46,7 +46,6 @@ bool MSan::executeStep() {
     const set<Instruction_t *> originalInstructions(mainFunction->getInstructions().begin(),
                                                     mainFunction->getInstructions().end());
     for (auto instruction: originalInstructions) {
-        auto d = instruction->getDisassembly();
         for (auto &&handler: instructionHandlers) {
             if (handler->isResponsibleFor(instruction)) {
                 instruction = handler->instrument(instruction);
