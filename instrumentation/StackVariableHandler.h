@@ -24,8 +24,9 @@ private:
     IRDB_SDK::FileIR_t *fileIr;
 
     static IRDB_SDK::Instruction_t *getBpMove(IRDB_SDK::Function_t *function);
-    static std::vector<std::basic_string<char>> poisonRedZone(int stackFrameSize, std::string &instrumentation);
-    static std::basic_string<char> poisonStackframe(int stackFrameSize, std::string &instrumentation);
+    static IRDB_SDK::Instruction_t *getSpSub(IRDB_SDK::Function_t *function);
+    void poisonRedZone(std::string &instrumentation);
+    void poisonStackframe(std::string &instrumentation);
 };
 
 

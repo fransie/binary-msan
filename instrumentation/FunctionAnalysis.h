@@ -8,7 +8,7 @@ public:
     explicit FunctionAnalysis(IRDB_SDK::Function_t *function);
     ~FunctionAnalysis() = default;
 
-    bool isLeafOrTailCallFunction;
+    bool isLeafFunction;
 
     IRDB_SDK::Function_t *getFunction() const;
 private:
