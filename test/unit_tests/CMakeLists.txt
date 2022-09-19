@@ -31,4 +31,4 @@ set_property(TARGET libcxx PROPERTY IMPORTED_LOCATION "${MSANIFIED_LLVM_DIR}/lib
 add_library(libcxxabi SHARED IMPORTED)
 set_property(TARGET libcxxabi PROPERTY IMPORTED_LOCATION "${MSANIFIED_LLVM_DIR}/lib/libc++abi.so.1")
 
-target_link_libraries(unit_tests gtest gtest_main pthread interface_msanified libcxx libcxxabi)
+target_link_libraries(unit_tests gtest gtest_main pthread binmsan_lib_msanified libcxx libcxxabi)

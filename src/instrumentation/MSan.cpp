@@ -67,7 +67,7 @@ void MSan::registerDependencies() {
     }
     auto binmsanHomeString = std::string(binmsanHome);
     auto runtimeLibPath = binmsanHomeString + "/plugins_install/";
-    elfDeps->prependLibraryDepedencies(runtimeLibPath + "libinterface.so");
+    elfDeps->prependLibraryDepedencies(runtimeLibPath + "libbinmsan_lib.so");
 
     const string compilerRtPath =  binmsanHomeString + "/llvm_shared_msan_lib/";
     elfDeps->prependLibraryDepedencies(compilerRtPath + "libclang_rt.msan_cxx-x86_64.so");

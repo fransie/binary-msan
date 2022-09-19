@@ -1,11 +1,11 @@
 ############### RUNTIME LIBRARY ###############
 
-add_library(interface SHARED
+add_library(binmsan_lib SHARED
         BinMsanApi.cpp
         BinMsanApi.h
         ../common/Width.h
 )
-target_compile_options(interface PRIVATE -Wextra -Wpedantic)
+target_compile_options(binmsan_lib PRIVATE -Wextra -Wpedantic)
 
 # collect include directories
 set(MSAN_INCLUDE_DIRS)
@@ -25,7 +25,7 @@ target_include_directories(msan_cxx INTERFACE ${MSAN_INCLUDE_DIRS})
 
 # add msan libs to runtime library target
 target_link_libraries(
-        interface msan msan_cxx
+        binmsan_lib msan msan_cxx
 )
 
 ######### BEGIN UNCOMMENT UNIT TESTS #########
@@ -33,17 +33,17 @@ target_link_libraries(
 # set(MSAN_CFLAGS -stdlib=libc++ -fsanitize=memory -L${MSANIFIED_LLVM_DIR}/lib -lc++ -lc++abi -I${MSANIFIED_LLVM_DIR}/include -I${MSANIFIED_LLVM_DIR}/include/c++/v1)
 
 ## Use this target for the unit tests to avoid false positives from uninstrumented code.
-#add_library(interface_msanified SHARED
+#add_library(binmsan_lib_msanified SHARED
 #        BinMsanApi.cpp
 #        BinMsanApi.h
 #        ../common/RegisterNumbering.h
 #        ../common/Width.h
 #        )
 #
-#target_compile_options(interface_msanified PUBLIC ${MSAN_CFLAGS})
+#target_compile_options(binmsan_lib_msanified PUBLIC ${MSAN_CFLAGS})
 #
 ## add msan libs to runtime library target
 #target_link_libraries(
-#        interface_msanified msan msan_cxx
+#        binmsan_lib_msanified msan msan_cxx
 #)
 ######### END UNCOMMENT UNIT TESTS #########

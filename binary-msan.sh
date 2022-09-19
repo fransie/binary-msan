@@ -69,5 +69,5 @@ then
   options+="--step-option ${log} "
 fi
 
-command="$PSZ -c rida --step move_globals -c binmsan $options $1 $2"
+command="$PSZ -c rida --step move_globals -c binmsan_instrumentation $options $1 $2"
 $command
