@@ -1,6 +1,6 @@
 #include <iostream>
 #include "gtest/gtest.h"
-#include "../../runtimeLibrary/Interface.h"
+#include "../../src/runtimeLibrary/BinMsanApi.h"
 
 TEST(isMemFullyDefinedTests, fullyDefined){
     // given

@@ -1,8 +1,8 @@
 ############### RUNTIME LIBRARY ###############
 
 add_library(interface SHARED
-        Interface.cpp
-        Interface.h
+        BinMsanApi.cpp
+        BinMsanApi.h
         ../common/Width.h
 )
 target_compile_options(interface PRIVATE -Wextra -Wpedantic)
@@ -34,8 +34,8 @@ target_link_libraries(
 
 ## Use this target for the unit tests to avoid false positives from uninstrumented code.
 #add_library(interface_msanified SHARED
-#        Interface.cpp
-#        Interface.h
+#        BinMsanApi.cpp
+#        BinMsanApi.h
 #        ../common/RegisterNumbering.h
 #        ../common/Width.h
 #        )

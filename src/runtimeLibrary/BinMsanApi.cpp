@@ -3,7 +3,7 @@
 #include <msan_interface_internal.h>
 #include "../common/Width.h"
 #include "../common/RegisterNumbering.h"
-#include "Interface.h"
+#include "BinMsanApi.h"
 
 /**
  * This vector holds the current shadow state of the 16 general purpose registers. Upon initialisation,

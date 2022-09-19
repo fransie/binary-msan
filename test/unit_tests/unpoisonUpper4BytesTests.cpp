@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
-#include "../../runtimeLibrary/Interface.h"
-#include "../../common/RegisterNumbering.h"
+#include "../../src/runtimeLibrary/BinMsanApi.h"
+#include "../../src/common/RegisterNumbering.h"
 
 TEST(initUpper4BytesTests, init){
     // given

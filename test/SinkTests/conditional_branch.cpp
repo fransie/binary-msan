@@ -2,8 +2,8 @@
 
 
 #include <stdio.h>
-#include "../../runtimeLibrary/Interface.h"
-#include "../../common/RegisterNumbering.h"
+#include "../../src/runtimeLibrary/BinMsanApi.h"
+#include "../../src/common/RegisterNumbering.h"
 
 int main(int argc, char** argv) {
     // define rax here because "new" is not instrumented yet and returns an uninit address in rax, which in wrong.

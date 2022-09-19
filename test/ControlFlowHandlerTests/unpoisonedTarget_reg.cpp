@@ -2,8 +2,8 @@
 // HALT ON ERROR
 
 #include <iostream>
-#include "../../runtimeLibrary/Interface.h"
-#include "../../common/RegisterNumbering.h"
+#include "../../src/runtimeLibrary/BinMsanApi.h"
+#include "../../src/common/RegisterNumbering.h"
 
 int main() {
     // given

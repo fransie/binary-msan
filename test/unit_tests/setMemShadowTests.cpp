@@ -1,7 +1,7 @@
 #include <iostream>
 #include <msan.h>
 #include "gtest/gtest.h"
-#include "../../runtimeLibrary/Interface.h"
+#include "../../src/runtimeLibrary/BinMsanApi.h"
 
 TEST(setMemShadowTests, UnpoisonBits8){
     // given

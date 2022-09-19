@@ -4,8 +4,8 @@
 #include <assert.h>
 #include <iostream>
 #include <cstdint>
-#include "../../runtimeLibrary/Interface.h"
-#include "../../common/RegisterNumbering.h"
+#include "../../src/runtimeLibrary/BinMsanApi.h"
+#include "../../src/common/RegisterNumbering.h"
 
 
 void testShadowNot0(u_int8_t *ptr){

@@ -59,9 +59,8 @@ target_link_libraries(irdb-sdk
 
 ######### BEGIN UNCOMMENT UNIT TESTS #########
 # REPLACE THIS PATH #
-set(MSANIFIED_LLVM_DIR "/path/to/llvmInstrumentedBuild")
-add_subdirectory(test)
+#set(MSANIFIED_LLVM_DIR "/path/to/llvmInstrumentedBuild")
+#add_subdirectory(test)
 ######### END UNCOMMENT UNIT TESTS #########
 
-add_subdirectory(instrumentation)
-add_subdirectory(runtimeLibrary)
+add_subdirectory(src)

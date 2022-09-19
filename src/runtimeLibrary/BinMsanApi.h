@@ -1,5 +1,5 @@
-#ifndef BINARY_MSAN_INTERFACE_H
-#define BINARY_MSAN_INTERFACE_H
+#ifndef BINARY_MSAN_BINMSANAPI_H
+#define BINARY_MSAN_BINMSANAPI_H
 
 #ifndef INTERFACE
 #define INTERFACE __attribute__((visibility ("default")))
@@ -43,4 +43,4 @@ INTERFACE void enableLogging();
 INTERFACE void *getRegisterShadow(int reg, int regWidth);
 
 } // extern "C"
-#endif //BINARY_MSAN_INTERFACE_H
+#endif //BINARY_MSAN_BINMSANAPI_H

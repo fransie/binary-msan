@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
-#include "../../runtimeLibrary/Interface.h"
-#include "../../common/RegisterNumbering.h"
-#include "../../common/Width.h"
+#include "../../src/runtimeLibrary/BinMsanApi.h"
+#include "../../src/common/RegisterNumbering.h"
+#include "../../src/common/Width.h"
 
 TEST(regToRegShadowCopyTests, width64) {
     // given

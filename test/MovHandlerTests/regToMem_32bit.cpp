@@ -4,8 +4,8 @@
 #include <assert.h>
 #include <iostream>
 #include <cstdint>
-#include "../../runtimeLibrary/Interface.h"
-#include "../../common/RegisterNumbering.h"
+#include "../../src/runtimeLibrary/BinMsanApi.h"
+#include "../../src/common/RegisterNumbering.h"
 
 void testShadowNot0(u_int32_t *ptr){
     auto shadow = reinterpret_cast<uint32_t*>((unsigned long long)(ptr) ^ 0x500000000000ULL);

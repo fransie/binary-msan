@@ -3,8 +3,8 @@
 
 #include <unistd.h>
 #include <iostream>
-#include "../../runtimeLibrary/Interface.h"
-#include "../../common/RegisterNumbering.h"
+#include "../../src/runtimeLibrary/BinMsanApi.h"
+#include "../../src/common/RegisterNumbering.h"
 
 int main() {
     // define rax here because "new" is not instrumented yet and returns an uninit address in rax, which is wrong.
