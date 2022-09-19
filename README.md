@@ -29,8 +29,7 @@ This set-up has been tested on Ubuntu 20.04 Focal Fossa.
 ### Shared MSan library
 
 Binary-msan needs shared libraries of the LVVM Memory Sanitizer, which are not available in the regular build of LLVM.
-Therefore, the folder `llvm_shared_msan_lib` contains the two needed libraries for x86-64. In case you need the libraries
-for other architectures, or they do not work on your machine, you can rebuild them yourself. You can find detailed
+Therefore, the folder `llvm_shared_msan_lib` contains the two needed libraries for x86-64. You can find the
 descriptions of how to build the libraries in the folder `llvm_shared_msan_lib`.
 
 ## Usage

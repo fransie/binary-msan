@@ -1,7 +1,8 @@
 # LLVM MSan
 
-This folder contains the shared libraries and in `compiler-rt` the include files needed by binary-msan for x86-64. If you
-use x86-64, there is nothing for you to do here. If you would like to build the shared libraries yourself, you can find the how-to in the following.
+This folder contains the shared libraries and the include files needed by binary-msan for x86-64. If you
+use x86-64, there is nothing for you to do here. If you would like to rebuild the shared libraries yourself for some reason,
+you can find the how-to in the following.
 
 ## How to build the LLVM MSan shared libraries
 

@@ -9,7 +9,7 @@ use clang/clang++ to build the whole binary-msan project if you include the unit
 
 1. Instrumented Libc
 
-Firstly, build instrumented libc and libc ABI as described here:
+First, build the instrumented libc and libc ABI as described here:
 https://github.com/google/sanitizers/wiki/MemorySanitizerLibcxxHowTo
 
 ```bash
@@ -47,4 +47,4 @@ make -j8
 
 3. Uncomment all lines needed for unit tests in the following files:
 - top-level CMakeLists.txt
-- runtimeLibrary/CMakeLists.txt
+- src/runtimeLibrary/CMakeLists.txt
