@@ -9,7 +9,6 @@ Binary-msan depends on the binary rewriting toolchain zipr (their papers:
 
 This set-up has been tested on Ubuntu 20.04 Focal Fossa.
 
-// TODO: document installation of libclang msan shared libraries & creation of folders: clang_msan_libs and plugins_install
 1. Build zipr and verify it works by rewriting "ls" as described here: https://git.zephyr-software.com/opensrc/zipr.
 2. Add an environment variable with the path to the zipr folder to your shell, e.g. with bash: Add
 ``export ZIPR_PATH=/your/path/to/zipr`` to your ```~/.bashrc``` file.
