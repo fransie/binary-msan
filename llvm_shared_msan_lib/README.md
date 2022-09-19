@@ -1,8 +1,7 @@
 # LLVM MSan
 
 This folder contains the shared libraries and in `compiler-rt` the include files needed by binary-msan for x86-64. If you
-use x86-64, there is nothing for you to do here. If you would like to build the shared libraries yourself, e.g. for other
-architecture, you can find the how-to in the following.
+use x86-64, there is nothing for you to do here. If you would like to build the shared libraries yourself, you can find the how-to in the following.
 
 ## How to build the LLVM MSan shared libraries
 
@@ -95,7 +94,7 @@ sudo cmake --build . --target install
 
 Compiler-RT is the project that contains all the LLVM sanitizers. You have to use an adapted version of the folder 
 `compiler-rt/lib` so that the build produces shared MSan libraries instead of static ones. Delete this folder and replace
-it by the `compiler-rt-lib` folder that you find in the folder `llvm_shared_msan_lib` of this repo.
+it by the `compiler-rt/lib` folder that you find in this folder `llvm_shared_msan_lib` of this repo.
 
 ```
 ################################
