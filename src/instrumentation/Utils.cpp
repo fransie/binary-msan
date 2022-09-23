@@ -1,4 +1,5 @@
 #include <sstream>
+#include <iostream>
 #include "Utils.h"
 
 /**
@@ -46,5 +47,14 @@ std::string Utils::getStateRestoringInstrumentation() {
 unsigned int Utils::toHex(int num) {
     std::stringstream stream;
     stream << std::hex << num;
-    return std::stoi(stream.str());
+    try{
+        auto result = std::stoi(stream.str(), nullptr, 10);
+        return result;
+    } catch (std::invalid_argument &e){
+        std::cout << "Invalid argument exception when converting input " << stream.str() << " to hex integer: " << e.what() << std::endl;
+        throw e;
+    } catch (std::out_of_range  &e){
+        std::cout << "Out of range exception when converting input " << stream.str() << " to hex integer: " << e.what() << std::endl;
+        throw e;
+    }
 }

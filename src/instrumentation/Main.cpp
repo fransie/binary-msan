@@ -46,8 +46,8 @@ int main(int argc, char *argv[]) {
         }
     } catch (const IRDB_SDK::DatabaseError_t &db_error) {
         std::cout << program_name << ": Unexpected database error: " << db_error << "file url: " << url << std::endl;
-    } catch (...) {
-        std::cout << program_name << ": Unexpected error file url: " << url << std::endl;
+    } catch (std::exception &e) {
+        std::cout << program_name << ": Unexpected error file url: " << url << ". Exception: " << e.what() << std::endl;
         return 2;
     }
 
