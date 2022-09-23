@@ -27,7 +27,7 @@ IRDB_SDK::Instruction_t *MemoryAccessHandler::instrument(Instruction_t *instruct
     if (!operand->hasBaseRegister() && !operand->hasIndexRegister()) {
         return instruction;
     }
-    std::cout << "instrumentMemRef. Operand: " << operand->getString() << std::endl;
+    std::cout << "MemoryAccessHandler. Operand: " << operand->getString() << std::endl;
     string instrumentation = Utils::getStateSavingInstrumentation();
     vector<basic_string<char>> instrumentationParams{4};
 

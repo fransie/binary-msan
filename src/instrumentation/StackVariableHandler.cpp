@@ -28,6 +28,7 @@ StackVariableHandler::StackVariableHandler(IRDB_SDK::FileIR_t *fileIr) : fileIr(
  * @param functionAnalysis analysis of the function to be instrumented.
  */
 void StackVariableHandler::instrument(unique_ptr<FunctionAnalysis> &functionAnalysis) {
+    std::cout << "StackVariableHandler: Function " << functionAnalysis->getFunction()->getName() << std::endl;
     auto function = functionAnalysis->getFunction();
     // getStackFrameSize() looks for the first occurrence of a `sub rsp|esp, x` instruction and returns x
     auto stackFrameSize = function->getStackFrameSize();

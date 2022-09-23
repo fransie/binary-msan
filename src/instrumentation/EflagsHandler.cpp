@@ -7,6 +7,7 @@ using namespace IRDB_SDK;
 using namespace std;
 
 IRDB_SDK::Instruction_t *EflagsHandler::instrument(IRDB_SDK::Instruction_t *instruction) {
+    std::cout << "EflagsHandler: Instruction " << instruction->getDisassembly() << std::endl;
     auto decodedInstruction = DecodedInstruction_t::factory(instruction);
     vector<shared_ptr<DecodedOperand_t>> operands = decodedInstruction->getOperands();
     if (operands[0]->isGeneralPurposeRegister()) {
