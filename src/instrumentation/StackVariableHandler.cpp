@@ -7,7 +7,7 @@
 
 using namespace std;
 
-size_t RED_ZONE_SIZE = 128;
+size_t RED_ZONE_SIZE = Utils::toHex(RED_ZONE_SIZE);
 
 StackVariableHandler::StackVariableHandler(IRDB_SDK::FileIR_t *fileIr) : fileIr(fileIr) {}
 
@@ -45,11 +45,11 @@ void StackVariableHandler::instrument(unique_ptr<FunctionAnalysis> &functionAnal
 
     if (hasStackPointerSub) {
         poisonStackframe(instrumentation);
-        instrumentationParams[0] = to_string(Utils::toHex(stackFrameSize));
+        instrumentationParams[0] = to_string(stackFrameSize);
     }
     if (canUseRedZone) {
         poisonRedZone(instrumentation);
-        instrumentationParams[1] = RED_ZONE_SIZE * 2;
+        instrumentationParams[1] = to_string(RED_ZONE_SIZE * 2);
     }
     instrumentation += Utils::getStateRestoringInstrumentation();
 
