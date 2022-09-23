@@ -30,36 +30,29 @@ MSan::MSan(FileIR_t *fileIR) : Transform_t(fileIR) {
 bool MSan::executeStep() {
     registerDependencies();
     Function_t *mainFunction = nullptr;
-    vector<unique_ptr<FunctionAnalysis>> functionAnalyses {};
+    unique_ptr<FunctionAnalysis> mainFunctionAnalysis = nullptr;
     auto functions = getFileIR()->getFunctions();
     for (auto const &function: functions) {
-        functionAnalyses.push_back(make_unique<FunctionAnalysis>(function));
         if (function->getName() == "main") {
             mainFunction = function;
+            mainFunctionAnalysis = make_unique<FunctionAnalysis>(mainFunction);
+            break;
         }
     }
     if (!mainFunction) {
         cout << "No main function detected." << endl;
     }
 
-    for (auto const &fAnalysis: functionAnalyses) {
-        const set<Instruction_t *> originalInstructions(fAnalysis->getFunction()->getInstructions().begin(),
-                                                        fAnalysis->getFunction()->getInstructions().end());
-        for (auto instruction: originalInstructions) {
-            for (auto &&handler: instructionHandlers) {
-                if (handler->isResponsibleFor(instruction)) {
-                   instruction = handler->instrument(instruction);
-                }
+    const set<Instruction_t *> originalInstructions(mainFunction->getInstructions().begin(),
+                                                    mainFunction->getInstructions().end());
+    for (auto instruction: originalInstructions) {
+        for (auto &&handler: instructionHandlers) {
+            if (handler->isResponsibleFor(instruction)) {
+                instruction = handler->instrument(instruction);
             }
         }
     }
-    for (auto &fAnalysis: functionAnalyses) {
-        // sometimes Zipr provides "ThisIsNotAFunction" as function, idk why.
-        if(fAnalysis->getFunction()->getEntryPoint() == nullptr){
-            continue;
-        }
-       functionHandlers.at(0)->instrument(fAnalysis);
-    }
+    functionHandlers.at(0)->instrument(mainFunctionAnalysis);
     instrumentOptions(mainFunction->getEntryPoint());
     return true; //success
 }
