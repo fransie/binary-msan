@@ -12,6 +12,7 @@ using namespace std;
  * Takes a mov instruction and inserts instrumentation before it so that the shadow is handled correctly.
  */
 IRDB_SDK::Instruction_t *MovHandler::instrument(Instruction_t *instruction) {
+    std::cout << "MovHandler: Instruction " << instruction->getDisassembly() << std::endl;
     auto decodedInstruction = DecodedInstruction_t::factory(instruction);
     vector<shared_ptr<DecodedOperand_t>> operands = decodedInstruction->getOperands();
     if (operands[0]->isGeneralPurposeRegister()) {
@@ -38,8 +39,6 @@ IRDB_SDK::Instruction_t *MovHandler::instrument(Instruction_t *instruction) {
  * @param instruction mov [mem], immediate instruction
  */
 IRDB_SDK::Instruction_t *MovHandler::instrumentImmToMemMove(IRDB_SDK::Instruction_t *instruction) {
-    cout << "instrumentImmToMemMove: " << instruction->getDisassembly() << " at "
-         << instruction->getAddress()->getVirtualOffset() << endl;
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     auto dest = disassemblyService->getMemoryOperandDisassembly(instruction);
     auto destWidth = operands[0]->getArgumentSizeInBytes();
@@ -63,8 +62,6 @@ IRDB_SDK::Instruction_t *MovHandler::instrumentImmToMemMove(IRDB_SDK::Instructio
  * @param instruction mov reg, immediate instruction
  */
 IRDB_SDK::Instruction_t *MovHandler::instrumentImmToRegMove(Instruction_t *instruction) {
-    cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset()
-         << endl;
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     auto dest = operands[0]->getRegNumber();
     auto width = disassemblyService->getRegWidth(instruction, 0);
@@ -100,9 +97,6 @@ IRDB_SDK::Instruction_t *MovHandler::instrumentImmToRegMove(Instruction_t *instr
 IRDB_SDK::Instruction_t *MovHandler::instrumentMemToRegMove(Instruction_t *instruction) {
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     auto dest = operands[0]->getRegNumber();
-    cout << "instrumentMemToRegMove. Instruction: " << instruction->getDisassembly() << " at "
-         << instruction->getAddress()->getVirtualOffset() << ". Destination register: " << (int) dest << " and mem: "
-         << operands[1]->getString() << endl;
 
     auto memoryDisassembly = disassemblyService->getMemoryOperandDisassembly(instruction);
     auto width = disassemblyService->getRegWidth(instruction, 0);
@@ -136,8 +130,6 @@ IRDB_SDK::Instruction_t *MovHandler::instrumentMemToRegMove(Instruction_t *instr
 * @param instruction mov [mem], reg instruction
 */
 IRDB_SDK::Instruction_t *MovHandler::instrumentRegToMemMove(IRDB_SDK::Instruction_t *instruction) {
-    cout << "instrumentRegToMemMove. Instruction: " << instruction->getDisassembly() << " at "
-         << instruction->getAddress()->getVirtualOffset() << endl;
     auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
 
     auto src = operands[1]->getRegNumber();
@@ -167,8 +159,6 @@ IRDB_SDK::Instruction_t *MovHandler::instrumentRegToRegMove(Instruction_t *instr
     const auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
     const auto dest = operands[0]->getRegNumber();
     const auto source = operands[1]->getRegNumber();
-    cout << "Instruction: " << instruction->getDisassembly() << " at " << instruction->getAddress()->getVirtualOffset()
-         << ". Destination register: " << dest << " and source: " << source << endl;
 
     auto destWidth = disassemblyService->getRegWidth(instruction, 0);
     auto srcWidth = disassemblyService->getRegWidth(instruction, 1);
