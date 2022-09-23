@@ -16,11 +16,11 @@ void FunctionAnalysis::analyse() {
     for (auto instruction: instructions) {
         auto decodedInstruction = IRDB_SDK::DecodedInstruction_t::factory(instruction);
         if (decodedInstruction->getMnemonic() == "call") {
-            this->isLeafOrTailCallFunction = false;
+            this->isLeafFunction = false;
             return;
         }
     }
-    this->isLeafOrTailCallFunction = true;
+    this->isLeafFunction = true;
 }
 
 IRDB_SDK::Function_t *FunctionAnalysis::getFunction() const {

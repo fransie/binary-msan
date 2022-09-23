@@ -28,11 +28,11 @@ StackVariableHandler::StackVariableHandler(IRDB_SDK::FileIR_t *fileIr) : fileIr(
  * @param functionAnalysis analysis of the function to be instrumented.
  */
 void StackVariableHandler::instrument(unique_ptr<FunctionAnalysis> &functionAnalysis) {
-    // getStackFrameSize() looks for the first occurrence of a `sub rsp|esp, x` instruction and returns x
     auto function = functionAnalysis->getFunction();
+    // getStackFrameSize() looks for the first occurrence of a `sub rsp|esp, x` instruction and returns x
     auto stackFrameSize = function->getStackFrameSize();
     bool hasStackPointerSub = (stackFrameSize != 0);
-    bool canUseRedZone = functionAnalysis->isLeafOrTailCallFunction;
+    bool canUseRedZone = functionAnalysis->isLeafFunction;
 
     if (!canUseRedZone && !hasStackPointerSub) {
         // do nothing
@@ -40,22 +40,34 @@ void StackVariableHandler::instrument(unique_ptr<FunctionAnalysis> &functionAnal
     }
 
     string instrumentation = Utils::getStateSavingInstrumentation();
-    vector<basic_string<char>> instrumentationParams = vector<basic_string<char>>{"", "", ""};
+    vector<basic_string<char>> instrumentationParams = vector<basic_string<char>>{"", ""};
 
     if (hasStackPointerSub) {
-        auto param = poisonStackframe(stackFrameSize, instrumentation);
-        instrumentationParams[0] = param;
+        poisonStackframe(instrumentation);
+        instrumentationParams[0] = to_string(Utils::toHex(stackFrameSize));
     }
     if (canUseRedZone) {
-        auto params = poisonRedZone(stackFrameSize, instrumentation);
-        instrumentationParams[1] = params[0];
-        instrumentationParams[2] = params[1];
+        poisonRedZone(instrumentation);
+        instrumentationParams[1] = RED_ZONE_SIZE * 2;
     }
     instrumentation += Utils::getStateRestoringInstrumentation();
 
-    auto movBpInstruction = getBpMove(function);
-    const auto new_instr = IRDB_SDK::insertAssemblyInstructionsAfter(fileIr, movBpInstruction, instrumentation,
-                                                                     instrumentationParams);
+    IRDB_SDK::Instruction_t* instructionToBeInstrumented;
+    vector<IRDB_SDK::Instruction_t *> new_instr;
+    if(hasStackPointerSub){
+        instructionToBeInstrumented = getSpSub(function);
+        new_instr = IRDB_SDK::insertAssemblyInstructionsAfter(fileIr, instructionToBeInstrumented, instrumentation,
+                                                              instrumentationParams);
+    } else if (function->getUseFramePointer()){
+        instructionToBeInstrumented = getBpMove(function);
+        new_instr = IRDB_SDK::insertAssemblyInstructionsAfter(fileIr, instructionToBeInstrumented, instrumentation,
+                                                              instrumentationParams);
+    } else {
+        instructionToBeInstrumented = function->getEntryPoint();
+        new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instructionToBeInstrumented, instrumentation,
+                                                              instrumentationParams);
+    }
+
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     for (auto call: calls) {
         new_instr[call]->setTarget(RuntimeLib::msan_poison_stack);
@@ -83,34 +95,25 @@ void StackVariableHandler::instrument(unique_ptr<FunctionAnalysis> &functionAnal
  * |____________________|
  *    higher addresses
  * </pre>
- * @param stackFrameSize stack frame size based on `sub rsp, x` in function prologue.
  * @param instrumentation string to which the instrumentation assembly will be added.
- * @return params for the assembly.
  */
-basic_string<char> StackVariableHandler::poisonStackframe(int stackFrameSize, string &instrumentation) {
+void StackVariableHandler::poisonStackframe(string &instrumentation) {
     instrumentation = instrumentation +
-                      "lea rdi, [rbp - %%1]\n" +    // first argument
+                      "lea rdi, [rsp + 150]\n" +    // first argument
                       "mov rsi, %%1\n" +            // second argument
                       "call 0\n";
-    return to_string(Utils::toHex(stackFrameSize));
 }
 
 /**
  * Adds instrumentation to the input string to poison the red zone based on the address of the
  * stack pointer upon function entry.
- * @param stackFrameSize stack frame size based on `sub rsp, x` in function prologue or 0 if
- *                       the instruction does not exist in the prologue.
  * @param instrumentation string to which the instrumentation assembly will be added.
- * @return params for the assembly.
  */
-vector<basic_string<char>> StackVariableHandler::poisonRedZone(int stackFrameSize, string &instrumentation) {
-    size_t redZoneOffset = RED_ZONE_SIZE * 2 + stackFrameSize;
+void StackVariableHandler::poisonRedZone(string &instrumentation) {
     instrumentation = instrumentation +
-                      "lea rdi, [rbp - %%2]\n" +    // first argument
-                      "mov rsi, %%3\n" +            // second argument
+                      "lea rdi, [rsp + 50]\n" +    // first argument
+                      "mov rsi, %%2\n" +           // second argument
                       "call 0\n";
-    return vector<basic_string<char>>(
-            {to_string(Utils::toHex(redZoneOffset)), to_string(Utils::toHex(RED_ZONE_SIZE * 2))});
 }
 
 /**
@@ -130,6 +133,31 @@ IRDB_SDK::Instruction_t *StackVariableHandler::getBpMove(IRDB_SDK::Function_t *f
         instruction = instruction->getFallthrough();
         if (instruction == nullptr) {
             throw std::invalid_argument("Function " + function->getName() + " does not set base pointer in prologue.");
+        }
+        decodedInstruction = IRDB_SDK::DecodedInstruction_t::factory(instruction);
+        operands = decodedInstruction->getOperands();
+    }
+    return instruction;
+}
+
+
+/**
+ * Returns the first <code>sub rsp, X</code> instruction in the function prologue.
+ * @throws invalid_argument if there is no <code>sub rsp, X</code>.
+ * @param function Function to be searched.
+ * @return sub rsp, X instruction.
+ */
+IRDB_SDK::Instruction_t *StackVariableHandler::getSpSub(IRDB_SDK::Function_t *function) {
+    auto instruction = function->getEntryPoint();
+    auto decodedInstruction = IRDB_SDK::DecodedInstruction_t::factory(instruction);
+    auto operands = decodedInstruction->getOperands();
+    while (
+            decodedInstruction->getMnemonic() != "sub" ||
+            !operands[0]->isGeneralPurposeRegister() || operands[0]->getRegNumber() != RSP ||
+            !operands[1]->isConstant()) {
+        instruction = instruction->getFallthrough();
+        if (instruction == nullptr) {
+            throw std::invalid_argument("Function " + function->getName() + " does not adjust stack pointer in prologue.");
         }
         decodedInstruction = IRDB_SDK::DecodedInstruction_t::factory(instruction);
         operands = decodedInstruction->getOperands();
