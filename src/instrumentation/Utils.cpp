@@ -10,7 +10,7 @@
  */
 std::string Utils::getStateSavingInstrumentation() {
     return std::string() +
-           "lea rsp, [rsp - 100]\n" +
+           "lea rsp, [rsp - 80]\n" +
            "pushfq\n" +
            "push   rax\n" +
            "push   rcx\n" +
@@ -41,7 +41,7 @@ std::string Utils::getStateRestoringInstrumentation() {
            "pop   rcx\n" +
            "pop   rax\n" +
            "popfq\n" +
-           "lea rsp, [rsp + 100]\n";
+           "lea rsp, [rsp + 80]\n";
 }
 
 unsigned int Utils::toHex(int num) {

@@ -49,7 +49,7 @@ void StackVariableHandler::instrument(unique_ptr<FunctionAnalysis> &functionAnal
     }
     if (canUseRedZone) {
         poisonRedZone(instrumentation);
-        instrumentationParams[1] = to_string(Utils::toHex(RED_ZONE_SIZE * 2));
+        instrumentationParams[1] = to_string(Utils::toHex(RED_ZONE_SIZE));
     }
     instrumentation += Utils::getStateRestoringInstrumentation();
 
@@ -100,9 +100,9 @@ void StackVariableHandler::instrument(unique_ptr<FunctionAnalysis> &functionAnal
  */
 void StackVariableHandler::poisonStackframe(string &instrumentation) {
     // Location of original stack pointer is off due to state keeping.
-    // 0x100 for lea stack offset, 0x50 (80d) for 10x push of 8-byte registers
+    // 0x80 for lea stack offset, 0x50 (80d) for 10x push of 8-byte registers
     instrumentation = instrumentation +
-                      "lea rdi, [rsp + 150]\n" +    // first argument
+                      "lea rdi, [rsp + 0xd0]\n" +    // first argument
                       "mov rsi, %%1\n" +            // second argument
                       "call 0\n";
 }
@@ -114,7 +114,7 @@ void StackVariableHandler::poisonStackframe(string &instrumentation) {
  */
 void StackVariableHandler::poisonRedZone(string &instrumentation) {
     // Location of original stack pointer is off due to state keeping.
-    // + 0x100 for lea stack offset, + 0x50 (80d) for 10x push of 8-byte registers, again - 0x100 because we want
+    // + 0x80 for lea stack offset, + 0x50 (80d) for 10x push of 8-byte registers, again - 0x80 because we want
     // to poison the red zone below the stack pointer.
     instrumentation = instrumentation +
                       "lea rdi, [rsp + 50]\n" +    // first argument
