@@ -29,11 +29,27 @@ Instruction_t* BinaryLogicHandler::instrument(IRDB_SDK::Instruction_t *instructi
 }
 
 IRDB_SDK::Instruction_t* BinaryLogicHandler::instrumentRegRegInstruction(IRDB_SDK::Instruction_t *instruction) {
-    auto operands = DecodedInstruction_t::factory(instruction)->getOperands();
+    auto decInstr = DecodedInstruction_t::factory(instruction);
+    auto operands = decInstr->getOperands();
     auto dest = operands[0]->getRegNumber();
     auto src = operands[1]->getRegNumber();
     auto destWidth = disassemblyService->getRegWidth(instruction, 0);
     auto srcWidth = disassemblyService->getRegWidth(instruction, 1);
+    if(dest == src && decInstr->getMnemonic() == "xor"){
+        // xor rax, rax sets rax to 0 -> rax is initialised
+        string instrumentation = string() +
+                                 Utils::getStateSavingInstrumentation() +
+                                 "mov dil, 1\n" +    // setToUnpoisoned
+                                 "mov rsi, %%1\n" +    // reg
+                                 "mov rdx, %%2\n" +    // width
+                                 "call 0\n" +
+                                 Utils::getStateRestoringInstrumentation();
+        vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string(destWidth)};
+        const auto new_instr = insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
+        auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
+        new_instr[calls[0]]->setTarget(RuntimeLib::setRegShadow);
+        return new_instr.back();
+    }
     string instrumentation = string() +
             Utils::getStateSavingInstrumentation() +
                              "mov rdi, %%1\n" +    // dest
