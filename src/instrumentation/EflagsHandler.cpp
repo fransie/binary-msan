@@ -64,7 +64,7 @@ IRDB_SDK::Instruction_t *EflagsHandler::propagateRegShadowToEflags(IRDB_SDK::Ins
                                                                       instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::isRegFullyDefined);
-    new_instr[calls[1]]->setTarget(RuntimeLib::setEflags);
+    new_instr[calls[1]]->setTarget(RuntimeLib::setRflags);
     return new_instr.back();
 }
 
@@ -94,7 +94,7 @@ IRDB_SDK::Instruction_t *EflagsHandler::propagateMemShadowToEflags(IRDB_SDK::Ins
                                                                       instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::isMemFullyDefined);
-    new_instr[calls[1]]->setTarget(RuntimeLib::setEflags);
+    new_instr[calls[1]]->setTarget(RuntimeLib::setRflags);
     return new_instr.back();
 }
 
@@ -129,7 +129,7 @@ IRDB_SDK::Instruction_t *EflagsHandler::propagateRegOrRegShadowToEflags(IRDB_SDK
                                                                       instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::isRegOrRegFullyDefined);
-    new_instr[calls[1]]->setTarget(RuntimeLib::setEflags);
+    new_instr[calls[1]]->setTarget(RuntimeLib::setRflags);
     return new_instr.back();
 }
 
@@ -168,6 +168,6 @@ IRDB_SDK::Instruction_t *EflagsHandler::propagateRegOrMemShadowToEflags(IRDB_SDK
                                                                       instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::isRegOrMemFullyDefined);
-    new_instr[calls[1]]->setTarget(RuntimeLib::setEflags);
+    new_instr[calls[1]]->setTarget(RuntimeLib::setRflags);
     return new_instr.back();
 }

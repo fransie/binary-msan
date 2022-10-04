@@ -43,11 +43,14 @@ IRDB_SDK::Instruction_t* BinaryLogicHandler::instrumentRegRegInstruction(IRDB_SD
                                  "mov rsi, %%1\n" +    // reg
                                  "mov rdx, %%2\n" +    // width
                                  "call 0\n" +
+                                 "mov dil, 1\n" +   // shadow
+                                 "call 0" +
                                  Utils::getStateRestoringInstrumentation();
         vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string(destWidth)};
         const auto new_instr = insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
         auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
         new_instr[calls[0]]->setTarget(RuntimeLib::setRegShadow);
+        new_instr[calls[1]]->setTarget(RuntimeLib::setRflags);
         return new_instr.back();
     }
     string instrumentation = string() +

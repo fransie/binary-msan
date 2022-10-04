@@ -20,16 +20,16 @@ void enableLogging() {
 /**
  * Represents the shadow of the EFLAGS register in one bit. Hence, this is only an approximation.
  */
-bool eflagsDefined = true;
+bool rflagsDefined = true;
 
 /**
  * Set the shadow of the EFLAGS register where shadow = 1 or true means undefined.
  */
-void setEflags(bool shadow) {
+void setRflags(bool shadow) {
     if (loggingEnabled) {
-        std::cout << "setEflags. New EFLAGS value: " << (bool) shadow << std::endl;
+        std::cout << "setRflags. New RFLAGS value: " << (bool) shadow << std::endl;
     }
-    eflagsDefined = shadow;
+    rflagsDefined = shadow;
 }
 
 /**
@@ -142,7 +142,7 @@ void checkEflags() {
     if (loggingEnabled) {
         std::cout << "checkEflags" << std::endl;
     }
-    if (!eflagsDefined) {
+    if (!rflagsDefined) {
         __msan_warning();
     }
 }
@@ -416,7 +416,7 @@ void propagateRegOrRegShadow(int dest, int destWidth, int src, int srcWidth) {
             throw std::invalid_argument("propagateRegOrRegShadow was called with an invalid width argument.");
     }
     shadowRegisterState[dest] = std::bitset<64>{newDestShadow};
-    eflagsDefined = newDestShadow == 0;
+    rflagsDefined = newDestShadow == 0;
 }
 
 /**
@@ -464,7 +464,7 @@ void propagateRegOrMemShadow(const void *mem, int reg, int width) {
             throw std::invalid_argument("propagateRegOrMemShadow was called with an invalid width argument.");
     }
     shadowRegisterState[reg] = std::bitset<64>{newDestShadow};
-    eflagsDefined = newDestShadow == 0;
+    rflagsDefined = newDestShadow == 0;
 }
 
 /**
@@ -503,5 +503,5 @@ void propagateMemOrRegShadow(const void *mem, int reg, int width) {
         width = BYTE;
     }
     __msan_partial_poison(mem, (void *) newDestShadow, width / BYTE);
-    eflagsDefined = *newDestShadow == 0;
+    rflagsDefined = *newDestShadow == 0;
 }

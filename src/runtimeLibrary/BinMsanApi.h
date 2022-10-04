@@ -18,7 +18,7 @@ INTERFACE void checkRegIsInit(int reg, int regWidth);
 
 // eflags
 INTERFACE void checkEflags();
-INTERFACE void setEflags(bool shadow);
+INTERFACE void setRflags(bool shadow);
 
 // shadow propagation
 INTERFACE void memToRegShadowCopy(__sanitizer::uptr memAddress, int reg, int regWidth);

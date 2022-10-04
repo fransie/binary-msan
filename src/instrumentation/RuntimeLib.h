@@ -20,7 +20,7 @@ public:
     inline static IRDB_SDK::Instruction_t *isMemFullyDefined;
     inline static IRDB_SDK::Instruction_t *isRegOrRegFullyDefined;
     inline static IRDB_SDK::Instruction_t *isRegOrMemFullyDefined;
-    inline static IRDB_SDK::Instruction_t *setEflags;
+    inline static IRDB_SDK::Instruction_t *setRflags;
     inline static IRDB_SDK::Instruction_t *setRegShadow;
     inline static IRDB_SDK::Instruction_t *setMemShadow;
     inline static IRDB_SDK::Instruction_t *unpoisonUpper4Bytes;

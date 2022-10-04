@@ -84,7 +84,7 @@ void MSan::registerDependencies() {
     RuntimeLib::isMemFullyDefined = elfDeps->appendPltEntry("isMemFullyDefined");
     RuntimeLib::isRegOrRegFullyDefined = elfDeps->appendPltEntry("isRegOrRegFullyDefined");
     RuntimeLib::isRegOrMemFullyDefined = elfDeps->appendPltEntry("isRegOrMemFullyDefined");
-    RuntimeLib::setEflags = elfDeps->appendPltEntry("setEflags");
+    RuntimeLib::setRflags = elfDeps->appendPltEntry("setRflags");
     RuntimeLib::setRegShadow = elfDeps->appendPltEntry("setRegShadow");
     RuntimeLib::setMemShadow = elfDeps->appendPltEntry("setMemShadow");
     RuntimeLib::unpoisonUpper4Bytes = elfDeps->appendPltEntry("unpoisonUpper4Bytes");
