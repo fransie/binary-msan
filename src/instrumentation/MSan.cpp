@@ -29,31 +29,41 @@ MSan::MSan(FileIR_t *fileIR) : Transform_t(fileIR) {
 
 bool MSan::executeStep() {
     registerDependencies();
-    Function_t *mainFunction = nullptr;
+    vector<unique_ptr<FunctionAnalysis>> functionAnalyses = {};
     unique_ptr<FunctionAnalysis> mainFunctionAnalysis = nullptr;
     auto functions = getFileIR()->getFunctions();
     for (auto const &function: functions) {
+        auto analysis = make_unique<FunctionAnalysis>(function);
+        functionAnalyses.push_back(move(analysis));
         if (function->getName() == "main") {
-            mainFunction = function;
-            mainFunctionAnalysis = make_unique<FunctionAnalysis>(mainFunction);
-            break;
+            mainFunctionAnalysis = make_unique<FunctionAnalysis>(function);
         }
     }
-    if (!mainFunction) {
-        cout << "No main function detected." << endl;
-    }
 
-    const set<Instruction_t *> originalInstructions(mainFunction->getInstructions().begin(),
-                                                    mainFunction->getInstructions().end());
-    for (auto instruction: originalInstructions) {
-        for (auto &&handler: instructionHandlers) {
-            if (handler->isResponsibleFor(instruction)) {
-                instruction = handler->instrument(instruction);
+    for (auto &analysis : functionAnalyses){
+        auto func = analysis->getFunction();
+        const set<Instruction_t *> originalInstructions(func->getInstructions().begin(), func->getInstructions().end());
+        for (auto instruction: originalInstructions) {
+            for (auto &&handler: instructionHandlers) {
+                if (handler->isResponsibleFor(instruction)) {
+                    instruction = handler->instrument(instruction);
+                }
             }
         }
     }
-    functionHandlers.at(0)->instrument(mainFunctionAnalysis);
-    instrumentOptions(mainFunction->getEntryPoint());
+    for (auto &analysis : functionAnalyses) {
+        // Zipr returns one 'ThisIsNotAFunction' object, do not instrument it.
+        if(analysis->getFunction()->getEntryPoint() == nullptr){
+            continue;
+        }
+        functionHandlers.at(0)->instrument(analysis);
+    }
+
+    if (!mainFunctionAnalysis) {
+        cout << "No main function detected. Options left out." << endl;
+    } else {
+        instrumentOptions(mainFunctionAnalysis->getFunction()->getEntryPoint());
+    }
     return true; //success
 }
 
@@ -112,11 +122,9 @@ bool MSan::parseArgs(int argc, char **argv) {
         switch (c) {
             case 'k':
                 keep_going = true;
-                std::cout << "Msan will keep going after warnings." << std::endl;
                 break;
             case 'l':
                 logging = true;
-                std::cout << "Logging enabled." << std::endl;
                 break;
             case '?':
                 if (optopt == 'c')
@@ -144,11 +152,13 @@ void MSan::instrumentOptions(IRDB_SDK::Instruction_t *instruction) {
     if (keep_going) {
         instrumentation = instrumentation + "mov rdi, 1\ncall 0\n";
         targets.push_back(RuntimeLib::msan_set_keep_going);
+        std::cout << "Msan will keep going after warnings." << std::endl;
     }
 
     if (logging) {
         instrumentation = instrumentation + "call 0\n";
         targets.push_back(RuntimeLib::enableLogging);
+        std::cout << "Logging enabled." << std::endl;
     }
 
     instrumentation = instrumentation + Utils::getStateRestoringInstrumentation();

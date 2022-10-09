@@ -81,7 +81,7 @@ ControlFlowHandler::checkReg(Instruction_t *instruction, unique_ptr<DecodedInstr
                              "call 0\n" +            // checkRegIsInit
                              Utils::getStateRestoringInstrumentation();
     vector<basic_string<char>> instrumentationParams{to_string(reg), to_string(width)};
-    const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
+    const auto new_instr = insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
                                                                         instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::checkRegIsInit);
@@ -95,6 +95,12 @@ ControlFlowHandler::checkReg(Instruction_t *instruction, unique_ptr<DecodedInstr
 IRDB_SDK::Instruction_t *
 ControlFlowHandler::checkMem(IRDB_SDK::Instruction_t *instruction, unique_ptr<DecodedInstruction_t> &decodedInstr) {
     auto memOperand = disassemblyService->getMemoryOperandDisassembly(instruction);
+    // Zipr does not seem to support the instruction "call qword [r15 + rbx*8]" (binary: 0x41 0xff 0x14 0xdf)
+    // because it does not recognise the second byte (0xff) as the beginning of a call instruction. Skip it for now.
+    // See: zipr/src/patcher_x86.cpp, function ZiprPatcherX86_t::ApplyPatch
+    if (decodedInstr->getPrefixCount() > 0){
+        return instruction;
+    }
     auto width = decodedInstr->getOperand(0)->getArgumentSizeInBytes();
     string instrumentation = Utils::getStateSavingInstrumentation() +
                              "lea rdi, %%1\n" +      // x
@@ -102,7 +108,7 @@ ControlFlowHandler::checkMem(IRDB_SDK::Instruction_t *instruction, unique_ptr<De
                              "call 0\n" +            // __msan_check_mem_is_initialized
                              Utils::getStateRestoringInstrumentation();
     vector<basic_string<char>> instrumentationParams{memOperand, to_string(width)};
-    const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
+    const auto new_instr = insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
                                                                         instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::msan_check_mem_is_initialized);
