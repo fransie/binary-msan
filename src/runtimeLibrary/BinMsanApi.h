@@ -17,7 +17,7 @@ extern std::vector<std::bitset<64>> shadowRegisterState;
 INTERFACE void checkRegIsInit(int reg, int regWidth);
 
 // eflags
-INTERFACE void checkEflags();
+INTERFACE void checkRflags();
 INTERFACE void setRflags(bool shadow);
 
 // shadow propagation

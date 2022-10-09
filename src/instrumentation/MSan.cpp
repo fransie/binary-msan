@@ -86,7 +86,7 @@ void MSan::registerDependencies() {
     RuntimeLib::regToRegShadowCopy = elfDeps->appendPltEntry("regToRegShadowCopy");
     RuntimeLib::checkRegIsInit = elfDeps->appendPltEntry("checkRegIsInit");
     RuntimeLib::memToRegShadowCopy = elfDeps->appendPltEntry("memToRegShadowCopy");
-    RuntimeLib::checkEflags = elfDeps->appendPltEntry("checkEflags");
+    RuntimeLib::checkRflags = elfDeps->appendPltEntry("checkRflags");
     RuntimeLib::initGpRegisters = elfDeps->appendPltEntry("initGpRegisters");
     RuntimeLib::enableLogging = elfDeps->appendPltEntry("enableLogging");
     RuntimeLib::regToMemShadowCopy = elfDeps->appendPltEntry("regToMemShadowCopy");

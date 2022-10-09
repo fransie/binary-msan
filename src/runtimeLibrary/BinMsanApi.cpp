@@ -138,9 +138,9 @@ void memToRegShadowCopy(__sanitizer::uptr memAddress, int reg, int regWidth) {
 /**
  * Verifies whether the EFLAGS register is initialised and if not, causes an msan warning.
  */
-void checkEflags() {
+void checkRflags() {
     if (loggingEnabled) {
-        std::cout << "checkEflags" << std::endl;
+        std::cout << "checkRflags" << std::endl;
     }
     if (!rflagsDefined) {
         __msan_warning();

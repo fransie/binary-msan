@@ -13,7 +13,7 @@ IRDB_SDK::Instruction_t *ControlFlowHandler::instrument(Instruction_t *instructi
          << instruction->getAddress()->getVirtualOffset() << endl;
     auto decodedInstr = DecodedInstruction_t::factory(instruction);
     if (std::find(eflagsJumps.begin(), eflagsJumps.end(), decodedInstr->getMnemonic()) != eflagsJumps.end()) {
-        instruction = checkEflags(instruction);
+        instruction = checkRflags(instruction);
     } else if (std::find(cxJumps.begin(), cxJumps.end(), decodedInstr->getMnemonic()) != cxJumps.end()) {
         instruction = checkCx(decodedInstr, instruction);
     }
@@ -31,13 +31,13 @@ IRDB_SDK::Instruction_t *ControlFlowHandler::instrument(Instruction_t *instructi
  * it is not, an MSan warning is issued.
  * @param instruction instruction that jumps based on EFLAGS, like "je"
  */
-IRDB_SDK::Instruction_t *ControlFlowHandler::checkEflags(Instruction_t *instruction) {
+IRDB_SDK::Instruction_t *ControlFlowHandler::checkRflags(Instruction_t *instruction) {
     string instrumentation = Utils::getStateSavingInstrumentation() +
                              "call 0\n" +
                              Utils::getStateRestoringInstrumentation();
     const auto new_instr = insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, {});
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
-    new_instr[calls[0]]->setTarget(RuntimeLib::checkEflags);
+    new_instr[calls[0]]->setTarget(RuntimeLib::checkRflags);
     return new_instr.back();
 }
 

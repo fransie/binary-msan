@@ -31,7 +31,7 @@ private:
     IRDB_SDK::Instruction_t *
     checkCx(std::unique_ptr<IRDB_SDK::DecodedInstruction_t> &decodedInstr, IRDB_SDK::Instruction_t *instruction);
 
-    IRDB_SDK::Instruction_t *checkEflags(IRDB_SDK::Instruction_t *instruction);
+    IRDB_SDK::Instruction_t *checkRflags(IRDB_SDK::Instruction_t *instruction);
     IRDB_SDK::Instruction_t *checkReg(IRDB_SDK::Instruction_t *instruction, std::unique_ptr<IRDB_SDK::DecodedInstruction_t> &decodedInstr);
     IRDB_SDK::Instruction_t *checkMem(IRDB_SDK::Instruction_t *instruction, std::unique_ptr<IRDB_SDK::DecodedInstruction_t> &decodedInstr);
 };
