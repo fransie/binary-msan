@@ -49,9 +49,9 @@ def build(filename):
     lines = open(filename, "r").readlines()
     if lines[0].__contains__("COMPILE OPTIONS"):
         options = lines[0].replace("// COMPILE OPTIONS: ", "").strip("\n")
-        return subprocess.call(f"g++ {filename} -o {output_name} {options} >> {directory}/logs/{test_name}.txt 2>&1", shell=True)
+        return subprocess.call(f"g++ {filename} -o {output_name} {options} -ggdb >> {directory}/logs/{test_name}.txt 2>&1", shell=True)
     else:
-        return subprocess.call(f"g++ {filename} -o {output_name} >> {directory}/logs/{test_name}.txt 2>&1", shell=True)
+        return subprocess.call(f"g++ {filename} -o {output_name} -ggdb >> {directory}/logs/{test_name}.txt 2>&1", shell=True)
 
 
 def sanitize(filename):

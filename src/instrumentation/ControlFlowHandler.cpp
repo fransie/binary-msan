@@ -33,7 +33,9 @@ IRDB_SDK::Instruction_t *ControlFlowHandler::instrument(Instruction_t *instructi
  */
 IRDB_SDK::Instruction_t *ControlFlowHandler::checkRflags(Instruction_t *instruction) {
     string instrumentation = Utils::getStateSavingInstrumentation() +
-                             "call 0\n" +
+                            "lea rsp, [rsp + 0xd0]\n" +
+                            "call 0\n" +
+                            "lea rsp, [rsp - 0xd0]\n" +
                              Utils::getStateRestoringInstrumentation();
     const auto new_instr = insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, {});
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
@@ -54,11 +56,13 @@ ControlFlowHandler::checkCx(unique_ptr<IRDB_SDK::DecodedInstruction_t> &decodedI
     } else if (decodedInstr->getMnemonic() == "jrcxz") {
         width = QUAD_WORD;
     }
-    string instrumentation = Utils::getStateSavingInstrumentation() + +
+    string instrumentation = Utils::getStateSavingInstrumentation() +
             "mov rdi, %%1" +
-                             "mov rsi, %%2" +
-                             "call 0\n" +
-                             Utils::getStateRestoringInstrumentation();
+            "mov rsi, %%2" +
+            "lea rsp, [rsp + 0xd0]\n" +
+            "call 0\n" +
+            "lea rsp, [rsp - 0xd0]\n" +
+            Utils::getStateRestoringInstrumentation();
     const auto new_instr = insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
                                                             {to_string(RCX), to_string(Utils::toHex(width))});
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
@@ -78,7 +82,9 @@ ControlFlowHandler::checkReg(Instruction_t *instruction, unique_ptr<DecodedInstr
     string instrumentation = Utils::getStateSavingInstrumentation() +
                              "mov rdi, %%1\n" +      // reg
                              "mov rsi, %%2\n" +      // regWidth
+                             "lea rsp, [rsp + 0xd0]\n" +
                              "call 0\n" +            // checkRegIsInit
+                             "lea rsp, [rsp - 0xd0]\n" +
                              Utils::getStateRestoringInstrumentation();
     vector<basic_string<char>> instrumentationParams{to_string(reg), to_string(width)};
     const auto new_instr = insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
