@@ -19,8 +19,8 @@ bool InstrCounter::executeStep() {
     }
 
     // Write results to a CSV.
-    std::ofstream MyFile("../" + filename + ".txt");
-
+    std::ofstream MyFile( filename + ".txt");
+    std::cout << "Writing to : " << filename << ".txt" << std::endl;
     // Write to the file
     for (const auto& mnemonic : mnemonics){
         std::cout << mnemonic << std::endl;
