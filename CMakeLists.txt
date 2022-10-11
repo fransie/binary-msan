@@ -64,3 +64,4 @@ target_link_libraries(irdb-sdk
 ######### END UNCOMMENT UNIT TESTS #########
 
 add_subdirectory(src)
+add_subdirectory(evaluation)

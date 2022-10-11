@@ -4,10 +4,9 @@
 #Usage: ./counter.sh <BINARY> <OUTPUT_FILE_NAME>"
 
 # init env vars
-current=$PWD
-cd ${ZIPR_PATH}
+pushd ${ZIPR_PATH}
 source set_env_vars
-cd $current
+popd
 export PSPATH=$PSPATH:$BINMSAN_HOME/plugins_install
 export CAPSTONE=${PEASOUP_HOME}/irdb-libs/third_party/capstone/include/capstone
 
