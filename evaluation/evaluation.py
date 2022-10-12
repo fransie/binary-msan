@@ -1,7 +1,10 @@
+import copy
 import os
 from os.path import isfile, join
-
+import pandas
+import seaborn
 from typing import List
+from matplotlib import font_manager, pyplot as plt
 
 
 class Instruction:
@@ -43,6 +46,8 @@ class Combination:
     def __init__(self, instrumented_mnemonics: List[Instruction], binaries: List[Binary]):
         self.instrumented_instructions = instrumented_mnemonics
         self.binaries_ready = self.get_ready_binaries(binaries)
+        self.num_instrumented = len(self.instrumented_instructions)
+        self.num_binaries = len(self.binaries_ready)
 
     def get_ready_binaries(self, binaries):
         ready_binaries = []
@@ -66,6 +71,12 @@ def get_instructions_in_directory(path, binaries):
             mnemonic = mnemonic.replace("\n", "")
             instructions.append(Instruction(mnemonic, binaries))
     return instructions
+
+
+def int_to_category(number):
+    x = int(number / 10) * 10
+    y = x + 9
+    return f"{x}-{y}"
 
 
 if __name__ == '__main__':
@@ -92,4 +103,54 @@ if __name__ == '__main__':
     combinations = []
     for instruction in instructions_sorted_by_appearance:
         instrumented.append(instruction)
-        combinations.append(Combination(instrumented, binaries))
+        instr = copy.copy(instrumented)
+        combinations.append(Combination(instr, binaries))
+
+    # Write results to text files.
+    results_path = path + "/results"
+    with open(f"{results_path}/instructions_per_binary.csv", "w") as file:
+        file.write("Binary;Number of distinct mnemonics\n")
+        for binary in binaries:
+            file.write(f"{binary.filename};{len(binary.mnemonics)}\n")
+
+    with open(f"{results_path}/instructions_sorted_by_appearance.csv", "w") as file:
+        file.write("Mnemonic;Appears in x binaries;Binaries\n")
+        for instruction in instructions_sorted_by_appearance:
+            file.write(f"{instruction.mnemonic};{len(instruction.occurs_in)},{instruction.occurs_in}\n")
+
+    with open(f"{results_path}/covered_binaries_with_given_instructions.csv", "w") as file:
+        file.write(
+            "Number of instrumented instructions;Number of covered binaries;Binaries;Instrumented instructions\n")
+        for combo in combinations:
+            file.write(f"{combo.num_instrumented};"
+                       f"{combo.num_binaries};"
+                       f"{[binary.filename for binary in combo.binaries_ready]};"
+                       f"{[ins.mnemonic for ins in combo.instrumented_instructions]}\n")
+
+    # Create plots.
+
+    # Instructions per binary.
+    df = pandas.read_csv(f"{results_path}/instructions_per_binary.csv", delimiter=";")
+    df["Instructions per binary"] = df["Number of distinct mnemonics"].apply(lambda x: int_to_category(x))
+
+    seaborn.set_theme(style="white", font="cochineal")
+    order = ["30-39", "40-49", "50-59", "60-69", "70-79", "80-89", "90-99", "100-109"]
+    countplot = seaborn.countplot(data=df, x="Instructions per binary", color="#BDD7EE", order=order)
+    seaborn.despine()
+    countplot.set_xlabel("Instructions per binary")
+    countplot.set_ylabel("Number of binaries")
+    fig = countplot.get_figure()
+    fig.savefig("ins_per_binary.pdf")
+    fig.clear()
+
+    # Combinations.
+    seaborn.set_theme(style="ticks", font="cochineal")
+    dope = pandas.read_csv(f"{results_path}/covered_binaries_with_given_instructions.csv", delimiter=";")
+    lineplot = seaborn.lineplot(data=dope, x="Number of instrumented instructions", y="Number of covered binaries", color="#AAC1D8")
+    seaborn.despine()
+    plt.xlim(0,170)
+    plt.ylim(0,110)
+    lineplot.set_xlabel("Instrumented instructions")
+    lineplot.set_ylabel("Covered binaries")
+    figi = lineplot.get_figure()
+    figi.savefig("covered_binaries.pdf")
