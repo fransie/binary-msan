@@ -133,9 +133,9 @@ if __name__ == '__main__':
     df = pandas.read_csv(f"{results_path}/instructions_per_binary.csv", delimiter=";")
     df["Instructions per binary"] = df["Number of distinct mnemonics"].apply(lambda x: int_to_category(x))
 
-    seaborn.set_theme(style="white", font="cochineal")
+    seaborn.set_theme(style="white", font="cochineal", font_scale=1.1)
     order = ["30-39", "40-49", "50-59", "60-69", "70-79", "80-89", "90-99", "100-109"]
-    countplot = seaborn.countplot(data=df, x="Instructions per binary", color="#BDD7EE", order=order)
+    countplot = seaborn.countplot(data=df, x="Instructions per binary", color="#00457D", order=order)
     seaborn.despine()
     countplot.set_xlabel("Instructions per binary")
     countplot.set_ylabel("Number of binaries")
@@ -144,9 +144,9 @@ if __name__ == '__main__':
     fig.clear()
 
     # Combinations.
-    seaborn.set_theme(style="ticks", font="cochineal")
+    seaborn.set_theme(style="ticks", font="cochineal", font_scale=1.1)
     dope = pandas.read_csv(f"{results_path}/covered_binaries_with_given_instructions.csv", delimiter=";")
-    lineplot = seaborn.lineplot(data=dope, x="Number of instrumented instructions", y="Number of covered binaries", color="#AAC1D8")
+    lineplot = seaborn.lineplot(data=dope, x="Number of instrumented instructions", y="Number of covered binaries", color="#00457D")
     seaborn.despine()
     plt.xlim(0,170)
     plt.ylim(0,110)
