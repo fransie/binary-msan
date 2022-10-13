@@ -10,4 +10,4 @@ popd
 export PSPATH=$PSPATH:$BINMSAN_HOME/plugins_install
 export CAPSTONE=${PEASOUP_HOME}/irdb-libs/third_party/capstone/include/capstone
 
-$PSZ -c rida --step move_globals -c counter --step-option $2 $1 $1_san
+$PSZ -c rida -c counter --step-option $2 $1 $1_san

@@ -10,7 +10,6 @@ bool InstrCounter::executeStep() {
     std::set<std::string> mnemonics = {};
     auto functions = getFileIR()->getFunctions();
     for (auto const &function: functions) {
-        std::cout << function->getName() << std::endl;
         auto instructions = function->getInstructions();
         for (auto instruction: instructions) {
             auto decodedInstr = IRDB_SDK::DecodedInstruction_t::factory(instruction);
@@ -23,7 +22,6 @@ bool InstrCounter::executeStep() {
     std::cout << "Writing to : " << filename << ".txt" << std::endl;
     // Write to the file
     for (const auto& mnemonic : mnemonics){
-        std::cout << mnemonic << std::endl;
         MyFile << mnemonic << std::endl;
     }
 
