@@ -44,7 +44,7 @@ IRDB_SDK::Instruction_t* BinaryLogicHandler::instrumentRegRegInstruction(IRDB_SD
                                  "mov rdx, %%2\n" +    // width
                                  "call 0\n" +
                                  "mov dil, 1\n" +   // shadow
-                                 "call 0" +
+                                 "call 0\n" +
                                  Utils::getStateRestoringInstrumentation();
         vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string(destWidth)};
         const auto new_instr = insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
