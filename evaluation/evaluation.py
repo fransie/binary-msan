@@ -73,7 +73,6 @@ def get_instructions_in_directory(paths, binaries):
             for mnemonic in instructions_file:
                 mnemonic = mnemonic.replace("\n", "")
                 mnemonics.add(mnemonic)
-    print("num of mnemonics: " + str(len(mnemonics)))
     for mnemonic in mnemonics:
         instructions.append(Instruction(mnemonic, binaries))
     return instructions
@@ -82,6 +81,8 @@ def get_instructions_in_directory(paths, binaries):
 def int_to_category(number):
     if number < 40:
         return "<40"
+    if number >= 100:
+        return ">=100"
     x = int(number / 10) * 10
     y = x + 9
     return f"{x}-{y}"
@@ -146,10 +147,10 @@ if __name__ == '__main__':
     df["Instructions per binary"] = df["Number of distinct mnemonics"].apply(lambda x: int_to_category(x))
 
     seaborn.set_theme(style="white", font="cochineal", font_scale=1.1)
-    order = ["<40", "40-49", "50-59", "60-69", "70-79", "80-89", "90-99", "100-109"]
+    order = ["<40", "40-49", "50-59", "60-69", "70-79", "80-89", "90-99", ">=100"]
     countplot = seaborn.countplot(data=df, x="Instructions per binary", color="#00457D", order=order)
     seaborn.despine()
-    countplot.set_xlabel("Instructions per binary")
+    countplot.set_xlabel("Distinct mnemonics per binary")
     countplot.set_ylabel("Number of binaries")
     fig = countplot.get_figure()
     fig.savefig("ins_per_binary.pdf")
@@ -162,7 +163,10 @@ if __name__ == '__main__':
     seaborn.despine()
     plt.xlim(0,180)
     plt.ylim(0,135)
-    lineplot.set_xlabel("Instrumented instructions")
+    lineplot.set_xlabel("Assumed instrumented mnemonics")
     lineplot.set_ylabel("Covered binaries")
     figi = lineplot.get_figure()
     figi.savefig("covered_binaries.pdf")
+
+    print(f"Number of binaries: {len(binaries)}")
+    print(f"Number of distinct mnemonics: {len(instructions)}")
