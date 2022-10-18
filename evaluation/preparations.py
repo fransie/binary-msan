@@ -43,6 +43,6 @@ def analyse_directory(directory):
 
 
 if __name__ == '__main__':
-    directories = [ "binutils"]
+    directories = [ "binutils", "coreutils", "findutils"]
     for directory in directories:
         analyse_directory(directory)

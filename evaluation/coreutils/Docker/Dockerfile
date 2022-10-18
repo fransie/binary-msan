@@ -8,7 +8,7 @@ RUN apk add gcc
 RUN apk add g++
 RUN apk add file
 WORKDIR /home
-COPY static-coreutils.sh /home
+COPY coreutils.sh /home
 RUN chmod +x static-coreutils.sh
 RUN ./static-coreutils.sh
 ENTRYPOINT /bin/bash
