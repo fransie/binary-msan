@@ -64,6 +64,7 @@ def sanitize(filename):
     sanitized_name = f"{output_name}_sanitized"
     return subprocess.call(
         f"../binary-msan.sh {options} {output_name} {sanitized_name} >> {directory}/logs/{test_name}.txt 2>&1",
+        #f"../binary-msan.sh {output_name} {sanitized_name} >> {directory}/logs/{test_name}.txt 2>&1",
         shell=True)
 
 
@@ -97,6 +98,13 @@ def execute_test_case(file):
 
 
 if __name__ == '__main__':
+    # Verify python 3.9
+    try:
+        "test".removesuffix("t")
+    except AttributeError:
+        print("Please use at least Python version 3.9. Abort.")
+        exit()
+
     subprocess.call(CLEAN_SCRIPT, shell=True)
 
     regex = ""
@@ -112,5 +120,7 @@ if __name__ == '__main__':
         testfiles = [f for f in listdir(path) if isfile(join(directory, f))]
         for file in testfiles:
             files.append(directory + "/" + file)
+    print(len(files))
+    exit()
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
         executor.map(execute_test_case, files)
