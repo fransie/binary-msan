@@ -2,7 +2,6 @@
 
 
 #include <unistd.h>
-#include <iostream>
 #include "../../src/runtimeLibrary/BinMsanApi.h"
 #include "../../src/common/RegisterNumbering.h"
 
