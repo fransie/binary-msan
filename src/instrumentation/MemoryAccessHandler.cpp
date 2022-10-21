@@ -84,8 +84,8 @@ bool MemoryAccessHandler::isResponsibleFor(IRDB_SDK::Instruction_t *instruction)
         return false;
     }
     // Branching instructions are checked by ControlFlowHandler.
-    if (decodedInstruction->isBranch()){
-        return false;
-    }
+//    if (decodedInstruction->isBranch()){
+//        return false;
+//    }
     return hasMemoryOperand(decodedInstruction);
 }
