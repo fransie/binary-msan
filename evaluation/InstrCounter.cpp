@@ -5,7 +5,7 @@
 InstrCounter::InstrCounter(IRDB_SDK::FileIR_t *fileIR): Transform_t(fileIR) {};
 
 bool InstrCounter::executeStep() {
-    std::cout << "Starting exectueStep" << std::endl;
+    std::cout << "Starting executeStep" << std::endl;
     // Find mnemonics used by this file.
     std::set<std::string> mnemonics = {};
     auto functions = getFileIR()->getFunctions();

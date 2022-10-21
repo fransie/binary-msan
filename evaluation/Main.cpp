@@ -7,6 +7,10 @@
 int main(int argc, char *argv[]) {
     const std::string program_name = std::string(argv[0]);
     const auto variantID = std::strtol(argv[1], nullptr, 10);
+    if(!argv[2]){
+        std::cout << "Please provide an output file name. Abort." << std::endl;
+        return 2;
+    }
 
     // stand-alone transforms must setup the interface to the sql server
     auto pqxx_interface = IRDB_SDK::pqxxDB_t::factory();
