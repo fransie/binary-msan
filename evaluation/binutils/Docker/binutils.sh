@@ -1,5 +1,8 @@
 #!/bin/bash
 
+export TARGET=x86_64-alpine-linux-musl
+export STATIC_ROOT=$(readlink -f ~/${TARGET}-static)
+
 curl http://ftp.gnu.org/gnu/binutils/binutils-2.34.tar.xz --output binutils
 tar xJf binutils
 cd binutils-2.34/
