@@ -78,14 +78,27 @@ def get_instructions_in_directory(paths, binaries):
     return instructions
 
 
-def int_to_category(number):
+def distinct_instructions_to_category(number):
     if number < 40:
         return "<40"
     if number >= 100:
-        return ">=100"
+        return "100-116"
     x = int(number / 10) * 10
     y = x + 9
     return f"{x}-{y}"
+
+
+def appearances_to_category(number):
+    if number == 1:
+        return "1"
+    elif number == 129:
+        return "all 129"
+    elif number <= 10:
+        return "2-10"
+    elif number <= 100:
+        return "11-100"
+    else:
+        return "101-128"
 
 
 if __name__ == '__main__':
@@ -93,7 +106,7 @@ if __name__ == '__main__':
 
     # Answers:
     # - How many distinct instructions does a binary have?  -> binary.distinct_instructions
-    # - Which instructions are used in all the coreutils?   -> [ins.mnemonic for ins in instrumented_mnemonics]
+    # - Which instructions are used in all 129 the coreutils?   -> [ins.mnemonic for ins in instrumented_mnemonics]
     # - In how many binaries does an instruction appear?    -> instruction.occurs_in
     binaries = []
     for path in paths:
@@ -104,7 +117,7 @@ if __name__ == '__main__':
 
     # Answers:
     # - In which order should the next instructions be instrumented based on their appearance in binaries?
-    # -> First instrument instructions that appear in all binaries, then the ones that appear in less binaries
+    # -> First instrument instructions that appear in all 129 binaries, then the ones that appear in less binaries
     # in descending order.
     instructions_sorted_by_appearance = sorted(instructions, key=lambda ins: len(ins.occurs_in), reverse=True)
 
@@ -120,7 +133,7 @@ if __name__ == '__main__':
         combinations.append(Combination(instr, binaries))
 
     # Write results to text files.
-    results_path = "."
+    results_path = "results/"
     with open(f"{results_path}/instructions_per_binary.csv", "w") as file:
         file.write("Binary;Number of distinct mnemonics\n")
         for binary in binaries:
@@ -129,7 +142,7 @@ if __name__ == '__main__':
     with open(f"{results_path}/instructions_sorted_by_appearance.csv", "w") as file:
         file.write("Mnemonic;Appears in x binaries;Binaries\n")
         for instruction in instructions_sorted_by_appearance:
-            file.write(f"{instruction.mnemonic};{len(instruction.occurs_in)},{instruction.occurs_in}\n")
+            file.write(f"{instruction.mnemonic};{len(instruction.occurs_in)};{instruction.occurs_in}\n")
 
     with open(f"{results_path}/covered_binaries_with_given_instructions.csv", "w") as file:
         file.write(
@@ -144,29 +157,45 @@ if __name__ == '__main__':
 
     # Instructions per binary.
     df = pandas.read_csv(f"{results_path}/instructions_per_binary.csv", delimiter=";")
-    df["Instructions per binary"] = df["Number of distinct mnemonics"].apply(lambda x: int_to_category(x))
+    df["Instructions per binary"] = df["Number of distinct mnemonics"].apply(
+        lambda x: distinct_instructions_to_category(x))
 
     seaborn.set_theme(style="white", font="cochineal", font_scale=1.1)
-    order = ["<40", "40-49", "50-59", "60-69", "70-79", "80-89", "90-99", ">=100"]
+    order = ["<40", "40-49", "50-59", "60-69", "70-79", "80-89", "90-99", "100-116"]
     countplot = seaborn.countplot(data=df, x="Instructions per binary", color="#00457D", order=order)
     seaborn.despine()
     countplot.set_xlabel("Distinct mnemonics per binary")
     countplot.set_ylabel("Number of binaries")
     fig = countplot.get_figure()
-    fig.savefig("ins_per_binary.pdf")
+    fig.savefig(f"{results_path}/ins_per_binary.pdf")
+    fig.clear()
+
+    # Appearances per mnemonic.
+    df = pandas.read_csv(f"{results_path}/instructions_sorted_by_appearance.csv", delimiter=";")
+    df["Appearance category"] = df["Appears in x binaries"].apply(lambda x: appearances_to_category(x))
+    print(df)
+    seaborn.set_theme(style="white", font="cochineal", font_scale=1.1)
+    order = ["1", "2-10", "11-100", "101-128", "all 129"]
+    countplot = seaborn.countplot(data=df, x="Appearance category", color="#00457D", order=order)
+    seaborn.despine()
+    countplot.set_xlabel("Number of binaries a mnemonic appears in")
+    countplot.set_ylabel("Number of mnemonics")
+    fig = countplot.get_figure()
+    fig.savefig(f"{results_path}/appearance_per_ins.pdf")
     fig.clear()
 
     # Combinations.
     seaborn.set_theme(style="ticks", font="cochineal", font_scale=1.1)
     dope = pandas.read_csv(f"{results_path}/covered_binaries_with_given_instructions.csv", delimiter=";")
-    lineplot = seaborn.lineplot(data=dope, x="Number of instrumented instructions", y="Number of covered binaries", color="#00457D")
+    lineplot = seaborn.lineplot(data=dope, x="Number of instrumented instructions", y="Number of covered binaries",
+                                color="#00457D")
     seaborn.despine()
-    plt.xlim(0,180)
-    plt.ylim(0,135)
+    plt.xlim(0, 180)
+    plt.ylim(0, 135)
     lineplot.set_xlabel("Assumed instrumented mnemonics")
     lineplot.set_ylabel("Covered binaries")
     figi = lineplot.get_figure()
-    figi.savefig("covered_binaries.pdf")
+    figi.savefig(f"{results_path}/covered_binaries.pdf")
 
     print(f"Number of binaries: {len(binaries)}")
     print(f"Number of distinct mnemonics: {len(instructions)}")
