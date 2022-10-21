@@ -9,5 +9,5 @@ RUN apk add bash
 WORKDIR /home
 COPY findutils.sh /home
 RUN chmod +x findutils.sh
-#RUN ./findutils.sh
+RUN ./findutils.sh
 ENTRYPOINT /bin/bash

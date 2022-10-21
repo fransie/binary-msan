@@ -1,4 +1,4 @@
-############### INSTRUMENTATION ###############
+############### COUNTER ###############
 add_executable(counter
         Main.cpp
         InstrCounter.h
