@@ -1,6 +1,7 @@
 import os
 import pathlib
 import subprocess
+from enum import Enum
 from os.path import join, isfile
 
 TEST_DIRECTORY = os.getcwd() + "/../test"
@@ -9,7 +10,26 @@ BIN_DIRECTORY = EVAL_DIRECTORY + "/bin"
 SAN_DIRECTORY = EVAL_DIRECTORY + "/san"
 ZIPRED_DIRECTORY = EVAL_DIRECTORY + "/zipr_san"
 
-def get_test_sources():
+
+class Tool(Enum):
+    Regular = 1
+    Memcheck = 2
+    Dr_Memory = 3
+
+
+class Compile(Enum):
+    Regular = 1
+    MSan = 2
+
+
+def get_env():
+    e = dict(os.environ)
+    e.update({'TIMEFORMAT': 'real %3R'})
+    e.update({'LC_NUMERIC': 'en_US.UTF-8'})
+    return e
+
+
+def get_test_source_files():
     directories = [name for name in os.listdir(TEST_DIRECTORY)
                    if os.path.isdir(os.path.join(TEST_DIRECTORY, name)) and name.__contains__("Tests")]
 
@@ -23,57 +43,25 @@ def get_test_sources():
     return files
 
 
-def get_regular_binaries(test_sources):
-    binaries = [join(BIN_DIRECTORY, file) for file in os.listdir(BIN_DIRECTORY) if isfile(join(BIN_DIRECTORY, file))]
-    # if len(binaries) <= 60:
-    #     for test in test_sources:
-    #         binaries.append(build(test))
-    return binaries
-
-
-def build(filename):
-    test_name = filename.split("/")[-1].removesuffix(".cpp")
-    output_name = f"{BIN_DIRECTORY}/{test_name}"
-    lines = open(filename, "r").readlines()
-    exit_code = 0
-    if lines[0].__contains__("COMPILE OPTIONS"):
-        options = lines[0].replace("// COMPILE OPTIONS: ", "").strip("\n")
-        exit_code = subprocess.call(f"g++ {filename} -o {output_name} {options} > /dev/null", shell=True)
-    else:
-        exit_code = subprocess.call(f"g++ {filename} -o {output_name} > /dev/null", shell=True)
-    if exit_code != 0:
-        print(f"Building test case {test_name} failed.")
-    else:
-        return output_name
-
-
-def measure_sanitization(filepath, with_binmsan: bool):
-    file = filepath.split("/")[-1]
-    if with_binmsan:
-        pathlib.Path(SAN_DIRECTORY).mkdir(exist_ok=True)
-        sanitize_command = f"time -p ../binary-msan.sh {filepath} {SAN_DIRECTORY}/{file}_san"
-    else:
-        try:
-            dict(os.environ)["PSZ"]
-        except KeyError:
-            print("PSZ env variable not defined. Please run `source ../init.sh` and restart. Abort.")
-            exit(1)
-        pathlib.Path(ZIPRED_DIRECTORY).mkdir(exist_ok=True)
-        sanitize_command = f"time -p $PSZ -c rida --step move_globals {filepath} {ZIPRED_DIRECTORY}/{file}_san"
-    subprocess_return = subprocess.Popen(sanitize_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True)
-    stdout, stderr = subprocess_return.communicate()
-    # Time with option -p outputs its measurement in seconds to stderr
-    for line in stderr.split("\n"):
-        if line.startswith("real"):
-            time = line.replace("real ", "")
-            return float(time)
-
-
-def measure_instrumentation_time(binaries, with_binmsan : bool):
+def measure_build_time(test_sources, compile_type: Compile):
     results = {}
-    for binary_path in binaries:
-        sanitization_time = measure_sanitization(binary_path, with_binmsan)
-        results[binary_path] = sanitization_time
+    for binary_path in test_sources:
+        test_name = binary_path.split("/")[-1].removesuffix(".cpp")
+        output_name = f"{BIN_DIRECTORY}/{test_name}"
+        options = ""
+        if compile_type == Compile.MSan:
+            options = "-fsanitize=memory "
+        lines = open(binary_path, "r").readlines()
+        if lines[0].__contains__("COMPILE OPTIONS"):
+            options = options + lines[0].replace("// COMPILE OPTIONS: ", "").strip("\n")
+        run_command = f"bash -i -c 'time clang++ {binary_path} -o {output_name} {options}'"
+        subprocess_return = subprocess.Popen(run_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=get_env(),
+                                             shell=True, text=True)
+        stdout, stderr = subprocess_return.communicate()
+        for line in stderr.split("\n"):
+            if line.startswith("real"):
+                build_time = line.replace("real ", "")
+                results[binary_path] = float(build_time)
     return results
 
 
@@ -82,13 +70,13 @@ def measure_run_time_performance(binmsanified_binaries):
     results = {}
     for binmsanified_binary in binmsanified_binaries:
         run_command = f"bash -i -c 'time {binmsanified_binary}'"
-        env = {'TIMEFORMAT' : 'real %3R'}
         sum = 0
         runs = 10
         for i in range(runs):
-            subprocess_return = subprocess.Popen(run_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env, shell=True, text=True)
+            subprocess_return = subprocess.Popen(run_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=get_env(),
+                                                 shell=True, text=True)
             stdout, stderr = subprocess_return.communicate()
-            # Time with option -p outputs its measurement in seconds to stderr
+            # Time outputs its measurement in seconds to stderr
             for line in stderr.split("\n"):
                 if line.startswith("real"):
                     time = line.replace("real ", "")
@@ -100,17 +88,38 @@ def measure_run_time_performance(binmsanified_binaries):
 
 
 if __name__ == '__main__':
-    # Get and build binaries
-    test_sources = get_test_sources()
+    # Prepare folders
     pathlib.Path('bin').mkdir(exist_ok=True)
-    binaries = get_regular_binaries(test_sources)
 
-    # Instrumentation
-    #sanitization_time_zipr = measure_instrumentation_time(binaries[0:2], with_binmsan=False)
-    sanitization_time_binmsan_zipr = measure_instrumentation_time(binaries[0:2], with_binmsan=True)
+    # Get source files
+    test_sources = get_test_source_files()[0:2]
 
-    # Run-time performance
-    binmsanified_binaries = [join(SAN_DIRECTORY, file) for file in os.listdir(SAN_DIRECTORY) if isfile(join(SAN_DIRECTORY, file))]
-    print(binmsanified_binaries)
-    print(measure_run_time_performance(binmsanified_binaries[0:2]))
+    # Compilation: Clang vs. Clang & MSan
+    build_time_clang = measure_build_time(test_sources, Compile.Regular)
+    print(build_time_clang)
+    build_time_clang_msan = measure_build_time(test_sources, Compile.MSan)
+    print(build_time_clang_msan)
 
+    # Instrumentation: Zipr vs. Zipr & BinMSan
+    # binaries = [join(BIN_DIRECTORY, file) for file in os.listdir(BIN_DIRECTORY) if isfile(join(BIN_DIRECTORY, file))]
+    # print(binaries)
+    # sanitization_time_zipr = measure_sanitization_time(binaries[0:2], with_binmsan=False)
+    # # sanitization_time_binmsan_zipr = measure_instrumentation_time(binaries, with_binmsan=True)
+    # # build_and_sanitize_time_binmsan
+    #
+    # # binmsanified_binaries = [join(SAN_DIRECTORY, file) for file in os.listdir(SAN_DIRECTORY) if isfile(join(SAN_DIRECTORY, file))]
+    #
+    # # Run-time performance
+    # # msan_res = measure_run_time_performance(binmsanified_binaries)
+    # reg_res = measure_dynamic_runtime_performance(binaries,Tool.Regular)
+    # memcheck_res = measure_dynamic_runtime_performance(binaries, Tool.Memcheck)
+    # dr_res = measure_dynamic_runtime_performance(binaries, Tool.Dr_Memory)
+    #
+    # print("REGULAR:")
+    # print(reg_res)
+    # print("Memcheck:")
+    # print(memcheck_res)
+    # print("Dr Memory:")
+    # print(dr_res)
+
+    # Persist results
