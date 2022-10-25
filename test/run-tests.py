@@ -105,6 +105,7 @@ if __name__ == '__main__':
         print("Please use at least Python version 3.9. Abort.")
         exit()
 
+    subprocess.call(f"chmod +x {CLEAN_SCRIPT}", shell=True)
     subprocess.call(CLEAN_SCRIPT, shell=True)
 
     regex = ""
