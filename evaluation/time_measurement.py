@@ -65,7 +65,34 @@ def measure_build_time(test_sources, compile_type: Compile):
     return results
 
 
-# binmsan
+# Measure the sanitization/rewriting time of zipr, either with or without binmsan.
+def measure_sanitization_time(binaries, with_binmsan: bool):
+    results = {}
+    for binary_path in binaries:
+        file = binary_path.split("/")[-1]
+        if with_binmsan:
+            pathlib.Path(SAN_DIRECTORY).mkdir(exist_ok=True)
+            sanitize_command = f"bash -i -c 'time ../binary-msan.sh {binary_path} {SAN_DIRECTORY}/{file}_san'"
+        else:
+            try:
+                dict(os.environ)["PSZ"]
+            except KeyError:
+                print("PSZ env variable not defined. Please run `source ../init.sh` and restart. Abort.")
+                exit(1)
+            pathlib.Path(ZIPRED_DIRECTORY).mkdir(exist_ok=True)
+            sanitize_command = f"bash -i -c 'time $PSZ -c rida --step move_globals {binary_path} {ZIPRED_DIRECTORY}/{file}_san'"
+        subprocess_return = subprocess.Popen(sanitize_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=get_env(),
+                                             shell=True, text=True)
+        stdout, stderr = subprocess_return.communicate()
+        # Time outputs its measurement in seconds to stderr
+        for line in stderr.split("\n"):
+            if line.startswith("real"):
+                sanitization_time = line.replace("real ", "")
+                results[binary_path] = sanitization_time
+    return results
+
+
+# binmsan & msan
 def measure_run_time_performance(binmsanified_binaries):
     results = {}
     for binmsanified_binary in binmsanified_binaries:
@@ -95,16 +122,19 @@ if __name__ == '__main__':
     test_sources = get_test_source_files()[0:2]
 
     # Compilation: Clang vs. Clang & MSan
-    build_time_clang = measure_build_time(test_sources, Compile.Regular)
-    print(build_time_clang)
-    build_time_clang_msan = measure_build_time(test_sources, Compile.MSan)
-    print(build_time_clang_msan)
+    # build_time_clang = measure_build_time(test_sources, Compile.Regular)
+    # print(build_time_clang)
+    # build_time_clang_msan = measure_build_time(test_sources, Compile.MSan)
+    # print(build_time_clang_msan)
 
     # Instrumentation: Zipr vs. Zipr & BinMSan
-    # binaries = [join(BIN_DIRECTORY, file) for file in os.listdir(BIN_DIRECTORY) if isfile(join(BIN_DIRECTORY, file))]
-    # print(binaries)
-    # sanitization_time_zipr = measure_sanitization_time(binaries[0:2], with_binmsan=False)
-    # # sanitization_time_binmsan_zipr = measure_instrumentation_time(binaries, with_binmsan=True)
+    binaries = [join(BIN_DIRECTORY, file) for file in os.listdir(BIN_DIRECTORY) if isfile(join(BIN_DIRECTORY, file))][0:2]
+    sanitization_time_zipr = measure_sanitization_time(binaries, with_binmsan=False)
+    print(sanitization_time_zipr)
+    sanitization_time_binmsan_zipr = measure_sanitization_time(binaries, with_binmsan=True)
+    print(sanitization_time_binmsan_zipr)
+
+
     # # build_and_sanitize_time_binmsan
     #
     # # binmsanified_binaries = [join(SAN_DIRECTORY, file) for file in os.listdir(SAN_DIRECTORY) if isfile(join(SAN_DIRECTORY, file))]
