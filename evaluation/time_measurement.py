@@ -1,4 +1,5 @@
 import os
+import sys
 import pathlib
 import subprocess
 from enum import Enum
@@ -234,21 +235,18 @@ def get_run_time_performance():
 
 
 if __name__ == '__main__':
-    # Prepare folders
+    if len(sys.argv) > 1 and sys.argv[1] == 'clean':
+        for dir in [BIN_DIRECTORY, MSAN_DIRECTORY, SAN_DIRECTORY, ZIPRED_DIRECTORY]:
+            for file in os.listdir(dir):
+                os.remove(os.path.join(dir, file))
+
+    # Prepare folders.
     pathlib.Path('bin').mkdir(exist_ok=True)
     pathlib.Path('msan').mkdir(exist_ok=True)
-
-    # Get source files
-    test_sources = get_test_source_files()[0:2] + [get_test_source_files()[-1]]
-
-    # Compilation: Clang vs. Clang & MSan
-    build_time_clang = measure_build_time(test_sources, Compile.Regular)
-    build_time_clang_msan = measure_build_time(test_sources, Compile.MSan)
-
-    # Instrumentation: Zipr vs. Zipr & BinMSan
-    binaries = [join(BIN_DIRECTORY, file) for file in os.listdir(BIN_DIRECTORY)]
-    sanitization_time_binmsan_zipr = measure_sanitization_time(binaries, with_binmsan=True)
-    sanitization_time_zipr = measure_sanitization_time(binaries, with_binmsan=False)
+    pathlib.Path('san').mkdir(exist_ok=True)
+    pathlib.Path('zipr_san').mkdir(exist_ok=True)
+    pathlib.Path('results').mkdir(exist_ok=True)
+    result_path = EVAL_DIRECTORY + "/results"
 
     print(f"Processing {len(get_test_source_files())} test cases.")
     # ######## Compilation and sanitization
