@@ -7,6 +7,7 @@ from os.path import join, isfile
 import pandas as pd
 from functools import reduce
 from operator import add
+import seaborn
 
 EVAL_DIRECTORY = os.getcwd()
 TEST_DIRECTORY = EVAL_DIRECTORY.removesuffix("evaluation") + "test"
@@ -32,6 +33,12 @@ def get_env():
     env = dict(os.environ)
     env.update({'TIMEFORMAT': 'real %3R'})
     env.update({'LC_NUMERIC': 'en_US.UTF-8'})
+    binmsan_home = env['BINMSAN_HOME']
+    try:
+        ld_library_path = env['LD_LIBRARY_PATH']
+        env.update({'LD_LIBRARY_PATH': f'{ld_library_path}:{binmsan_home}/plugins_install'})
+    except KeyError:
+        env.update({'LD_LIBRARY_PATH': f'{binmsan_home}/plugins_install'})
     return env
 
 
@@ -52,12 +59,11 @@ def get_test_source_files():
 def append_averages(results):
     test_cases_in_folder = [v for k, v in results.items()]
     average = reduce(add, test_cases_in_folder) / len(test_cases_in_folder)
-    results["OVERALL-AVERAGE"] = average
-    #for folder in ["ChainingTests", "StackVariableHandlerTests"]:
+    results["OVERALL-AVERAGE"] = round(average, 3)
     for folder in TEST_FOLDERS:
         test_cases_in_folder = [v for k, v in results.items() if k.startswith(folder)]
         average = reduce(add, test_cases_in_folder) / len(test_cases_in_folder)
-        results[f"{folder}-AVERAGE"] = average
+        results[f"{folder}-AVERAGE"] = round(average, 3)
 
 
 # Measure the build time of clang for binaries, either with or without MemorySanitizer.
@@ -95,18 +101,13 @@ def measure_sanitization_time(binaries, with_binmsan: bool):
             pathlib.Path(SAN_DIRECTORY).mkdir(exist_ok=True)
             sanitize_command = f"bash -i -c 'time ../binary-msan.sh {binary_path} {SAN_DIRECTORY}/{file}'"
         else:
-            try:
-                dict(os.environ)["PSZ"]
-            except KeyError:
-                print("PSZ env variable not defined. Please run `source ../init.sh` and restart. Abort.")
-                exit(1)
             pathlib.Path(ZIPRED_DIRECTORY).mkdir(exist_ok=True)
-            sanitize_command = f"bash -i -c 'time $PSZ -c rida {binary_path} {ZIPRED_DIRECTORY}/{file}_san'"
+            sanitize_command = f"bash -i -c 'time $PSZ -c rida {binary_path} {ZIPRED_DIRECTORY}/{file}'"
         subprocess_return = subprocess.Popen(sanitize_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                              env=get_env(),
                                              shell=True, text=True)
         stdout, stderr = subprocess_return.communicate()
-        # Time outputs its measurement in seconds to stderr
+        # Time outputs its measurement (s) to stderr
         for line in stderr.split("\n"):
             if line.startswith("real"):
                 sanitization_time = line.replace("real ", "")
@@ -127,7 +128,6 @@ def measure_static_run_time_performance(binaries):
                                                  env=get_env(),
                                                  shell=True, text=True)
             stdout, stderr = subprocess_return.communicate()
-            # Time outputs its measurement in seconds to stderr
             for line in stderr.split("\n"):
                 if line.startswith("real"):
                     time = line.replace("real ", "")
@@ -142,9 +142,9 @@ def measure_static_run_time_performance(binaries):
 def measure_dynamic_runtime_performance(binaries, tool: Tool):
     results = {}
     if tool == Tool.Memcheck:
-        cmd = "valgrind --tool=memcheck"
+        cmd = "valgrind --tool=memcheck --leak-check=no"
     elif tool == Tool.Dr_Memory:
-        cmd = "drmemory --"
+        cmd = "drmemory -no_check_leaks -no_count_leaks --"
     else:
         print(f"Unknown tool {tool}. Abort.")
         exit(1)
@@ -158,7 +158,6 @@ def measure_dynamic_runtime_performance(binaries, tool: Tool):
                                                  env=get_env(),
                                                  shell=True, text=True)
             stdout, stderr = subprocess_return.communicate()
-            # Time outputs its measurement in seconds to stderr
             for line in stderr.split("\n"):
                 if line.startswith("real"):
                     time = line.replace("real ", "")
@@ -182,18 +181,11 @@ def get_compile_and_sanitization_data():
     sanitization_time_binmsan_zipr = measure_sanitization_time(binaries, with_binmsan=True)
     sanitization_time_zipr = measure_sanitization_time(binaries, with_binmsan=False)
 
-    build_and_sanitize_time_binmsan = dict()
-    for test, result in sanitization_time_zipr.items():
-        build_time = build_time_clang[test]
-        sanitization_time = sanitization_time_binmsan_zipr[test]
-        build_and_sanitize_time_binmsan[test] = build_time + sanitization_time
-
     dataframe = pd.DataFrame.from_dict({
         'clang': build_time_clang,
         'clang-msan': build_time_clang_msan,
         'zipr': sanitization_time_zipr,
         'zipr-binmsan': sanitization_time_binmsan_zipr,
-        'clang+binmsan': build_and_sanitize_time_binmsan
     })
     print(f"Finished compilation and sanitization.")
     return dataframe.sort_index()
@@ -201,23 +193,20 @@ def get_compile_and_sanitization_data():
 
 def get_run_time_performance():
     print(f"Start run-time performance measurement.")
-    # Check all programs are available.
-    exit_code = subprocess.call("which drmemory > /dev/null", shell=True)
-    exit_code += subprocess.call("which valgrind > /dev/null", shell=True)
-    if exit_code != 0:
-        print("Please make sure that the executables valgrind and drmemory are available. Abort.")
-        exit(1)
 
     # get binaries
     binaries = [join(BIN_DIRECTORY, file) for file in os.listdir(BIN_DIRECTORY) if isfile(join(BIN_DIRECTORY, file))]
     msanified_binaries = [join(MSAN_DIRECTORY, file) for file in os.listdir(MSAN_DIRECTORY) if
                           isfile(join(MSAN_DIRECTORY, file))]
+    zipred_binaries = [join(ZIPRED_DIRECTORY, file) for file in os.listdir(ZIPRED_DIRECTORY) if
+                             isfile(join(ZIPRED_DIRECTORY, file))]
     binmsanified_binaries = [join(SAN_DIRECTORY, file) for file in os.listdir(SAN_DIRECTORY) if
                              isfile(join(SAN_DIRECTORY, file))]
 
     # get performance
     baseline_run_time = measure_static_run_time_performance(binaries)
     msan_run_time = measure_static_run_time_performance(msanified_binaries)
+    zipred_run_time = measure_static_run_time_performance(zipred_binaries)
     binmsan_run_time = measure_static_run_time_performance(binmsanified_binaries)
     memcheck_run_time = measure_dynamic_runtime_performance(binaries, Tool.Memcheck)
     drmemory_run_time = measure_dynamic_runtime_performance(binaries, Tool.Dr_Memory)
@@ -226,6 +215,7 @@ def get_run_time_performance():
     dataframe = pd.DataFrame.from_dict({
         'baseline': baseline_run_time,
         'msan': msan_run_time,
+        'zipr': zipred_run_time,
         'binmsan': binmsan_run_time,
         'dr memory': drmemory_run_time,
         'memcheck': memcheck_run_time,
@@ -240,20 +230,72 @@ if __name__ == '__main__':
             for file in os.listdir(dir):
                 os.remove(os.path.join(dir, file))
 
-    # Prepare folders.
+    # Preparations.
     pathlib.Path('bin').mkdir(exist_ok=True)
     pathlib.Path('msan').mkdir(exist_ok=True)
     pathlib.Path('san').mkdir(exist_ok=True)
     pathlib.Path('zipr_san').mkdir(exist_ok=True)
     pathlib.Path('results').mkdir(exist_ok=True)
     result_path = EVAL_DIRECTORY + "/results"
+    try:
+        dict(os.environ)["PSZ"]
+    except KeyError:
+        print("PSZ env variable not defined. Please run `source ../init.sh` and restart. Abort.")
+        exit(1)
+    exit_code = subprocess.call("which drmemory > /dev/null", shell=True)
+    exit_code += subprocess.call("which valgrind > /dev/null", shell=True)
+    if exit_code != 0:
+        print("Please make sure that the executables valgrind and drmemory are available. Abort.")
+        exit(1)
 
     print(f"Processing {len(get_test_source_files())} test cases.")
-    # ######## Compilation and sanitization
-    # df = get_compile_and_sanitization_data()
-    # df.to_csv(f"{result_path}/compile_sanitize_times.csv", sep=',')
 
-    ######### Run-time performance
+    # Compilation and sanitization time measurement
+    df = get_compile_and_sanitization_data()
+    df.to_csv(f"{result_path}/compile_sanitize_times.csv", sep=',', index_label="test case")
+
+    # Run-time performance measurement
     df = get_run_time_performance()
-    df.to_csv(f"{result_path}/run_time_performances.csv", sep=',')
+    df.to_csv(f"{result_path}/run_time_performances.csv", sep=',', index_label="test case")
 
+    # Preparations plot
+    df = pd.read_csv(f"{result_path}/compile_sanitize_times.csv", index_col='test case')
+    data = {'Tool': ['Clang','MemorySanitizer','BinMSan'],
+            'Build time (s)': [df.loc['OVERALL-AVERAGE']['clang'],df.loc['OVERALL-AVERAGE']['clang-msan'],df.loc['OVERALL-AVERAGE']['zipr-binmsan'],]}
+    frame = pd.DataFrame(data=data)
+    seaborn.set_theme(style="white", font="cochineal", font_scale=1.1)
+    barplot = seaborn.barplot(data=frame, x='Tool', y='Build time (s)', color="#00457D")
+    seaborn.despine()
+    barplot.set_xlabel("")
+    barplot.set_ylabel("Average preparation time (s)")
+    fig = barplot.get_figure()
+    fig.savefig(f"{result_path}/build_time.pdf")
+    fig.clear()
+
+    # Zipr plot
+    df = pd.read_csv(f"{result_path}/compile_sanitize_times.csv", index_col='test case')
+    data = {'Tool': ['Zipr','Zipr + BinMSan'],
+            'Instrumentation time (s)': [df.loc['OVERALL-AVERAGE']['zipr'],df.loc['OVERALL-AVERAGE']['zipr-binmsan']]}
+    frame = pd.DataFrame(data=data)
+    seaborn.set_theme(style="white", font="cochineal", font_scale=1.1)
+    barplot = seaborn.barplot(data=frame, x='Tool', y='Instrumentation time (s)', color="#00457D")
+    seaborn.despine()
+    barplot.set_xlabel("")
+    barplot.set_ylabel("Average instrumentation time (s)")
+    fig = barplot.get_figure()
+    fig.savefig(f"{result_path}/instrumentation_time.pdf")
+    fig.clear()
+
+    # Run-time plot
+    df = pd.read_csv(f"{result_path}/run_time_performances.csv", index_col='test case')
+    data = {'Tool': ['Baseline','MemorySanitizer','Zipr','BinMSan','MemCheck','Dr. Memory'],
+            'Run-time (s)': [df.loc['OVERALL-AVERAGE']['baseline'],df.loc['OVERALL-AVERAGE']['msan'],df.loc['OVERALL-AVERAGE']['zipr'],df.loc['OVERALL-AVERAGE']['binmsan'],df.loc['OVERALL-AVERAGE']['memcheck'], df.loc['OVERALL-AVERAGE']['dr memory']]}
+    frame = pd.DataFrame(data=data)
+    seaborn.set_theme(style="white", font="cochineal", font_scale=1.1)
+    barplot = seaborn.barplot(data=frame, x='Tool', y='Run-time (s)', color="#00457D")
+    seaborn.despine()
+    barplot.set_xlabel("")
+    barplot.set_ylabel("Average run-time (s)")
+    fig = barplot.get_figure()
+    fig.savefig(f"{result_path}/run_time.pdf")
+    fig.clear()
