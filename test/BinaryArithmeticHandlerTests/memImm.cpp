@@ -12,7 +12,7 @@ int main() {
     testShadowNot0(a);
 
     // when
-    asm ("add $5, %0" : "=m" ( *a ));
+    asm ("addq $5, %0" : "=m" ( *a ));
 
     // then
     testShadowNot0(a);
