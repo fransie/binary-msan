@@ -8,6 +8,8 @@ import pandas as pd
 from functools import reduce
 from operator import add
 import seaborn
+from matplotlib import pyplot as plt
+import matplotlib.patches as mpatches
 
 EVAL_DIRECTORY = os.getcwd()
 TEST_DIRECTORY = EVAL_DIRECTORY.removesuffix("evaluation") + "test"
@@ -258,44 +260,38 @@ if __name__ == '__main__':
     df = get_run_time_performance()
     df.to_csv(f"{result_path}/run_time_performances.csv", sep=',', index_label="test case")
 
-    # Preparations plot
+    # MSan und BinMSan preparations plot
+    plt.figure()
     df = pd.read_csv(f"{result_path}/compile_sanitize_times.csv", index_col='test case')
-    data = {'Tool': ['Clang','MemorySanitizer','BinMSan'],
-            'Build time (s)': [df.loc['OVERALL-AVERAGE']['clang'],df.loc['OVERALL-AVERAGE']['clang-msan'],df.loc['OVERALL-AVERAGE']['zipr-binmsan'],]}
+    data = {'Tool': ['MemorySanitizer','Zipr + BinMSan'],
+            'Instrumentation time (s)': [df.loc['OVERALL-AVERAGE']['clang-msan'],df.loc['OVERALL-AVERAGE']['zipr-binmsan']]}
     frame = pd.DataFrame(data=data)
     seaborn.set_theme(style="white", font="cochineal", font_scale=1.1)
-    barplot = seaborn.barplot(data=frame, x='Tool', y='Build time (s)', color="#00457D")
-    seaborn.despine()
-    barplot.set_xlabel("")
-    barplot.set_ylabel("Average preparation time (s)")
-    fig = barplot.get_figure()
-    fig.savefig(f"{result_path}/build_time.pdf")
-    fig.clear()
-
-    # Zipr plot
-    df = pd.read_csv(f"{result_path}/compile_sanitize_times.csv", index_col='test case')
-    data = {'Tool': ['Zipr','Zipr + BinMSan'],
-            'Instrumentation time (s)': [df.loc['OVERALL-AVERAGE']['zipr'],df.loc['OVERALL-AVERAGE']['zipr-binmsan']]}
+    barplot1 = seaborn.barplot(data=frame, x='Tool', y='Instrumentation time (s)', color="#BDD7EE")
+    data = {'Tool': ['MemorySanitizer','BinMSan'],
+            'Instrumentation time (s)': [df.loc['OVERALL-AVERAGE']['clang'],df.loc['OVERALL-AVERAGE']['zipr']]}
     frame = pd.DataFrame(data=data)
-    seaborn.set_theme(style="white", font="cochineal", font_scale=1.1)
-    barplot = seaborn.barplot(data=frame, x='Tool', y='Instrumentation time (s)', color="#00457D")
+    barplot2 = seaborn.barplot(data=frame, x='Tool', y='Instrumentation time (s)', color='#00457D')
+    barplot1.set_xlabel("")
+    barplot1.set_ylabel("Average instrumentation time (s)")
+    top_bar = mpatches.Patch(color='#BDD7EE', label='Sanitiser')
+    bottom_bar = mpatches.Patch(color='#00457D', label='Base tool')
+    plt.legend(handles=[top_bar, bottom_bar])
     seaborn.despine()
-    barplot.set_xlabel("")
-    barplot.set_ylabel("Average instrumentation time (s)")
-    fig = barplot.get_figure()
-    fig.savefig(f"{result_path}/instrumentation_time.pdf")
-    fig.clear()
+    plt.savefig(f"{result_path}/instrumentation_time.pdf")
+    plt.close()
 
     # Run-time plot
     df = pd.read_csv(f"{result_path}/run_time_performances.csv", index_col='test case')
-    data = {'Tool': ['Baseline','MemorySanitizer','Zipr','BinMSan','MemCheck','Dr. Memory'],
-            'Run-time (s)': [df.loc['OVERALL-AVERAGE']['baseline'],df.loc['OVERALL-AVERAGE']['msan'],df.loc['OVERALL-AVERAGE']['zipr'],df.loc['OVERALL-AVERAGE']['binmsan'],df.loc['OVERALL-AVERAGE']['memcheck'], df.loc['OVERALL-AVERAGE']['dr memory']]}
+    data = {'Tool': ['Baseline','Zipr','MemorySanitizer','BinMSan','MemCheck','Dr. Memory'],
+            'Run-time (s)': [df.loc['OVERALL-AVERAGE']['baseline'],df.loc['OVERALL-AVERAGE']['zipr'],df.loc['OVERALL-AVERAGE']['msan'],df.loc['OVERALL-AVERAGE']['binmsan'],df.loc['OVERALL-AVERAGE']['memcheck'], df.loc['OVERALL-AVERAGE']['dr memory']]}
     frame = pd.DataFrame(data=data)
+    plt.figure(figsize=(8, 8))
     seaborn.set_theme(style="white", font="cochineal", font_scale=1.1)
     barplot = seaborn.barplot(data=frame, x='Tool', y='Run-time (s)', color="#00457D")
-    seaborn.despine()
+    barplot.set_xticklabels(barplot.get_xticklabels(), rotation=30, ha="right")
     barplot.set_xlabel("")
     barplot.set_ylabel("Average run-time (s)")
+    seaborn.despine()
     fig = barplot.get_figure()
     fig.savefig(f"{result_path}/run_time.pdf")
-    fig.clear()
