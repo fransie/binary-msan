@@ -19,6 +19,7 @@ MSAN_DIRECTORY = EVAL_DIRECTORY + "/msan"
 ZIPRED_DIRECTORY = EVAL_DIRECTORY + "/zipr_san"
 TEST_FOLDERS = [name for name in os.listdir(TEST_DIRECTORY)
                 if os.path.isdir(os.path.join(TEST_DIRECTORY, name)) and name.__contains__("Tests")]
+INSTRUMENTED_LIBCXX_PATH = "/home/franzi/Documents/llvm-project-llvmorg-13.0.1/llvmInstrumentedBuild"
 
 
 class Tool(Enum):
@@ -36,11 +37,12 @@ def get_env():
     env.update({'TIMEFORMAT': 'real %3R'})
     env.update({'LC_NUMERIC': 'en_US.UTF-8'})
     binmsan_home = env['BINMSAN_HOME']
+    paths_to_add = f"{binmsan_home}/plugins_install:{INSTRUMENTED_LIBCXX_PATH}/lib'"
     try:
         ld_library_path = env['LD_LIBRARY_PATH']
-        env.update({'LD_LIBRARY_PATH': f'{ld_library_path}:{binmsan_home}/plugins_install'})
+        env.update({'LD_LIBRARY_PATH': f'{ld_library_path}:{paths_to_add}'})
     except KeyError:
-        env.update({'LD_LIBRARY_PATH': f'{binmsan_home}/plugins_install'})
+        env.update({'LD_LIBRARY_PATH': f'{paths_to_add}'})
     return env
 
 
@@ -77,12 +79,18 @@ def measure_build_time(test_sources, compile_type: Compile):
         output_name = f"{BIN_DIRECTORY}/{folder_name}-{test_name}"
         options = ""
         if compile_type == Compile.MSan:
-            options = "-fsanitize=memory "
+            options = f"-fsanitize=memory " \
+                      f"-stdlib=libc++ " \
+                      f"-L{INSTRUMENTED_LIBCXX_PATH}/lib " \
+                      f"-lc++abi " \
+                      f"-I{INSTRUMENTED_LIBCXX_PATH}/include " \
+                      f"-I{INSTRUMENTED_LIBCXX_PATH}/include/c++/v1 " \
+                      f"-Wl,-rpath,{INSTRUMENTED_LIBCXX_PATH}/lib "
             output_name = f"{MSAN_DIRECTORY}/{folder_name}-{test_name}"
         lines = open(binary_path, "r").readlines()
         if lines[0].__contains__("COMPILE OPTIONS"):
             options = options + lines[0].replace("// COMPILE OPTIONS: ", "").strip("\n")
-        run_command = f"bash -i -c 'time clang++ {binary_path} -o {output_name} {options}'"
+        run_command = f"bash -i -c 'time clang++ {options} {binary_path} -o {output_name}'"
         subprocess_return = subprocess.Popen(run_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=get_env(),
                                              shell=True, text=True)
         stdout, stderr = subprocess_return.communicate()
@@ -266,7 +274,7 @@ if __name__ == '__main__':
     data = {'Tool': ['MemorySanitizer','Zipr + BinMSan'],
             'Instrumentation time (s)': [df.loc['OVERALL-AVERAGE']['clang-msan'],df.loc['OVERALL-AVERAGE']['zipr-binmsan']]}
     frame = pd.DataFrame(data=data)
-    seaborn.set_theme(style="white", font="cochineal", font_scale=1.1)
+    seaborn.set_theme(style="white", font="cochineal", font_scale=1.3)
     barplot1 = seaborn.barplot(data=frame, x='Tool', y='Instrumentation time (s)', color="#BDD7EE")
     data = {'Tool': ['MemorySanitizer','BinMSan'],
             'Instrumentation time (s)': [df.loc['OVERALL-AVERAGE']['clang'],df.loc['OVERALL-AVERAGE']['zipr']]}
@@ -286,8 +294,7 @@ if __name__ == '__main__':
     data = {'Tool': ['Baseline','Zipr','MemorySanitizer','BinMSan','MemCheck','Dr. Memory'],
             'Run-time (s)': [df.loc['OVERALL-AVERAGE']['baseline'],df.loc['OVERALL-AVERAGE']['zipr'],df.loc['OVERALL-AVERAGE']['msan'],df.loc['OVERALL-AVERAGE']['binmsan'],df.loc['OVERALL-AVERAGE']['memcheck'], df.loc['OVERALL-AVERAGE']['dr memory']]}
     frame = pd.DataFrame(data=data)
-    plt.figure(figsize=(8, 8))
-    seaborn.set_theme(style="white", font="cochineal", font_scale=1.1)
+    plt.figure(figsize=(8, 9))
     barplot = seaborn.barplot(data=frame, x='Tool', y='Run-time (s)', color="#00457D")
     barplot.set_xticklabels(barplot.get_xticklabels(), rotation=30, ha="right")
     barplot.set_xlabel("")
