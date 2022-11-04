@@ -47,11 +47,15 @@ def build(filename):
     test_name = filename.split("/")[1].removesuffix(".cpp")
     output_name = f"{directory}/obj/{test_name}"
     lines = open(filename, "r").readlines()
-    if lines[0].__contains__("COMPILE OPTIONS"):
-        options = lines[0].replace("// COMPILE OPTIONS: ", "").strip("\n")
-        return subprocess.call(f"g++ {filename} -o {output_name} {options} >> {directory}/logs/{test_name}.txt 2>&1", shell=True)
+    if lines[0].__contains__("BINMSAN COMPILE OPTIONS"):
+        options = "-I$BINMSAN_HOME/llvm_shared_msan_lib/compiler-rt/lib/msan " \
+                  "-I$BINMSAN_HOME/llvm_shared_msan_lib/compiler-rt/include/sanitizer/ " \
+                  "-I$BINMSAN_HOME/llvm_shared_msan_lib/compiler-rt/lib/ " \
+                  "-L$BINMSAN_HOME/plugins_install " \
+                  "-lbinmsan_lib"
+        return subprocess.call(f"clang++ {filename} -o {output_name} {options} >> {directory}/logs/{test_name}.txt 2>&1", shell=True)
     else:
-        return subprocess.call(f"g++ {filename} -o {output_name} >> {directory}/logs/{test_name}.txt 2>&1", shell=True)
+        return subprocess.call(f"clang++ {filename} -o {output_name} >> {directory}/logs/{test_name}.txt 2>&1", shell=True)
 
 
 def sanitize(filename):
@@ -77,12 +81,6 @@ def run_test(filename):
 
 
 def execute_test_case(file):
-    if not file.endswith(".cpp"):
-        return
-    if regex != "":
-        result = re.search(regex, file)
-        if result is None:
-            return
     if is_disabled(file):
         return
     exit_code = build(file)
@@ -120,7 +118,14 @@ if __name__ == '__main__':
         path = current_wd + "/" + directory
         testfiles = [f for f in listdir(path) if isfile(join(directory, f))]
         for file in testfiles:
-            files.append(directory + "/" + file)
-    print(f"Processing {len(files)} test cases.")
+            file = f"{directory}/{file}"
+            if not file.endswith(".cpp"):
+                continue
+            if regex != "":
+                result = re.search(regex, file)
+                if result is None:
+                    continue
+            files.append(file)
+    print(f"Processing {len(files)} test case(s).")
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
         executor.map(execute_test_case, files)
