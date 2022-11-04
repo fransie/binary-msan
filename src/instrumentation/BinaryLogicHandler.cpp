@@ -2,6 +2,7 @@
 #include "BinaryLogicHandler.h"
 #include "RuntimeLib.h"
 #include "Utils.h"
+#include "../common/Width.h"
 
 using namespace IRDB_SDK;
 
@@ -46,7 +47,11 @@ IRDB_SDK::Instruction_t* BinaryLogicHandler::instrumentRegRegInstruction(IRDB_SD
                                  "mov dil, 1\n" +   // shadow
                                  "call 0\n" +
                                  Utils::getStateRestoringInstrumentation();
-        vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string(destWidth)};
+        // 32-bit result zero-extends to whole 64-bit register
+        if(destWidth == DOUBLE_WORD){
+            destWidth = QUAD_WORD;
+        }
+        vector<basic_string<char>> instrumentationParams {Utils::toHex(dest), Utils::toHex(destWidth)};
         const auto new_instr = insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
         auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
         new_instr[calls[0]]->setTarget(RuntimeLib::setRegShadow);
@@ -61,7 +66,7 @@ IRDB_SDK::Instruction_t* BinaryLogicHandler::instrumentRegRegInstruction(IRDB_SD
                              "mov rcx, %%4\n" +    // srcWidth
                              "call 0\n" +
             Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams {to_string((int)dest), to_string(destWidth), to_string((int)src), to_string(srcWidth)};
+    vector<basic_string<char>> instrumentationParams {Utils::toHex(dest), Utils::toHex(destWidth), Utils::toHex(src), Utils::toHex(srcWidth)};
     const auto new_instr = insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::propagateRegOrRegShadow);
@@ -80,7 +85,7 @@ IRDB_SDK::Instruction_t* BinaryLogicHandler::instrumentMemRegInstruction(IRDB_SD
                              "mov rdx, %%3\n" +    // width
                              "call 0\n" +
                              Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams {memory, to_string(reg), to_string(width)};
+    vector<basic_string<char>> instrumentationParams {memory, Utils::toHex(reg), Utils::toHex(width)};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::propagateMemOrRegShadow);
@@ -100,7 +105,7 @@ IRDB_SDK::Instruction_t* BinaryLogicHandler::instrumentRegMemInstruction(IRDB_SD
                              "mov rdx, %%3\n" +    // width
                              "call 0\n" +
                              Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams {memory, to_string(reg), to_string(width)};
+    vector<basic_string<char>> instrumentationParams {memory, Utils::toHex(reg), Utils::toHex(width)};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::propagateRegOrMemShadow);

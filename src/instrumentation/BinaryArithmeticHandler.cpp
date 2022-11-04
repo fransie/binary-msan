@@ -46,8 +46,8 @@ IRDB_SDK::Instruction_t *BinaryArithmeticHandler::instrumentRegRegInstruction(IR
             "mov rdx, %%2\n" +      // regWidth
             "call 0\n" +            // setRegShadow
             Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams{to_string((int) dest), to_string(destWidth), to_string((int) src),
-                                                     to_string(srcWidth)};
+    vector<basic_string<char>> instrumentationParams{Utils::toHex( dest), Utils::toHex(destWidth), Utils::toHex(src),
+                                                     Utils::toHex(srcWidth)};
     const auto new_instr = insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
                                                             instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
@@ -72,7 +72,7 @@ IRDB_SDK::Instruction_t *BinaryArithmeticHandler::instrumentMemRegInstruction(IR
             "mov rdx, %%3\n" +      // size
             "call 0\n" +            // setMemShadow
             Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams{memory, to_string(reg), to_string(width)};
+    vector<basic_string<char>> instrumentationParams{memory, Utils::toHex(reg), Utils::toHex(width)};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
                                                                       instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
@@ -97,7 +97,7 @@ IRDB_SDK::Instruction_t *BinaryArithmeticHandler::instrumentRegMemInstruction(IR
             "mov rdx, %%3\n" +      // width
             "call 0\n" +            // setRegShadow
             Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams{memory, to_string(reg), to_string(width)};
+    vector<basic_string<char>> instrumentationParams{memory, Utils::toHex(reg), Utils::toHex(width)};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
                                                                       instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
@@ -120,7 +120,7 @@ IRDB_SDK::Instruction_t *BinaryArithmeticHandler::instrumentRegImm(IRDB_SDK::Ins
             "mov rdx, %%2\n" +      // regWidth
             "call 0\n" +            // setRegShadow
             Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams{to_string((int) dest), to_string(destWidth)};
+    vector<basic_string<char>> instrumentationParams{Utils::toHex((int) dest), Utils::toHex(destWidth)};
     const auto new_instr = insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
                                                             instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
@@ -143,7 +143,7 @@ IRDB_SDK::Instruction_t *BinaryArithmeticHandler::instrumentMemImmInstruction(IR
             "mov rdx, %%2\n" +      // size
             "call 0\n" +            // setMemShadow
             Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams{memory, to_string(width)};
+    vector<basic_string<char>> instrumentationParams{memory, Utils::toHex(width)};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
                                                                       instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);

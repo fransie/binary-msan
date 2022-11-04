@@ -260,7 +260,7 @@ bool isMemFullyDefined(const void *mem, uptr size) {
  */
 bool isRegOrRegFullyDefined(int reg1, int reg1Width, int reg2, int reg2Width) {
     if (loggingEnabled) {
-        std::cout << "isRegOrRegFullyDefined. Register1: " << reg1 << ". RegWidth1: " << reg1 << "Register2: " << reg2
+        std::cout << "isRegOrRegFullyDefined. Register1: " << reg1 << ". RegWidth1: " << reg1Width << " Register2: " << reg2
                   << ". RegWidth2: " << reg2Width << std::endl;
     }
     if (reg1Width == HIGHER_BYTE || reg2Width == HIGHER_BYTE) {

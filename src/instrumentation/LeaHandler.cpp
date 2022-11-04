@@ -35,7 +35,7 @@ IRDB_SDK::Instruction_t *LeaHandler::instrumentImmLea(IRDB_SDK::Instruction_t *i
                              "mov rdx, %%2\n" +    // regWidth
                              "call 0\n" +
                              Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams{to_string(reg), to_string(width)};
+    vector<basic_string<char>> instrumentationParams{Utils::toHex(reg), Utils::toHex(width)};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
                                                                       instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
@@ -70,16 +70,19 @@ IRDB_SDK::Instruction_t *LeaHandler::instrumentRegRegLea(IRDB_SDK::Instruction_t
                           "call 0\n";           // unpoisonUpper4Bytes
     }
     instrumentation = instrumentation + Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams{to_string(baseReg),
-                                                     to_string(Utils::toHex(width)),
-                                                     to_string(indexReg),
-                                                     to_string(destReg),
-                                                     to_string(Utils::toHex(destWidth))};
+    vector<basic_string<char>> instrumentationParams{Utils::toHex(baseReg),
+                                                     Utils::toHex(width),
+                                                     Utils::toHex(indexReg),
+                                                     Utils::toHex(destReg),
+                                                     Utils::toHex(destWidth)};
     const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
                                                                         instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::isRegOrRegFullyDefined);
     new_instr[calls[1]]->setTarget(RuntimeLib::setRegShadow);
+    for (auto i : new_instr){
+        std::cout << i->getDisassembly() << std::endl;
+    }
     if (destWidth == DOUBLE_WORD) {
         new_instr[calls[2]]->setTarget(RuntimeLib::unpoisonUpper4Bytes);
     }
@@ -117,10 +120,10 @@ IRDB_SDK::Instruction_t *LeaHandler::instrumentRegLea(IRDB_SDK::Instruction_t *i
                           "call 0\n";               // unpoisonUpper4Bytes
     }
     instrumentation = instrumentation + Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams{to_string(regInMemOperand),
-                                                     to_string(Utils::toHex(width)),
-                                                     to_string(destReg),
-                                                     to_string(Utils::toHex(destWidth))};
+    vector<basic_string<char>> instrumentationParams{Utils::toHex(regInMemOperand),
+                                                     Utils::toHex(width),
+                                                     Utils::toHex(destReg),
+                                                     Utils::toHex(destWidth)};
     const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
                                                                         instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);

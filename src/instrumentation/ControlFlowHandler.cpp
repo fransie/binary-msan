@@ -60,7 +60,7 @@ ControlFlowHandler::checkCx(unique_ptr<IRDB_SDK::DecodedInstruction_t> &decodedI
                              "call 0\n" +
                              Utils::getStateRestoringInstrumentation();
     const auto new_instr = insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
-                                                            {to_string(RCX), to_string(Utils::toHex(width))});
+                                                            {Utils::toHex(RCX), Utils::toHex(width)});
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::checkRegIsInit);
     return new_instr.back();
@@ -80,7 +80,7 @@ ControlFlowHandler::checkReg(Instruction_t *instruction, unique_ptr<DecodedInstr
                              "mov rsi, %%2\n" +      // regWidth
                              "call 0\n" +            // checkRegIsInit
                              Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams{to_string(reg), to_string(width)};
+    vector<basic_string<char>> instrumentationParams{Utils::toHex(reg), Utils::toHex(width)};
     const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
                                                                         instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
@@ -101,7 +101,7 @@ ControlFlowHandler::checkMem(IRDB_SDK::Instruction_t *instruction, unique_ptr<De
                              "mov rsi, %%2\n" +      // size
                              "call 0\n" +            // __msan_check_mem_is_initialized
                              Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams{memOperand, to_string(width)};
+    vector<basic_string<char>> instrumentationParams{memOperand, Utils::toHex(width)};
     const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
                                                                         instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);

@@ -45,11 +45,11 @@ void StackVariableHandler::instrument(unique_ptr<FunctionAnalysis> &functionAnal
 
     if (hasStackPointerSub) {
         poisonStackframe(instrumentation);
-        instrumentationParams[0] = to_string(Utils::toHex(stackFrameSize));
+        instrumentationParams[0] = Utils::toHex(stackFrameSize);
     }
     if (canUseRedZone) {
         poisonRedZone(instrumentation);
-        instrumentationParams[1] = to_string(Utils::toHex(RED_ZONE_SIZE));
+        instrumentationParams[1] = Utils::toHex(RED_ZONE_SIZE);
     }
     instrumentation += Utils::getStateRestoringInstrumentation();
 

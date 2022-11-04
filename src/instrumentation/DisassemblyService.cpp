@@ -62,7 +62,7 @@ unsigned int DisassemblyService::getRegWidth(IRDB_SDK::Instruction_t *instructio
     if (isHigherByteRegister(regNumber)) {
         width = HIGHER_BYTE;
     }
-    return Utils::toHex(width);
+    return width;
 }
 
 /**
@@ -79,7 +79,7 @@ int DisassemblyService::getBaseRegWidth(IRDB_SDK::Instruction_t *instruction) {
     auto mem = capstoneInstruction->detail->x86.operands[numberOfMemOperand].mem;
     auto width = convertX86RegNumberToWidth(mem.base);
     cs_free(capstoneInstruction, 1);
-    return Utils::toHex(width);
+    return width;
 }
 
 /**
@@ -95,7 +95,7 @@ int DisassemblyService::getIndexRegWidth(IRDB_SDK::Instruction_t *instruction) {
     auto mem = capstoneInstruction->detail->x86.operands[numberOfMemOperand].mem;
     auto width = convertX86RegNumberToWidth(mem.index);
     cs_free(capstoneInstruction, 1);
-    return Utils::toHex(width);
+    return width;
 }
 
 /**

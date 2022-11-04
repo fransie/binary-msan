@@ -48,7 +48,7 @@ IRDB_SDK::Instruction_t *MovHandler::instrumentImmToMemMove(IRDB_SDK::Instructio
                              "mov rsi, %%2\n" +    // second argument
                              "call 0\n" +
                              Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams{dest, to_string(Utils::toHex(destWidth))};
+    vector<basic_string<char>> instrumentationParams{dest, Utils::toHex(destWidth)};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
                                                                       instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
@@ -71,18 +71,18 @@ IRDB_SDK::Instruction_t *MovHandler::instrumentImmToRegMove(Instruction_t *instr
                              "mov rsi, %%1\n" +    // reg
                              "mov rdx, %%2\n" +    // regWidth
                              "call 0\n";
-    if (width == Utils::toHex(DOUBLE_WORD)) {
+    if (width == DOUBLE_WORD) {
         instrumentation = instrumentation +
                           "mov rdi, %%1\n" +    // reg
                           "call 0\n";
     }
     instrumentation += Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams{to_string((int) dest), to_string(width)};
+    vector<basic_string<char>> instrumentationParams{Utils::toHex( dest), Utils::toHex(width)};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
                                                                       instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::setRegShadow);
-    if (width == Utils::toHex(DOUBLE_WORD)) {
+    if (width == DOUBLE_WORD) {
         new_instr[calls[1]]->setTarget(RuntimeLib::unpoisonUpper4Bytes);
     }
     return new_instr.back();
@@ -107,18 +107,18 @@ IRDB_SDK::Instruction_t *MovHandler::instrumentMemToRegMove(Instruction_t *instr
                              "mov rsi, %%2\n" +    // reg
                              "mov rdx, %%3\n" +    // regWidth
                              "call 0\n";
-    if (width == Utils::toHex(DOUBLE_WORD)) {
+    if (width == DOUBLE_WORD) {
         instrumentation = instrumentation +
                           "mov rdi, %%2\n" +    // reg
                           "call 0\n";
     }
     instrumentation += Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams{memoryDisassembly, to_string(dest), to_string(width)};
+    vector<basic_string<char>> instrumentationParams{memoryDisassembly, Utils::toHex(dest), Utils::toHex(width)};
     const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
                                                                         instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::memToRegShadowCopy);
-    if (width == Utils::toHex(DOUBLE_WORD)) {
+    if (width == DOUBLE_WORD) {
         new_instr[calls[1]]->setTarget(RuntimeLib::unpoisonUpper4Bytes);
     }
     return new_instr.back();
@@ -142,7 +142,7 @@ IRDB_SDK::Instruction_t *MovHandler::instrumentRegToMemMove(IRDB_SDK::Instructio
                              "mov rdx, %%3\n" +    // regWidth
                              "call 0\n" +
                              Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams{memoryDisassembly, to_string(src), to_string(width)};
+    vector<basic_string<char>> instrumentationParams{memoryDisassembly, Utils::toHex(src), Utils::toHex(width)};
     const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
                                                                         instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
@@ -169,19 +169,19 @@ IRDB_SDK::Instruction_t *MovHandler::instrumentRegToRegMove(Instruction_t *instr
                              "mov rdx, %%3\n"      // src
                              "mov rcx, %%4\n"      // srcWidth
                              "call 0\n";
-    if (destWidth == Utils::toHex(DOUBLE_WORD)) {
+    if (destWidth == DOUBLE_WORD) {
         instrumentation = instrumentation +
                           "mov rdi, %%1\n" +    // reg
                           "call 0\n";
     }
     instrumentation += Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams{to_string(dest), to_string(destWidth), to_string(source),
-                                                     to_string(srcWidth)};
+    vector<basic_string<char>> instrumentationParams{Utils::toHex(dest), Utils::toHex(destWidth), Utils::toHex(source),
+                                                     Utils::toHex(srcWidth)};
     const auto new_instr = ::IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
                                                                         instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
     new_instr[calls[0]]->setTarget(RuntimeLib::regToRegShadowCopy);
-    if (destWidth == Utils::toHex(DOUBLE_WORD)) {
+    if (destWidth == DOUBLE_WORD) {
         new_instr[calls[1]]->setTarget(RuntimeLib::unpoisonUpper4Bytes);
     }
     return new_instr.back();

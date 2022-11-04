@@ -38,8 +38,8 @@ IRDB_SDK::Instruction_t *MemoryAccessHandler::instrument(Instruction_t *instruct
                           "mov rdi, %%1\n" +    // first argument
                           "mov rsi, %%2\n" +    // second argument
                           "call 0\n";
-        instrumentationParams[0] = to_string(baseReg);
-        instrumentationParams[1] = to_string(baseRegWidth);
+        instrumentationParams[0] = Utils::toHex(baseReg);
+        instrumentationParams[1] = Utils::toHex(baseRegWidth);
     }
     if (operand->hasIndexRegister()) {
         auto indexReg = operand->getIndexRegister();
@@ -49,8 +49,8 @@ IRDB_SDK::Instruction_t *MemoryAccessHandler::instrument(Instruction_t *instruct
                           "mov rdi, %%3\n" +    // first argument
                           "mov rsi, %%4\n" +    // second argument
                           "call 0\n";
-        instrumentationParams[2] = to_string(indexReg);
-        instrumentationParams[3] = to_string(indexRegWidth);
+        instrumentationParams[2] = Utils::toHex(indexReg);
+        instrumentationParams[3] = Utils::toHex(indexRegWidth);
     }
     instrumentation = instrumentation + Utils::getStateRestoringInstrumentation();
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,

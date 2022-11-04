@@ -59,7 +59,7 @@ IRDB_SDK::Instruction_t *EflagsHandler::propagateRegShadowToEflags(IRDB_SDK::Ins
                              "mov dil, al\n" +
                              "call 0\n" +
                              Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams{to_string((int) dest), to_string(width)};
+    vector<basic_string<char>> instrumentationParams{Utils::toHex(dest), Utils::toHex(width)};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
                                                                       instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
@@ -89,7 +89,7 @@ IRDB_SDK::Instruction_t *EflagsHandler::propagateMemShadowToEflags(IRDB_SDK::Ins
                              "mov dil, al\n" +
                              "call 0\n" +
                              Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams{dest, to_string(Utils::toHex(destWidth))};
+    vector<basic_string<char>> instrumentationParams{dest, Utils::toHex(destWidth)};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
                                                                       instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
@@ -123,8 +123,8 @@ IRDB_SDK::Instruction_t *EflagsHandler::propagateRegOrRegShadowToEflags(IRDB_SDK
                              "mov dil, al\n" +
                              "call 0\n" +
                              Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams{to_string((int) dest), to_string(destWidth), to_string((int) src),
-                                                     to_string(srcWidth)};
+    vector<basic_string<char>> instrumentationParams{Utils::toHex(dest), Utils::toHex(destWidth), Utils::toHex(src),
+                                                     Utils::toHex(srcWidth)};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
                                                                       instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
@@ -163,7 +163,7 @@ IRDB_SDK::Instruction_t *EflagsHandler::propagateRegOrMemShadowToEflags(IRDB_SDK
                              "mov dil, al\n" +
                              "call 0\n" +
                              Utils::getStateRestoringInstrumentation();
-    vector<basic_string<char>> instrumentationParams{memory, to_string(reg), to_string(width)};
+    vector<basic_string<char>> instrumentationParams{memory, Utils::toHex(reg), Utils::toHex(width)};
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
                                                                       instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
