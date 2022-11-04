@@ -8,15 +8,15 @@
 
 int main() {
     // given
-    shadowRegisterState[RSI] = std::bitset<64>{0x0000000000000000};
-    shadowRegisterState[RBX] = std::bitset<64>{0x000f0000000000f0};
-    shadowRegisterState[RAX] = std::bitset<64>{0x0000000000000000};
+    shadowRegisterState[R10] = std::bitset<64>{0x0000000000000000};
+    shadowRegisterState[R11] = std::bitset<64>{0x0000000000000000};
+    shadowRegisterState[R12] = std::bitset<64>{0x000f0000000000ff};
 
     // when
-    asm ("lea (%esi,%ebx), %eax");
+    asm ("lea (%r11,%r12), %r10d");
 
     // then
-    assert(shadowRegisterState[RAX].to_ullong() == 0x00000000ffffffff);
+    assert(shadowRegisterState[R10].to_ullong() == 0x00000000ffffffff);
     std::cout << "Success." << std::endl;
     return 0;
 }
