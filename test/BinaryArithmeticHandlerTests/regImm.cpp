@@ -8,14 +8,14 @@
 
 int main() {
     // given
-    shadowRegisterState[RAX] = std::bitset<64>{0x00ff};
-    assert(shadowRegisterState[RAX].to_ullong() == 0x00ff);
+    shadowRegisterState[R10] = std::bitset<64>{0x00ff};
+    assert(shadowRegisterState[R10].to_ullong() == 0x00ff);
 
     // when
-    asm ("add $5, %rax");
+    asm ("add $5, %r10");
 
     // then
-    assert(shadowRegisterState[RAX].to_ullong() == UINT64_MAX);
+    assert(shadowRegisterState[R10].to_ullong() == UINT64_MAX);
     std::cout << "Success." << std::endl;
     return 0;
 }

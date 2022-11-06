@@ -9,14 +9,13 @@
 
 int main() {
     // given
-    assert(shadowRegisterState[RAX].to_ullong() == UINT64_MAX);
+    assert(shadowRegisterState[RBX].to_ullong() == UINT64_MAX);
 
     // when
-    asm ("mov $5, %ah");
+    asm ("mov $5, %bh");
 
     // then
-    std::cout << shadowRegisterState[RAX].to_ullong() << std::endl;
-    assert(shadowRegisterState[RAX].to_ullong() == 0xffffffffffff00ff);
+    assert(shadowRegisterState[RBX].to_ullong() == 0xffffffffffff00ff);
     std::cout << "Success." << std::endl;
     return 0;
 }

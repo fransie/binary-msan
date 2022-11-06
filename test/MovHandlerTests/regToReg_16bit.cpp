@@ -9,16 +9,14 @@
 
 int main() {
     // given
-    // define rax here because "new" is not instrumented yet and returns an uninit address is rax, which is wrong.
-    setRegShadow(true,RAX,64);
-    assert(shadowRegisterState[RAX].to_ullong() == 0);
-    assert(shadowRegisterState[RCX].to_ullong() == UINT64_MAX);
+    shadowRegisterState[R10] = std::bitset<64>{0x0000000000000000};
+    shadowRegisterState[R11] = std::bitset<64>{0xffffffffffffffff};
 
     // when
-    asm ("mov %ax, %cx");
+    asm ("mov %r10w, %r11w");
 
     // then
-    assert(shadowRegisterState[RCX].to_ullong() == 0xffffffffffff0000);
+    assert(shadowRegisterState[R11].to_ullong() == 0xffffffffffff0000);
     std::cout << "Success." << std::endl;
     return 0;
 }

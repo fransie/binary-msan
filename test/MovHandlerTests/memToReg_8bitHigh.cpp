@@ -1,22 +1,22 @@
 // BINMSAN COMPILE OPTIONS
 
-
+#include <iostream>
+#include <cassert>
 #include "../../src/runtimeLibrary/BinMsanApi.h"
 #include "../../src/common/RegisterNumbering.h"
-#include "../../src/common/Width.h"
 
 int main(int argc, char** argv) {
     // given
-    setRegShadow(true,RAX,64);
+    shadowRegisterState[RBX] = std::bitset<64>{0x0000000000000000};
     uint8_t *a = new uint8_t;
-    checkRegIsInit(RAX,64);
 
     // when
-    asm( "mov %0, %%ah" : : "m" (*a));
+    asm( "mov %0, %%bh" : : "m" (*a));
 
-    // then this should be uninit
-    checkRegIsInit(RAX,HIGHER_BYTE);
+    // then
+    assert(shadowRegisterState[RBX].to_ullong() == 0x000000000000ff00);
+    std::cout << "Success." << std::endl;
     return 0;
 }
 
-// EXPECTED: MemorySanitizer: use-of-uninitialized-value
+// EXPECTED: Success.

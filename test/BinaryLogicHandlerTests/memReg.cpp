@@ -21,10 +21,10 @@ int main() {
     // given
     uint64_t *a = new uint64_t{5};
     testShadow0(a);
-    shadowRegisterState[RAX] = std::bitset<64>{0x000000000000000f};
+    shadowRegisterState[R10] = std::bitset<64>{0x000000000000000f};
 
     // when
-    asm ("and %%rax, %0" : "=m" ( *a ));
+    asm ("and %%r10, %0" : "=m" ( *a ));
 
     // then
     testShadowNot0(a);

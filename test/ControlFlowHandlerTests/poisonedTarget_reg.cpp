@@ -8,10 +8,10 @@
 
 int main() {
     // given
-    shadowRegisterState[RBX] = std::bitset<64>{0x000f0000000000f0};
+    shadowRegisterState[R10] = std::bitset<64>{0x000f0000000000f0};
 
     // when
-    asm ("jmp *%rbx");
+    asm ("jmp *%r10");
 }
 
 // EXPECTED: MemorySanitizer: use-of-uninitialized-value

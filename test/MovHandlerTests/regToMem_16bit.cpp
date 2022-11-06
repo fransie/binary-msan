@@ -24,8 +24,8 @@ int main() {
     setRegShadow(true,RAX,64);
     u_int16_t *a = new u_int16_t;
     testShadowNot0(a);
-    asm ("mov $1, %rax");
-    asm ("mov %%ax, %0" : "=m" ( *a ));
+    asm ("mov $1, %r10");
+    asm ("mov %%r10w, %0" : "=m" ( *a ));
     testShadow0(a);
     return 0;
 }
