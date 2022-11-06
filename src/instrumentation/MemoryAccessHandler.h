@@ -2,7 +2,6 @@
 #define BINARY_MSAN_MEMORYACCESSHANDLER_H
 
 #include <irdb-core>
-#include "DisassemblyService.h"
 #include "InstructionHandler.h"
 
 /**

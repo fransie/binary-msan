@@ -1,5 +1,6 @@
 #include <irdb-elfdep>
 #include <memory>
+#include "DisassemblyService.h"
 #include "MemoryAccessHandler.h"
 #include "RuntimeLib.h"
 #include "Utils.h"
@@ -75,7 +76,12 @@ bool MemoryAccessHandler::hasMemoryOperand(unique_ptr<DecodedInstruction_t> &ins
 
 bool MemoryAccessHandler::isResponsibleFor(IRDB_SDK::Instruction_t *instruction) {
     auto decodedInstruction = IRDB_SDK::DecodedInstruction_t::factory(instruction);
+    // Lea does not actually access memory.
     if (decodedInstruction->getMnemonic() == "lea") {
+        return false;
+    }
+    // Branching instructions are checked by ControlFlowHandler.
+    if (decodedInstruction->isBranch()){
         return false;
     }
     return hasMemoryOperand(decodedInstruction);

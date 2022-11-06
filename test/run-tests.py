@@ -53,9 +53,9 @@ def build(filename):
                   "-I$BINMSAN_HOME/llvm_shared_msan_lib/compiler-rt/lib/ " \
                   "-L$BINMSAN_HOME/plugins_install " \
                   "-lbinmsan_lib"
-        return subprocess.call(f"g++ {filename} -o {output_name} {options} >> {directory}/logs/{test_name}.txt 2>&1", shell=True)
+        return subprocess.call(f"clang++ {filename} -o {output_name} {options} >> {directory}/logs/{test_name}.txt 2>&1", shell=True)
     else:
-        return subprocess.call(f"g++ {filename} -o {output_name} >> {directory}/logs/{test_name}.txt 2>&1", shell=True)
+        return subprocess.call(f"clang++ {filename} -o {output_name} >> {directory}/logs/{test_name}.txt 2>&1", shell=True)
 
 
 def sanitize(filename):
