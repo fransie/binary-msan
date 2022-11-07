@@ -31,12 +31,19 @@ bool MSan::executeStep() {
     registerDependencies();
     Function_t *mainFunction = nullptr;
     unique_ptr<FunctionAnalysis> mainFunctionAnalysis = nullptr;
+
+    Function_t *numberFunction = nullptr;
+    unique_ptr<FunctionAnalysis> numberFunctionAnalysis = nullptr;
+
     auto functions = getFileIR()->getFunctions();
     for (auto const &function: functions) {
         if (function->getName() == "main") {
             mainFunction = function;
             mainFunctionAnalysis = make_unique<FunctionAnalysis>(mainFunction);
-            break;
+        }
+        if (function->getName() == "number") {
+            numberFunction = function;
+            numberFunctionAnalysis = make_unique<FunctionAnalysis>(numberFunction);
         }
     }
     if (!mainFunction) {
@@ -52,8 +59,23 @@ bool MSan::executeStep() {
             }
         }
     }
+
+    const set<Instruction_t *> originalInstructionsNumber(numberFunction->getInstructions().begin(),
+                                                    numberFunction->getInstructions().end());
+    for (auto instruction: originalInstructionsNumber) {
+        for (auto &&handler: instructionHandlers) {
+            if (handler->isResponsibleFor(instruction)) {
+                instruction = handler->instrument(instruction);
+            }
+        }
+    }
+
     functionHandlers.at(0)->instrument(mainFunctionAnalysis);
     instrumentOptions(mainFunction->getEntryPoint());
+
+    functionHandlers.at(0)->instrument(numberFunctionAnalysis);
+    instrumentOptions(numberFunction->getEntryPoint());
+
     return true; //success
 }
 
