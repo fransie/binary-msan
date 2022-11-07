@@ -12,7 +12,7 @@ int main() {
     assert(shadowRegisterState[R10].to_ullong() == 0x00ff00ff00ff00ff);
 
     // when
-    asm ("and $5, %r10");
+    asm ("or $5, %r10");
 
     // then
     assert(shadowRegisterState[R10].to_ullong() == 0x00ff00ff00ff00ff);

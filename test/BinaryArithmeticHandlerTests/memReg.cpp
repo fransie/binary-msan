@@ -24,7 +24,7 @@ int main() {
     shadowRegisterState[R10] = std::bitset<64>{0xffffffffffffffff};
 
     // when
-    asm ("add %%r10, %0" : "=m" ( *a ));
+    asm ("sub %%r10, %0" : "=m" ( *a ));
 
     // then
     testShadowNot0(a);

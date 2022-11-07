@@ -12,7 +12,7 @@ int main() {
     shadowRegisterState[R11] = std::bitset<64>{0xff00ff00ff00ff00};
 
     // when
-    asm ("and %r10, %r11");
+    asm ("or %r10, %r11");
 
     // then
     assert(shadowRegisterState[R10].to_ullong() == 0x00ff00ff00ff00ff);
