@@ -1,5 +1,3 @@
-
-
 int main() {
     int (*fcnptr)();
     fcnptr();

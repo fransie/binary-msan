@@ -8,14 +8,14 @@
 
 int main() {
     // given
-    shadowRegisterState[R10] = std::bitset<64>{0x0000000000000000};
+    shadowRegisterState[R10] = std::bitset<64>{0x00000000000000ff};
     shadowRegisterState[R11] = std::bitset<64>{0x0000000000000000};
 
     // when
     asm ("lea (%r11d), %r10");
 
     // then
-    assert(shadowRegisterState[RAX].to_ullong() == 0);
+    assert(shadowRegisterState[R10].to_ullong() == 0);
     std::cout << "Success." << std::endl;
     return 0;
 }

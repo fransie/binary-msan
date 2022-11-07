@@ -8,7 +8,7 @@
 
 int main() {
     // given
-    shadowRegisterState[R10] = std::bitset<64>{0x0000000000000000};
+    shadowRegisterState[R10] = std::bitset<64>{0x00000000000000ff};
     shadowRegisterState[R11] = std::bitset<64>{0x0000000000000000};
     shadowRegisterState[R12] = std::bitset<64>{0x000f000000000000};
 
