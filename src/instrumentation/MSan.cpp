@@ -30,51 +30,52 @@ MSan::MSan(FileIR_t *fileIR) : Transform_t(fileIR) {
 bool MSan::executeStep() {
     registerDependencies();
     Function_t *mainFunction = nullptr;
-    unique_ptr<FunctionAnalysis> mainFunctionAnalysis = nullptr;
-
-    Function_t *numberFunction = nullptr;
-    unique_ptr<FunctionAnalysis> numberFunctionAnalysis = nullptr;
-
+    
     auto functions = getFileIR()->getFunctions();
     for (auto const &function: functions) {
-        if (function->getName() == "main") {
+        //cout << "All functions: " << function->getName() << "\n";
+        auto functionName = function->getName();
+        
+        if (functionName == "main") {
             mainFunction = function;
-            mainFunctionAnalysis = make_unique<FunctionAnalysis>(mainFunction);
         }
-        if (function->getName() == "number") {
-            numberFunction = function;
-            numberFunctionAnalysis = make_unique<FunctionAnalysis>(numberFunction);
+
+        if (functionName == "ThisIsNotAFunction") {
+            continue;
         }
+
+        if (functionName.find("@plt") != std::string::npos) {
+            continue;
+        }
+        
+        // do not instrument push jump thunks
+        if (function->getInstructions().size() == 2 && function->getEntryPoint()->getDisassembly().rfind("push", 0) == 0 &&
+                function->getEntryPoint()->getFallthrough()->getDisassembly().rfind("jmp", 0) == 0) {
+            continue;
+        }
+        
+        Function_t *currFunction = function;
+        unique_ptr<FunctionAnalysis> currFunctionAnalysis = make_unique<FunctionAnalysis>(currFunction);
+
+        cout << "Instrumented functions: " << function->getName() << "\n";
+        functionHandlers.at(0)->instrument(currFunctionAnalysis);
+        instrumentOptions(currFunction->getEntryPoint());
+        
+        //instrument instructions
+        const set<Instruction_t *> originalInstructions(currFunction->getInstructions().begin(),
+                                                    currFunction->getInstructions().end());
+        for (auto instruction: originalInstructions) {
+            for (auto &&handler: instructionHandlers) {
+                if (handler->isResponsibleFor(instruction)) {
+                    instruction = handler->instrument(instruction);
+                }
+            }
+        }
+        
     }
     if (!mainFunction) {
         cout << "No main function detected." << endl;
     }
-
-    const set<Instruction_t *> originalInstructions(mainFunction->getInstructions().begin(),
-                                                    mainFunction->getInstructions().end());
-    for (auto instruction: originalInstructions) {
-        for (auto &&handler: instructionHandlers) {
-            if (handler->isResponsibleFor(instruction)) {
-                instruction = handler->instrument(instruction);
-            }
-        }
-    }
-
-    const set<Instruction_t *> originalInstructionsNumber(numberFunction->getInstructions().begin(),
-                                                    numberFunction->getInstructions().end());
-    for (auto instruction: originalInstructionsNumber) {
-        for (auto &&handler: instructionHandlers) {
-            if (handler->isResponsibleFor(instruction)) {
-                instruction = handler->instrument(instruction);
-            }
-        }
-    }
-
-    functionHandlers.at(0)->instrument(mainFunctionAnalysis);
-    instrumentOptions(mainFunction->getEntryPoint());
-
-    functionHandlers.at(0)->instrument(numberFunctionAnalysis);
-    instrumentOptions(numberFunction->getEntryPoint());
 
     return true; //success
 }
