@@ -17,6 +17,7 @@ BIN_DIRECTORY = EVAL_DIRECTORY + "/bin"
 SAN_DIRECTORY = EVAL_DIRECTORY + "/san"
 MSAN_DIRECTORY = EVAL_DIRECTORY + "/msan"
 ZIPRED_DIRECTORY = EVAL_DIRECTORY + "/zipr_san"
+RESULT_PATH = EVAL_DIRECTORY + "/results"
 TEST_FOLDERS = [name for name in os.listdir(TEST_DIRECTORY)
                 if os.path.isdir(os.path.join(TEST_DIRECTORY, name)) and name.__contains__("Tests")]
 INSTRUMENTED_LIBCXX_PATH = "/home/franzi/Documents/llvm-project-llvmorg-13.0.1/llvmInstrumentedBuild"
@@ -244,78 +245,77 @@ def compare_zipr_runtime(row):
 
 
 if __name__ == '__main__':
-    # if len(sys.argv) > 1 and sys.argv[1] == 'clean':
-    #     for dir in [BIN_DIRECTORY, MSAN_DIRECTORY, SAN_DIRECTORY, ZIPRED_DIRECTORY]:
-    #         for file in os.listdir(dir):
-    #             os.remove(os.path.join(dir, file))
-    #
-    # # Preparations.
-    # pathlib.Path('bin').mkdir(exist_ok=True)
-    # pathlib.Path('msan').mkdir(exist_ok=True)
-    # pathlib.Path('san').mkdir(exist_ok=True)
-    # pathlib.Path('zipr_san').mkdir(exist_ok=True)
-    # pathlib.Path('results').mkdir(exist_ok=True)
-    # try:
-    #     dict(os.environ)["PSZ"]
-    # except KeyError:
-    #     print("PSZ env variable not defined. Please run `source ../init.sh` and restart. Abort.")
-    #     exit(1)
-    # exit_code = subprocess.call("which drmemory > /dev/null", shell=True)
-    # exit_code += subprocess.call("which valgrind > /dev/null", shell=True)
-    # if exit_code != 0:
-    #     print("Please make sure that the executables valgrind and drmemory are available. Abort.")
-    #     exit(1)
-    #
-    # print(f"Processing {len(get_test_source_files())} test cases.")
-    #
-    # # Compilation and sanitization time measurement
-    result_path = EVAL_DIRECTORY + "/results"
-    # df = get_compile_and_sanitization_data()
-    # df.to_csv(f"{result_path}/compile_sanitize_times.csv", sep=',', index_label="test case")
-    #
-    # # Run-time performance measurement
-    # df = get_run_time_performance()
-    # df.to_csv(f"{result_path}/run_time_performances.csv", sep=',', index_label="test case")
+    if len(sys.argv) > 1 and sys.argv[1] == 'clean':
+        for dir in [BIN_DIRECTORY, MSAN_DIRECTORY, SAN_DIRECTORY, ZIPRED_DIRECTORY]:
+            for file in os.listdir(dir):
+                os.remove(os.path.join(dir, file))
+
+    # Preparations.
+    pathlib.Path('bin').mkdir(exist_ok=True)
+    pathlib.Path('msan').mkdir(exist_ok=True)
+    pathlib.Path('san').mkdir(exist_ok=True)
+    pathlib.Path('zipr_san').mkdir(exist_ok=True)
+    pathlib.Path('results').mkdir(exist_ok=True)
+    try:
+        dict(os.environ)["PSZ"]
+    except KeyError:
+        print("PSZ env variable not defined. Please run `source ../init.sh` and restart. Abort.")
+        exit(1)
+    exit_code = subprocess.call("which drmemory > /dev/null", shell=True)
+    exit_code += subprocess.call("which valgrind > /dev/null", shell=True)
+    if exit_code != 0:
+        print("Please make sure that the executables valgrind and drmemory are available. Abort.")
+        exit(1)
+
+    print(f"Processing {len(get_test_source_files())} test cases.")
+
+    # Compilation and sanitization time measurement
+    df = get_compile_and_sanitization_data()
+    df.to_csv(f"{RESULT_PATH}/compile_sanitize_times.csv", sep=',', index_label="test case")
+
+    # Run-time performance measurement
+    df = get_run_time_performance()
+    df.to_csv(f"{RESULT_PATH}/run_time_performances.csv", sep=',', index_label="test case")
 
     # MSan und BinMSan preparations plot
-    # plt.figure()
-    # df = pd.read_csv(f"{result_path}/compile_sanitize_times.csv", index_col='test case')
-    # data = {'Tool': ['MemorySanitizer','Zipr + BinMSan'],
-    #         'Instrumentation time (s)': [df.loc['OVERALL-AVERAGE']['clang-msan'],df.loc['OVERALL-AVERAGE']['zipr-binmsan']]}
-    # frame = pd.DataFrame(data=data)
-    # seaborn.set_theme(style="white", font="cochineal", font_scale=1.3)
-    # barplot1 = seaborn.barplot(data=frame, x='Tool', y='Instrumentation time (s)', color="#BDD7EE")
-    # data = {'Tool': ['MemorySanitizer','BinMSan'],
-    #         'Instrumentation time (s)': [df.loc['OVERALL-AVERAGE']['clang'],df.loc['OVERALL-AVERAGE']['zipr']]}
-    # frame = pd.DataFrame(data=data)
-    # barplot2 = seaborn.barplot(data=frame, x='Tool', y='Instrumentation time (s)', color='#00457D')
-    # barplot1.set_xlabel("")
-    # barplot1.set_ylabel("Average instrumentation time (s)")
-    # top_bar = mpatches.Patch(color='#BDD7EE', label='Sanitiser')
-    # bottom_bar = mpatches.Patch(color='#00457D', label='Base tool')
-    # plt.legend(handles=[top_bar, bottom_bar])
-    # seaborn.despine()
-    # plt.savefig(f"{result_path}/instrumentation_time.pdf")
-    # plt.close()
-    #
-    # # Run-time plot
-    # df = pd.read_csv(f"{result_path}/run_time_performances.csv", index_col='test case')
-    # data = {'Tool': ['Baseline','MemorySanitizer','BinMSan','MemCheck','Dr. Memory'],
-    #         'Run-time (s)': [df.loc['OVERALL-AVERAGE']['baseline'],df.loc['OVERALL-AVERAGE']['msan'],df.loc['OVERALL-AVERAGE']['binmsan'],df.loc['OVERALL-AVERAGE']['memcheck'], df.loc['OVERALL-AVERAGE']['dr memory']]}
-    # frame = pd.DataFrame(data=data)
-    # plt.figure(figsize=(8, 9))
-    # barplot = seaborn.barplot(data=frame, x='Tool', y='Run-time (s)', color="#00457D")
-    # barplot.set_xticklabels(barplot.get_xticklabels(), rotation=30, ha="right")
-    # barplot.set_xlabel("")
-    # barplot.set_ylabel("Average run-time (s)")
-    # seaborn.despine()
-    # fig = barplot.get_figure()
-    # fig.savefig(f"{result_path}/run_time.pdf")
-    #
+    plt.figure()
+    df = pd.read_csv(f"{RESULT_PATH}/compile_sanitize_times.csv", index_col='test case')
+    data = {'Tool': ['MemorySanitizer','Zipr + BinMSan'],
+            'Instrumentation time (s)': [df.loc['OVERALL-AVERAGE']['clang-msan'],df.loc['OVERALL-AVERAGE']['zipr-binmsan']]}
+    frame = pd.DataFrame(data=data)
+    seaborn.set_theme(style="white", font="cochineal", font_scale=1.3)
+    barplot1 = seaborn.barplot(data=frame, x='Tool', y='Instrumentation time (s)', color="#BDD7EE")
+    data = {'Tool': ['MemorySanitizer','BinMSan'],
+            'Instrumentation time (s)': [df.loc['OVERALL-AVERAGE']['clang'],df.loc['OVERALL-AVERAGE']['zipr']]}
+    frame = pd.DataFrame(data=data)
+    barplot2 = seaborn.barplot(data=frame, x='Tool', y='Instrumentation time (s)', color='#00457D')
+    barplot1.set_xlabel("")
+    barplot1.set_ylabel("Average instrumentation time (s)")
+    top_bar = mpatches.Patch(color='#BDD7EE', label='Sanitiser')
+    bottom_bar = mpatches.Patch(color='#00457D', label='Base tool')
+    plt.legend(handles=[top_bar, bottom_bar])
+    seaborn.despine()
+    plt.savefig(f"{RESULT_PATH}/instrumentation_time.pdf")
+    plt.close()
+
+    # Run-time plot
+    df = pd.read_csv(f"{RESULT_PATH}/run_time_performances.csv", index_col='test case')
+    data = {'Tool': ['Baseline','MemorySanitizer','BinMSan','MemCheck','Dr. Memory'],
+            'Run-time (s)': [df.loc['OVERALL-AVERAGE']['baseline'],df.loc['OVERALL-AVERAGE']['msan'],df.loc['OVERALL-AVERAGE']['binmsan'],df.loc['OVERALL-AVERAGE']['memcheck'], df.loc['OVERALL-AVERAGE']['dr memory']]}
+    frame = pd.DataFrame(data=data)
+    plt.figure(figsize=(8, 9))
+    barplot = seaborn.barplot(data=frame, x='Tool', y='Run-time (s)', color="#00457D")
+    barplot.set_xticklabels(barplot.get_xticklabels(), rotation=30, ha="right")
+    barplot.set_xlabel("")
+    barplot.set_ylabel("Average run-time (s)")
+    seaborn.despine()
+    fig = barplot.get_figure()
+    fig.savefig(f"{RESULT_PATH}/run_time.pdf")
+
     # Overhead of Zipr:
-    df = pd.read_csv(f"{result_path}/run_time_performances.csv", index_col='test case')
+    df = pd.read_csv(f"{RESULT_PATH}/run_time_performances.csv", index_col='test case')
     df.drop(columns=['msan', 'binmsan', 'dr memory', 'memcheck'], inplace=True)
     df = df[df.index.str.contains("AVERAGE") == False]
     df['faster tool'] = df.apply(lambda row: compare_zipr_runtime(row), axis=1)
     df.sort_values('faster tool', inplace=True)
-    df.value_counts(df['faster tool']).to_csv(f"{result_path}/zipr_vs_baseline.csv")
+    df.value_counts(df['faster tool']).to_csv(f"{RESULT_PATH}/zipr_vs_baseline.csv")

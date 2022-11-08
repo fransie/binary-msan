@@ -1,8 +1,8 @@
 # binary-msan
 
-This tool is a PoC of a binary-only implementation of LLVM's Memory Sanitizer ([their paper](https://doi.org/10.1109/CGO.2015.7054186)).
+This tool is a PoC of a binary-only implementation of LLVM's Memory Sanitizer (see [their paper](https://doi.org/10.1109/CGO.2015.7054186)).
 It finds usage of uninitialised memory for conditional branching, syscalls and pointer dereference.
-Binary-msan depends on the binary rewriting toolchain zipr (their papers:
+Binary-msan depends on the binary rewriting toolchain zipr (see their papers
 [zipr](https://doi.org/10.1109/DSN.2017.27) and [zipr++](https://doi.org/10.1145/3141235.3141240)).
 
 ## Set-up
@@ -28,9 +28,9 @@ This set-up has been tested on Ubuntu 20.04 Focal Fossa.
 
 ### Shared MSan library
 
-Binary-msan needs shared libraries of the LVVM Memory Sanitizer, which are not available in the regular build of LLVM.
-Therefore, the folder `llvm_shared_msan_lib` contains the two needed libraries for x86-64. You can find the
-descriptions of how to build the libraries in the folder `llvm_shared_msan_lib`.
+Binary-msan needs shared libraries of the LVVM MemorySanitizer, which are not available in the regular build of LLVM.
+Therefore, the folder `llvm_shared_msan_lib` contains the two needed libraries for x86-64. Hence, you don't need to build
+them yourself but if you're interested, you can find the descriptions of how to build the libraries in the folder `llvm_shared_msan_lib`.
 
 ## Usage
 

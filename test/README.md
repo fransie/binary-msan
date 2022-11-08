@@ -1,7 +1,7 @@
 # Tests
 
-To run the tests, execute the script `run-tests.py` with Python3 (at least version 3.9). The tests depend on the way that GCC 11.3 compiles the binaries
-so that it might not work with other versions of GCC 11.3 or other compilers.
+To run the tests, execute the script `run-tests.py` with Python3 (at least version 3.9). The test binaries are compiled
+with Clang 13.0.1 but have also been tested successfully if copmiled by GCC 11.3.
 
 The unit tests have been disabled by default because they require an MSan-ified version of Googletest to avoid false
 positives. This is quite a bit of work. If you wish to do this, follow the steps below. However, note that you have to
