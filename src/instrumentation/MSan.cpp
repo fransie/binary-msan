@@ -12,6 +12,7 @@
 #include "MemoryAccessHandler.h"
 #include "MovHandler.h"
 #include "StackVariableHandler.h"
+#include <algorithm>
 
 using namespace IRDB_SDK;
 using namespace std;
@@ -32,15 +33,22 @@ bool MSan::executeStep() {
     Function_t *mainFunction = nullptr;
     
     auto functions = getFileIR()->getFunctions();
+
     for (auto const &function: functions) {
         //cout << "All functions: " << function->getName() << "\n";
         auto functionName = function->getName();
         
         if (functionName == "main") {
             mainFunction = function;
+            instrumentOptions(mainFunction->getEntryPoint());
         }
 
-        if (functionName == "ThisIsNotAFunction") {
+        //skip functions, that should not be instrumented
+        const std::vector<std::string> noInstrumentFunctions = {"_init", "_start", "__libc_csu_init", "__tsan_default_options", "_fini", "__libc_csu_fini",
+                                                            "ThisIsNotAFunction", "__gmon_start__", "__do_global_ctors_aux", "__do_global_dtors_aux"};
+
+        const bool ignoreFunction = std::find(noInstrumentFunctions.begin(), noInstrumentFunctions.end(), functionName) != noInstrumentFunctions.end();
+        if (ignoreFunction) {
             continue;
         }
 
@@ -59,7 +67,6 @@ bool MSan::executeStep() {
 
         cout << "Instrumented functions: " << function->getName() << "\n";
         functionHandlers.at(0)->instrument(currFunctionAnalysis);
-        instrumentOptions(currFunction->getEntryPoint());
         
         //instrument instructions
         const set<Instruction_t *> originalInstructions(currFunction->getInstructions().begin(),
