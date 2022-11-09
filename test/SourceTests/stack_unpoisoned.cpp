@@ -2,9 +2,9 @@
 #include <cassert>
 
 int main() {
-    uint64_t ptr = 7;
+    uint64_t a = 7;
 
-    auto shadow = reinterpret_cast<uint64_t*>((unsigned long long)(ptr) ^ 0x500000000000ULL);
+    auto shadow = reinterpret_cast<uint64_t*>((unsigned long long)(&a) ^ 0x500000000000ULL);
     assert(*shadow == 0);
 
     std::cout << "Success.";

@@ -1,8 +1,5 @@
-// BINMSAN COMPILE OPTIONS
-
 #include <iostream>
 #include <cassert>
-#include "../../src/runtimeLibrary/BinMsanApi.h"
 
 int main() {
     uint64_t a;
