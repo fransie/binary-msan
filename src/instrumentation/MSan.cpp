@@ -31,8 +31,13 @@ MSan::MSan(FileIR_t *fileIR) : Transform_t(fileIR) {
 bool MSan::executeStep() {
     registerDependencies();
     Function_t *mainFunction = nullptr;
+    Function_t *startFunction = nullptr;
     
     auto functions = getFileIR()->getFunctions();
+
+    //list of functions, that will not be processed/instrumented
+    const std::vector<std::string> noInstrumentFunctions = {"_init", "_start", "__libc_csu_init", "__tsan_default_options", "_fini", "__libc_csu_fini",
+                                                            "ThisIsNotAFunction", "__gmon_start__", "__do_global_ctors_aux", "__do_global_dtors_aux"};
 
     for (auto const &function: functions) {
         //cout << "All functions: " << function->getName() << "\n";
@@ -40,25 +45,28 @@ bool MSan::executeStep() {
         
         if (functionName == "main") {
             mainFunction = function;
-            instrumentOptions(mainFunction->getEntryPoint());
+        }
+
+        if (functionName == "_start") {
+            startFunction = function;
         }
 
         //skip functions, that should not be instrumented
-        const std::vector<std::string> noInstrumentFunctions = {"_init", "_start", "__libc_csu_init", "__tsan_default_options", "_fini", "__libc_csu_fini",
-                                                            "ThisIsNotAFunction", "__gmon_start__", "__do_global_ctors_aux", "__do_global_dtors_aux"};
-
         const bool ignoreFunction = std::find(noInstrumentFunctions.begin(), noInstrumentFunctions.end(), functionName) != noInstrumentFunctions.end();
         if (ignoreFunction) {
+            cout << "Skipped functions: " << function->getName() << "\n";
             continue;
         }
 
         if (functionName.find("@plt") != std::string::npos) {
+            cout << "Skipped functions: " << function->getName() << "\n";
             continue;
         }
         
         // do not instrument push jump thunks
         if (function->getInstructions().size() == 2 && function->getEntryPoint()->getDisassembly().rfind("push", 0) == 0 &&
                 function->getEntryPoint()->getFallthrough()->getDisassembly().rfind("jmp", 0) == 0) {
+            cout << "Skipped functions: " << function->getName() << "\n";
             continue;
         }
         
@@ -82,6 +90,78 @@ bool MSan::executeStep() {
     }
     if (!mainFunction) {
         cout << "No main function detected." << endl;
+        //try to identify main function via mov rdi, [mainaddr] in _start 
+        if(startFunction) {
+            bool foundMainAddr = false;
+            std::string mainFuncAddr;
+
+            const set<Instruction_t *> originalInstructions(startFunction->getInstructions().begin(),
+                                                    startFunction->getInstructions().end());
+            //go through instructions and detect what rdi is set to
+            //TODO: verify that it is the correct change of rdi (in front of the call)
+            for (auto instruction: originalInstructions) {
+
+                auto decodedInstruction = IRDB_SDK::DecodedInstruction_t::factory(instruction);
+                auto mnemonic = decodedInstruction->getMnemonic();
+
+
+                if(mnemonic == "mov") {
+                    vector<shared_ptr<DecodedOperand_t>> operands = decodedInstruction->getOperands();
+
+                    if(operands[0]->isGeneralPurposeRegister() && operands[1]->isConstant()) {
+                        auto reg = operands[0]->getRegNumber();
+                        if(reg == 7) {
+                            mainFuncAddr = Utils::toHex(operands[1]->getConstant());
+                            foundMainAddr = true;
+                        }
+                    }
+                }
+                else if(mnemonic == "lea") {
+                    vector<shared_ptr<DecodedOperand_t>> operands = decodedInstruction->getOperands();
+                    if(operands[0]->isGeneralPurposeRegister() && operands[1]->isMemory()) {
+                        auto reg = operands[0]->getRegNumber();
+                        if(reg == 7) {
+
+                            mainFuncAddr = operands[1]->getString();
+                            foundMainAddr = true;
+                        }
+                    }
+                }
+            }
+            //main address found, now lookup function with this offset and set this function as mainFunction
+            if(foundMainAddr) {
+                for (auto const &possibleFunction : functions)
+                {
+                    auto functionName = possibleFunction->getName();
+
+                    const bool ignoreFunction = std::find(noInstrumentFunctions.begin(), noInstrumentFunctions.end(), functionName) != noInstrumentFunctions.end();
+                    if (ignoreFunction)
+                    {
+                        continue;
+                    }
+
+                    if (functionName.find("@plt") != std::string::npos)
+                    {
+                        continue;
+                    }
+
+                    auto offsetAddr = Utils::toHex(possibleFunction->getEntryPoint()->getAddress()->getVirtualOffset());
+                    if (offsetAddr == mainFuncAddr)
+                    {
+                        cout << "main detected via call in _start" << endl;
+                        cout << "main offset: " << offsetAddr << endl;
+                        mainFunction = possibleFunction;
+                        break;
+                    }
+                }
+            }
+            
+        }
+    }
+
+    if(mainFunction) {
+        //instrument main Function
+        instrumentOptions(mainFunction->getEntryPoint());
     }
 
     return true; //success
