@@ -5,8 +5,6 @@ import subprocess
 from enum import Enum
 from os.path import join, isfile
 import pandas as pd
-from functools import reduce
-from operator import add
 import seaborn
 from matplotlib import pyplot as plt
 import matplotlib.patches as mpatches
@@ -103,7 +101,6 @@ def measure_build_time(test_sources, compile_type: Compile_Type):
             if line.startswith("real"):
                 build_time = line.replace("real ", "")
                 results[f"{folder_name}-{test_name}"] = float(build_time)
-    append_averages(results)
     return results
 
 
@@ -127,7 +124,6 @@ def measure_sanitization_time(binaries, with_binmsan: bool):
             if line.startswith("real"):
                 sanitization_time = line.replace("real ", "")
                 results[file] = float(sanitization_time)
-    append_averages(results)
     return results
 
 
@@ -149,7 +145,6 @@ def measure_static_run_time_performance(binaries):
                     sum += float(time)
         file = binary.split("/")[-1]
         results[file] = round((sum / runs), 3)
-    append_averages(results)
     return results
 
 
@@ -178,7 +173,6 @@ def measure_dynamic_runtime_performance(binaries, tool: Tool):
                     time = line.replace("real ", "")
                     sum += float(time)
         results[file] = round((sum / runs), 3)
-    append_averages(results)
     return results
 
 
@@ -288,13 +282,12 @@ if __name__ == '__main__':
     plt.figure()
     df = pd.read_csv(f"{RESULT_PATH}/compile_sanitize_times.csv", index_col='test case')
     data = {'Tool': ['MemorySanitizer', 'Zipr + BinMSan'],
-            'Instrumentation time (s)': [df.loc['OVERALL-AVERAGE']['clang-msan'],
-                                         df.loc['OVERALL-AVERAGE']['zipr-binmsan']]}
+            'Instrumentation time (s)': [df['clang-msan'].mean(), df['zipr-binmsan'].mean()]}
     frame = pd.DataFrame(data=data)
     seaborn.set_theme(style="ticks", font="cochineal", font_scale=1.3)
     barplot1 = seaborn.barplot(data=frame, x='Tool', y='Instrumentation time (s)', color="#BDD7EE")
     data = {'Tool': ['MemorySanitizer', 'BinMSan'],
-            'Instrumentation time (s)': [df.loc['OVERALL-AVERAGE']['clang'], df.loc['OVERALL-AVERAGE']['zipr']]}
+            'Instrumentation time (s)': [df['clang'].mean(), df['zipr'].mean()]}
     frame = pd.DataFrame(data=data)
     barplot2 = seaborn.barplot(data=frame, x='Tool', y='Instrumentation time (s)', color='#00457D')
     barplot1.set_xlabel("")
@@ -310,9 +303,8 @@ if __name__ == '__main__':
     df = pd.read_csv(f"{RESULT_PATH}/run_time_performances.csv", index_col='test case')
     baseline = df.loc['OVERALL-AVERAGE']['baseline']
     data = {'Tool': ['Baseline', 'MemorySanitizer', 'BinMSan', 'MemCheck', 'Dr. Memory'],
-            'Run-time (s)': [baseline, df.loc['OVERALL-AVERAGE']['msan'],
-                             df.loc['OVERALL-AVERAGE']['binmsan'], df.loc['OVERALL-AVERAGE']['memcheck'],
-                             df.loc['OVERALL-AVERAGE']['dr memory']]}
+            'Run-time (s)': [baseline, df['msan'].mean(), df['binmsan'].mean(),
+                             df['memcheck'].mean(), df['dr memory'].mean()]}
     frame = pd.DataFrame(data=data)
     frame['Overhead factor'] = frame['Run-time (s)'] / baseline
     plt.figure(figsize=(8, 9))
