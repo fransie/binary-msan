@@ -70,6 +70,7 @@ def measure_build_time(test_sources, compile_type: Compile_Type):
         if compile_type == Compile_Type.MSan:
             options = f"-fsanitize=memory " \
                       f"-fsanitize-recover=memory " \
+                      f"-fsanitize-memory-track-origins=0 " \
                       f"-stdlib=libc++ " \
                       f"-L{INSTRUMENTED_LIBCXX_PATH}/lib " \
                       f"-lc++abi " \
