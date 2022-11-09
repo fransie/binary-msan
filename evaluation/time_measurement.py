@@ -79,6 +79,7 @@ def measure_build_time(test_sources, compile_type: Compile_Type):
         options = ""
         if compile_type == Compile_Type.MSan:
             options = f"-fsanitize=memory " \
+                      f"-fsanitize-recover=memory " \
                       f"-stdlib=libc++ " \
                       f"-L{INSTRUMENTED_LIBCXX_PATH}/lib " \
                       f"-lc++abi " \
@@ -92,7 +93,8 @@ def measure_build_time(test_sources, compile_type: Compile_Type):
                                 "-I$BINMSAN_HOME/llvm_shared_msan_lib/compiler-rt/include/sanitizer/ " \
                                 "-I$BINMSAN_HOME/llvm_shared_msan_lib/compiler-rt/lib/ " \
                                 "-L$BINMSAN_HOME/plugins_install " \
-                                "-lbinmsan_lib"
+                                "-lbinmsan_lib " \
+                                "-Wl,-rpath,$BINMSAN_HOME/plugins_install "
         run_command = f"bash -i -c 'time clang++ {options} {binary_path} -o {output_name}'"
         subprocess_return = subprocess.Popen(run_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=get_env(),
                                              shell=True, text=True)
@@ -111,7 +113,7 @@ def measure_sanitization_time(binaries, with_binmsan: bool):
         file = binary_path.split("/")[-1]
         if with_binmsan:
             pathlib.Path(SAN_DIRECTORY).mkdir(exist_ok=True)
-            sanitize_command = f"bash -i -c 'time ../binary-msan.sh {binary_path} {SAN_DIRECTORY}/{file}'"
+            sanitize_command = f"bash -i -c 'time ../binary-msan.sh -k {binary_path} {SAN_DIRECTORY}/{file}'"
         else:
             pathlib.Path(ZIPRED_DIRECTORY).mkdir(exist_ok=True)
             sanitize_command = f"bash -i -c 'time $PSZ -c rida {binary_path} {ZIPRED_DIRECTORY}/{file}'"
