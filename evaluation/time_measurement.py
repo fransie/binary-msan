@@ -59,16 +59,6 @@ def get_test_source_files():
     return files
 
 
-def append_averages(results):
-    test_cases_in_folder = [v for k, v in results.items()]
-    average = reduce(add, test_cases_in_folder) / len(test_cases_in_folder)
-    results["OVERALL-AVERAGE"] = round(average, 3)
-    for folder in TEST_FOLDERS:
-        test_cases_in_folder = [v for k, v in results.items() if k.startswith(folder)]
-        average = reduce(add, test_cases_in_folder) / len(test_cases_in_folder)
-        results[f"{folder}-AVERAGE"] = round(average, 3)
-
-
 # Measure the build time of clang for binaries, either with or without MemorySanitizer.
 def measure_build_time(test_sources, compile_type: Compile_Type):
     results = {}
