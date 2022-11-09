@@ -271,26 +271,17 @@ if __name__ == '__main__':
     # df = get_run_time_performance()
     # df.to_csv(f"{RESULT_PATH}/run_time_performances.csv", sep=',', index_label="test case")
 
-    # MSan und BinMSan preparations plot
-    plt.figure()
-    df = pd.read_csv(f"{RESULT_PATH}/compile_sanitize_times.csv", index_col='test case')
-    data = {'Tool': ['MemorySanitizer', 'Zipr + BinMSan'],
-            'Instrumentation time (s)': [df['clang-msan'].mean(), df['zipr-binmsan'].mean()]}
-    frame = pd.DataFrame(data=data)
-    seaborn.set_theme(style="ticks", font="cochineal", font_scale=1.3)
-    barplot1 = seaborn.barplot(data=frame, x='Tool', y='Instrumentation time (s)', color="#BDD7EE")
-    data = {'Tool': ['MemorySanitizer', 'BinMSan'],
-            'Instrumentation time (s)': [df['clang'].mean(), df['zipr'].mean()]}
-    frame = pd.DataFrame(data=data)
-    barplot2 = seaborn.barplot(data=frame, x='Tool', y='Instrumentation time (s)', color='#00457D')
-    barplot1.set_xlabel("")
-    barplot1.set_ylabel("Average instrumentation time (s)")
-    top_bar = mpatches.Patch(color='#BDD7EE', label='Sanitiser')
-    bottom_bar = mpatches.Patch(color='#00457D', label='Base tool')
-    plt.legend(handles=[top_bar, bottom_bar])
-    seaborn.despine()
-    plt.savefig(f"{RESULT_PATH}/instrumentation_time.pdf")
-    plt.close()
+    # File size
+    frame = pd.DataFrame(index=['Clang', 'BinMSan', 'MSan'])
+    files = [f for f in os.listdir(BIN_DIRECTORY) if isfile(join(BIN_DIRECTORY, f))]
+    for file in files:
+        row =[ os.stat(join(BIN_DIRECTORY, file)).st_size / 1024,
+            os.stat(join(SAN_DIRECTORY, file)).st_size / 1024,
+            os.stat(join(MSAN_DIRECTORY, file)).st_size / 1024]
+        frame[file] = row
+    print(f"Mean:\n{frame.mean(axis='columns')}")
+    print(f"Median:\n{frame.median(axis='columns')}")
+    frame.to_csv(f"{RESULT_PATH}/file_size.csv", sep=',')
 
     # Run-time plot
     df = pd.read_csv(f"{RESULT_PATH}/run_time_performances.csv", index_col='test case')
