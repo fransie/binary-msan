@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include "RuntimeLib.h"
 #include "Utils.h"
-#include "EflagsHandler.h"
+#include "RflagsHandler.h"
 #include "FunctionAnalysis.h"
 #include "MSan.h"
 #include "LeaHandler.h"
@@ -20,7 +20,7 @@ MSan::MSan(FileIR_t *fileIR) : Transform_t(fileIR) {
     functionHandlers.push_back(make_unique<StackVariableHandler>(fileIR));
     instructionHandlers.push_back(make_unique<MemoryAccessHandler>(fileIR));
     instructionHandlers.push_back(make_unique<MovHandler>(fileIR));
-    instructionHandlers.push_back(make_unique<EflagsHandler>(fileIR));
+    instructionHandlers.push_back(make_unique<RflagsHandler>(fileIR));
     instructionHandlers.push_back(make_unique<ControlFlowHandler>(fileIR));
     instructionHandlers.push_back(make_unique<BinaryArithmeticHandler>(fileIR));
     instructionHandlers.push_back(make_unique<BinaryLogicHandler>(fileIR));
@@ -76,7 +76,7 @@ void MSan::registerDependencies() {
     RuntimeLib::regToRegShadowCopy = elfDeps->appendPltEntry("regToRegShadowCopy");
     RuntimeLib::checkRegIsInit = elfDeps->appendPltEntry("checkRegIsInit");
     RuntimeLib::memToRegShadowCopy = elfDeps->appendPltEntry("memToRegShadowCopy");
-    RuntimeLib::checkEflags = elfDeps->appendPltEntry("checkEflags");
+    RuntimeLib::checkRflags = elfDeps->appendPltEntry("checkRflags");
     RuntimeLib::initGpRegisters = elfDeps->appendPltEntry("initGpRegisters");
     RuntimeLib::enableLogging = elfDeps->appendPltEntry("enableLogging");
     RuntimeLib::regToMemShadowCopy = elfDeps->appendPltEntry("regToMemShadowCopy");

@@ -7,9 +7,9 @@
 /**
  * Handles the correct shadow propagation of binary arithmetic instructions such as add and sub.
  * Two steps will be performed: 1) The shadow of the result will be poisoned if one bit of any
- * operand is poisoned, otherwise it will be unpoisoned and 2) the definedness of the EFLAGS register
+ * operand is poisoned, otherwise it will be unpoisoned and 2) the definedness of the RFLAGS register
  * will be set according to whether the result of the instruction is fully defined. Hence, this Handler
- * should only be used for instructions that affect at least one of the EFLAGS flags.
+ * should only be used for instructions that affect at least one of the RFLAGS flags.
  */
 class BinaryArithmeticHandler : public InstructionHandler {
 public:

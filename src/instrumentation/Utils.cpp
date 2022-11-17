@@ -3,7 +3,7 @@
 #include "Utils.h"
 
 /**
- * Returns a string containing pushes to EFLAGS and all caller-saved general purpose registers, namely
+ * Returns a string containing pushes to RFLAGS and all caller-saved general purpose registers, namely
  *  RAX, RCX, RDX, RSI, RDI, R8, R9, R10 , R11 as well as a decrement of the stack pointer to avoid
  *  overwriting values in the red zone.
  * @return string of assembly instructions
@@ -24,7 +24,7 @@ std::string Utils::getStateSavingInstrumentation() {
 }
 
 /**
- * Returns a string containing pops into EFLAGS and all caller-saved general purpose registers, namely
+ * Returns a string containing pops into RFLAGS and all caller-saved general purpose registers, namely
  *  RAX, RCX, RDX, RSI, RDI, R8, R9, R10 , R11 as well as an increment to the stack pointer to avoid
  *  overwriting values in the red zone.
  * @return string of assembly instructions

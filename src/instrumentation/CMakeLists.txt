@@ -3,7 +3,7 @@ add_executable(binmsan_instrumentation
         BinaryArithmeticHandler.cpp
         BinaryLogicHandler.cpp
         DisassemblyService.cpp
-        EflagsHandler.cpp
+        RflagsHandler.cpp
         FunctionAnalysis.cpp
         ControlFlowHandler.cpp
         LeaHandler.cpp

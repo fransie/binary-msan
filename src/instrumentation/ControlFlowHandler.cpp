@@ -12,8 +12,8 @@ IRDB_SDK::Instruction_t *ControlFlowHandler::instrument(Instruction_t *instructi
     cout << "ControlFlowHandler. Instruction: " << instruction->getDisassembly() << " at "
          << instruction->getAddress()->getVirtualOffset() << endl;
     auto decodedInstr = DecodedInstruction_t::factory(instruction);
-    if (std::find(eflagsJumps.begin(), eflagsJumps.end(), decodedInstr->getMnemonic()) != eflagsJumps.end()) {
-        instruction = checkEflags(instruction);
+    if (std::find(rflagsJumps.begin(), rflagsJumps.end(), decodedInstr->getMnemonic()) != rflagsJumps.end()) {
+        instruction = checkRflags(instruction);
     } else if (std::find(cxJumps.begin(), cxJumps.end(), decodedInstr->getMnemonic()) != cxJumps.end()) {
         instruction = checkCx(decodedInstr, instruction);
     }
@@ -27,17 +27,17 @@ IRDB_SDK::Instruction_t *ControlFlowHandler::instrument(Instruction_t *instructi
 }
 
 /**
- * Inserts instrumentation before <code>instruction</code> that verifies whether EFLAGS is defined. If
+ * Inserts instrumentation before <code>instruction</code> that verifies whether RFLAGS is defined. If
  * it is not, an MSan warning is issued.
- * @param instruction instruction that jumps based on EFLAGS, like "je"
+ * @param instruction instruction that jumps based on RFLAGS, like "je"
  */
-IRDB_SDK::Instruction_t *ControlFlowHandler::checkEflags(Instruction_t *instruction) {
+IRDB_SDK::Instruction_t *ControlFlowHandler::checkRflags(Instruction_t *instruction) {
     string instrumentation = Utils::getStateSavingInstrumentation() +
                              "call 0\n" +
                              Utils::getStateRestoringInstrumentation();
     const auto new_instr = insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation, {});
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
-    new_instr[calls[0]]->setTarget(RuntimeLib::checkEflags);
+    new_instr[calls[0]]->setTarget(RuntimeLib::checkRflags);
     return new_instr.back();
 }
 
@@ -69,7 +69,7 @@ ControlFlowHandler::checkCx(unique_ptr<IRDB_SDK::DecodedInstruction_t> &decodedI
 
 /**
  * Inserts instrumentation before <code>instruction</code> that verifies whether the register used to indicate
- * the jump/call target is initialised. If it is not, an MSan warning is issued.
+ * an indirect jump/call target is initialised. If it is not, an MSan warning is issued.
  */
 IRDB_SDK::Instruction_t *
 ControlFlowHandler::checkReg(Instruction_t *instruction, unique_ptr<DecodedInstruction_t> &decodedInstr) {
@@ -90,7 +90,7 @@ ControlFlowHandler::checkReg(Instruction_t *instruction, unique_ptr<DecodedInstr
 
 /**
  * Inserts instrumentation before <code>instruction</code> that verifies whether the memory address of
- * the jump/call target is initialised. If it is not, an MSan warning is issued.
+ * the indirect jump/call target is initialised. If it is not, an MSan warning is issued.
  */
 IRDB_SDK::Instruction_t *
 ControlFlowHandler::checkMem(IRDB_SDK::Instruction_t *instruction, unique_ptr<DecodedInstruction_t> &decodedInstr) {

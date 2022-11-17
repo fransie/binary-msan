@@ -7,9 +7,9 @@
 /**
  * Handles the correct shadow propagation of binary logic instructions such as and, or and xor.
  * Two steps will be performed: 1) The shadow of the result will be computed as the OR of the
- * shadow of the two operands and 2) the definedness of the EFLAGS register will be set according
+ * shadow of the two operands and 2) the definedness of the RFLAGS register will be set according
  * to whether the result of the instruction is fully defined. Hence, this Handler should only be used
- * for instructions that affect at least one of the EFLAGS flags.
+ * for instructions that affect at least one of the RFLAGS flags.
  */
 class BinaryLogicHandler : public InstructionHandler {
 public:

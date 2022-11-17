@@ -11,7 +11,7 @@ public:
     inline static IRDB_SDK::Instruction_t *memToRegShadowCopy;
     inline static IRDB_SDK::Instruction_t *regToRegShadowCopy;
     inline static IRDB_SDK::Instruction_t *regToMemShadowCopy;
-    inline static IRDB_SDK::Instruction_t *checkEflags;
+    inline static IRDB_SDK::Instruction_t *checkRflags;
     inline static IRDB_SDK::Instruction_t *initGpRegisters;
     inline static IRDB_SDK::Instruction_t *enableLogging;
     inline static IRDB_SDK::Instruction_t *msan_set_keep_going;

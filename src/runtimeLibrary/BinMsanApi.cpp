@@ -18,12 +18,12 @@ void enableLogging() {
 }
 
 /**
- * Represents the shadow of the EFLAGS register in one bit. Hence, this is only an approximation.
+ * Represents the shadow of the RFLAGS register in one bit. Hence, this is only an approximation.
  */
 bool rflagsDefined = true;
 
 /**
- * Set the shadow of the EFLAGS register where shadow = 1 or true means undefined.
+ * Set the shadow of the RFLAGS register where shadow = 1 or true means undefined.
  */
 void setRflags(bool shadow) {
     if (loggingEnabled) {
@@ -136,11 +136,11 @@ void memToRegShadowCopy(__sanitizer::uptr memAddress, int reg, int regWidth) {
 }
 
 /**
- * Verifies whether the EFLAGS register is initialised and if not, causes an msan warning.
+ * Verifies whether the RFLAGS register is initialised and if not, causes an msan warning.
  */
-void checkEflags() {
+void checkRflags() {
     if (loggingEnabled) {
-        std::cout << "checkEflags" << std::endl;
+        std::cout << "checkRflags" << std::endl;
     }
     if (!rflagsDefined) {
         __msan_warning();
@@ -372,7 +372,7 @@ void unpoisonUpper4Bytes(const int reg) {
 
 /**
  * Calculate the shadow of an instruction result by applying OR to the two register shadows and writes
- * this result shadow to the destination register shadow.
+ * this result shadow to the destination register shadow. Also sets the state of RFLAGS according to the result shadow.
  * @param dest dest register number.
  * @param destWidth width in bits.
  * @param src src regsiter number.
@@ -421,7 +421,7 @@ void propagateRegOrRegShadow(int dest, int destWidth, int src, int srcWidth) {
 
 /**
  * Calculate the shadow of an instruction result by applying OR to the two operand shadows and writes
- * this result shadow to the destination register shadow.
+ * this result shadow to the destination register shadow. Also sets the state of RFLAGS according to the result shadow.
  * @param mem address of memory operand.
  * @param reg dest register number.
  * @param width width in bits.
@@ -469,7 +469,7 @@ void propagateRegOrMemShadow(const void *mem, int reg, int width) {
 
 /**
  * Calculate the shadow of an instruction result by applying OR to the two operand shadows and writes
- * this result shadow to the destination memory shadow.
+ * this result shadow to the destination memory shadow. Also sets the state of RFLAGS according to the result shadow.
  * @param mem address of destination memory operand.
  * @param reg register number.
  * @param width width in bits.

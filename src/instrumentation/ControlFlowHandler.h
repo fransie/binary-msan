@@ -6,9 +6,9 @@
 #include "DisassemblyService.h"
 
 /**
- * Handles the branching instructions call, jump and conditional jumps. It checks whether the jump/call target
- * is initialised and for conditional jumps it is additionally verified that the register related to the condition
- * (either EFLAGS or RCX) is initialised.
+ * Handles the branching instructions call, jump and conditional jumps. It checks if indirect jump/call targets
+ * are initialised and for conditional jumps it is additionally verified that the register related to the condition
+ * (either RFLAGS or RCX) is initialised.
  */
 class ControlFlowHandler : public InstructionHandler {
 public:
@@ -23,7 +23,7 @@ public:
 
 private:
     std::vector<std::string> cxJumps{"jcxz", "jecxz", "jrcxz"};
-    std::vector<std::string> eflagsJumps{"ja", "jae", "jb", "jbe", "jc", "je", "jg", "jge",
+    std::vector<std::string> rflagsJumps{"ja", "jae", "jb", "jbe", "jc", "je", "jg", "jge",
                                          "jl", "jle", "jna", "jnae", "jnb", "jnbe", "jnc", "jne", "jng",
                                          "jnge", "jnl", "jnle", "jno", "jnp", "jns", "jnz", "jo", "jp",
                                          "jpe", "jpo", "js", "jz"};
@@ -31,7 +31,7 @@ private:
     IRDB_SDK::Instruction_t *
     checkCx(std::unique_ptr<IRDB_SDK::DecodedInstruction_t> &decodedInstr, IRDB_SDK::Instruction_t *instruction);
 
-    IRDB_SDK::Instruction_t *checkEflags(IRDB_SDK::Instruction_t *instruction);
+    IRDB_SDK::Instruction_t *checkRflags(IRDB_SDK::Instruction_t *instruction);
     IRDB_SDK::Instruction_t *checkReg(IRDB_SDK::Instruction_t *instruction, std::unique_ptr<IRDB_SDK::DecodedInstruction_t> &decodedInstr);
     IRDB_SDK::Instruction_t *checkMem(IRDB_SDK::Instruction_t *instruction, std::unique_ptr<IRDB_SDK::DecodedInstruction_t> &decodedInstr);
 };
