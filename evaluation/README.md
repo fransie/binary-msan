@@ -5,7 +5,7 @@
 This evaluation step counts the number of distinct Intel syntax mnemonics in the static versions of the binutils,
 coreutils, and findutils package binaries. The binaries have to be placed in the respective `<package>/binaries` folder.
 
-1. Unzip the `gold` binary in folder `binary-msan/evaluation/binutils/binaries`. (The binary is too large for GitHub.)
+1. Unzip the `gold` binary in folder `binary-msan/evaluation/binutils/binaries` and delete the zip file. (The binary is too large for GitHub.)
 2. Run the preparations script, which counts the mnemonics with a Zipr plugin called "counter":
    `python3  binary_preparations.py`
 3. Run the evaluation script: `python3 instruction_counting.py`.
