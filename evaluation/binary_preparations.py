@@ -25,6 +25,8 @@ def count_instructions(binary):
 def count(directory):
     count_dir = f'{directory}/counts'
     pathlib.Path(count_dir).mkdir(exist_ok=True)
+    pathlib.Path(f'{directory}/logs').mkdir(exist_ok=True)
+    pathlib.Path(f'{directory}/results').mkdir(exist_ok=True)
     for file in os.listdir(count_dir):
         os.remove(os.path.join(count_dir, file))
     bin_path = directory + "/binaries"
