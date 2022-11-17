@@ -1,7 +1,7 @@
-# binary-msan
+# BinMSan
 
 This tool is a PoC of a binary-only implementation of LLVM's Memory Sanitizer (see [their paper](https://doi.org/10.1109/CGO.2015.7054186)).
-It finds usage of uninitialised memory for conditional branching, syscalls and pointer dereference.
+It finds usage of uninitialised memory in conditional branching, indirect branching, syscalls, libc function calls, and pointer dereference.
 Binary-msan depends on the binary rewriting toolchain zipr (see their papers
 [zipr](https://doi.org/10.1109/DSN.2017.27) and [zipr++](https://doi.org/10.1145/3141235.3141240)).
 
@@ -28,16 +28,16 @@ This set-up has been tested on Ubuntu 20.04 Focal Fossa.
 
 ### Shared MSan library
 
-Binary-msan needs shared libraries of the LVVM MemorySanitizer, which are not available in the regular build of LLVM.
+BinMSan needs shared libraries of the LVVM MemorySanitizer, which are not available in the regular build of LLVM.
 Therefore, the folder `llvm_shared_msan_lib` contains the two needed libraries for x86-64. Hence, you don't need to build
 them yourself but if you're interested, you can find the descriptions of how to build the libraries in the folder `llvm_shared_msan_lib`.
 
 ## Usage
 
-Use binary-msan as follows: ```./binary-msan.sh <options> <input-file> <output-file>```. This is only a prototype,
-so it will only instrument the main function of simple binary. Have a look into the test folder for example binaries.
+Use BinMSan as follows: ```./binary-msan.sh <options> <input-file> <output-file>```. This is only a prototype,
+so it will only instrument the main function. Have a look into the test folder for example binaries.
 Available options:
-- `-k`: Keep going after MSan warning. The default behaviour of binary-msan is to abort the executing of the instrumented
+- `-k`: Keep going after MSan warning. The default behaviour of BinMSan is to abort the executing of the instrumented
 binary after the first warning. With this option, the execution will keep going after warnings.
 - `-l`: Enable debug logging to stdout. This options inserts extra instrumentation into the binary so that it prints
-which binary-msan functions (incl. arguments) are called. Useful for debugging.
+which BinMSan runtime functions (incl. arguments) are called. Useful for debugging.
