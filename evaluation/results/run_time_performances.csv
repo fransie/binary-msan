@@ -1,0 +1,17 @@
+test case,baseline,msan,zipr,binmsan,dr memory,memcheck
+PropagationTests-addition_propagation,0.002,0.105,0.002,0.231,0.963,0.724
+PropagationTests-class,0.003,0.107,0.003,0.335,1.273,0.809
+PropagationTests-conjunction_propagation,0.002,0.102,0.002,0.24,0.943,0.722
+PropagationTests-disjunction_propagation,0.002,0.007,0.002,0.235,0.954,0.717
+PropagationTests-excl_disjunction_propagation,0.002,0.102,0.002,0.239,0.947,0.706
+PropagationTests-subtraction_propagation,0.002,0.104,0.002,0.232,0.932,0.707
+SinkTests-conditional_branch,0.003,0.107,0.003,0.241,1.265,0.806
+SinkTests-conditional_branch_unpoisoned,0.003,0.009,0.003,0.007,1.268,0.825
+SinkTests-function_pointer,0.099,0.107,0.096,0.233,0.902,0.868
+SinkTests-function_pointer_unpoisoned,0.002,0.006,0.002,0.007,0.943,0.73
+SinkTests-libc,0.003,0.109,0.004,0.325,1.301,0.804
+SinkTests-libc_unpoisoned,0.003,0.009,0.003,0.007,1.287,0.816
+SinkTests-pointer_deref,0.147,0.105,0.144,0.241,1.354,0.993
+SinkTests-pointer_deref_unpoisoned,0.002,0.006,0.002,0.007,0.926,0.727
+SinkTests-syscall,0.003,0.108,0.003,0.229,1.283,0.813
+SinkTests-syscall_unpoisoned,0.003,0.009,0.003,0.008,1.258,0.799
