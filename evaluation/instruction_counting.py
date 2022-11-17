@@ -79,10 +79,8 @@ def get_instructions_in_directory(paths, binaries):
 
 
 def distinct_instructions_to_category(number):
-    if number < 40:
-        return "<40"
-    if number >= 100:
-        return "100-116"
+    if number >= 110:
+        return "110-131"
     x = int(number / 10) * 10
     y = x + 9
     return f"{x}-{y}"
@@ -91,14 +89,16 @@ def distinct_instructions_to_category(number):
 def appearances_to_category(number):
     if number == 1:
         return "1"
-    elif number == 129:
-        return "all 129"
-    elif number <= 10:
-        return "2-10"
+    elif number == 124:
+        return "all 124"
+    elif number <= 25:
+        return "2-25"
+    elif number <= 50:
+        return "26-50"
     elif number <= 100:
-        return "11-100"
+        return "51-100"
     else:
-        return "101-128"
+        return "101-123"
 
 
 if __name__ == '__main__':
@@ -119,6 +119,7 @@ if __name__ == '__main__':
     # - In which order should the next instructions be instrumented based on their appearance in binaries?
     # -> First instrument instructions that appear in all 129 binaries, then the ones that appear in less binaries
     # in descending order.
+    instructions.sort(key=lambda ins: ins.mnemonic)
     instructions_sorted_by_appearance = sorted(instructions, key=lambda ins: len(ins.occurs_in), reverse=True)
 
     # Check which combination of instructions can handle which binaries.
@@ -160,12 +161,13 @@ if __name__ == '__main__':
     df["Instructions per binary"] = df["Number of distinct mnemonics"].apply(
         lambda x: distinct_instructions_to_category(x))
 
-    seaborn.set_theme(style="white", font="cochineal", font_scale=1.1)
-    order = ["<40", "40-49", "50-59", "60-69", "70-79", "80-89", "90-99", "100-116"]
+    seaborn.set_theme(style="ticks", font="cochineal", font_scale=1.1)
+    order = ["40-49", "50-59", "60-69", "70-79", "80-89", "90-99", "100-109", "110-131"]
     countplot = seaborn.countplot(data=df, x="Instructions per binary", color="#00457D", order=order)
     seaborn.despine()
     countplot.set_xlabel("Distinct mnemonics per binary")
     countplot.set_ylabel("Number of binaries")
+    plt.tick_params(bottom=False)
     fig = countplot.get_figure()
     fig.savefig(f"{results_path}/ins_per_binary.pdf")
     fig.clear()
@@ -174,24 +176,23 @@ if __name__ == '__main__':
     df = pandas.read_csv(f"{results_path}/instructions_sorted_by_appearance.csv", delimiter=";")
     df["Appearance category"] = df["Appears in x binaries"].apply(lambda x: appearances_to_category(x))
     print(df)
-    seaborn.set_theme(style="white", font="cochineal", font_scale=1.1)
-    order = ["1", "2-10", "11-100", "101-128", "all 129"]
+    order = ["1", "2-25", "26-50", "51-100", "101-123", "all 124"]
     countplot = seaborn.countplot(data=df, x="Appearance category", color="#00457D", order=order)
     seaborn.despine()
-    countplot.set_xlabel("Number of binaries a mnemonic appears in")
+    countplot.set_xlabel("Mnemonic appears in x binaries")
     countplot.set_ylabel("Number of mnemonics")
+    plt.tick_params(bottom=False)
     fig = countplot.get_figure()
     fig.savefig(f"{results_path}/appearance_per_ins.pdf")
     fig.clear()
 
     # Combinations.
-    seaborn.set_theme(style="ticks", font="cochineal", font_scale=1.1)
     dope = pandas.read_csv(f"{results_path}/covered_binaries_with_given_instructions.csv", delimiter=";")
     lineplot = seaborn.lineplot(data=dope, x="Number of instrumented instructions", y="Number of covered binaries",
                                 color="#00457D")
     seaborn.despine()
-    plt.xlim(0, 180)
-    plt.ylim(0, 135)
+    plt.xlim(0, 200)
+    plt.ylim(0, 124)
     lineplot.set_xlabel("Assumed instrumented mnemonics")
     lineplot.set_ylabel("Covered binaries")
     figi = lineplot.get_figure()

@@ -1,5 +1,6 @@
 import concurrent.futures
 import os
+import pathlib
 import subprocess
 from os.path import isfile, join
 
@@ -14,14 +15,18 @@ def count_instructions(binary):
     exitcode = subprocess.call(
         f"./counter.sh {path}/binaries/{filename} {output_file} > {path}/logs/{filename}.log 2>&1",
         shell=True)
+    os.remove(f"{path}/binaries/{filename}_san")
     if exitcode == 0:
-        os.remove(f"{path}/binaries/{filename}_san")
         print(f"Finished {binary}")
     else:
         print(f"{RED}Instruction counting of {path}/binaries/{filename} failed! See log: {path}/logs/{filename}.log{END}")
 
 
 def count(directory):
+    count_dir = f'{directory}/counts'
+    pathlib.Path(count_dir).mkdir(exist_ok=True)
+    for file in os.listdir(count_dir):
+        os.remove(os.path.join(count_dir, file))
     bin_path = directory + "/binaries"
     binaries = []
     for name in [f for f in os.listdir(bin_path) if isfile(join(bin_path, f))]:
