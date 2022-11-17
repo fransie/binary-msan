@@ -31,8 +31,10 @@ IRDB_SDK::Instruction_t *MemoryAccessHandler::instrument(Instruction_t *instruct
     std::cout << "MemoryAccessHandler. Operand: " << operand->getString() << std::endl;
     string instrumentation = Utils::getStateSavingInstrumentation();
     vector<basic_string<char>> instrumentationParams{4};
+    auto regCount = 0;
 
     if (operand->hasBaseRegister()) {
+        regCount++;
         auto baseReg = operand->getBaseRegister();
         auto baseRegWidth = disassemblyService->getBaseRegWidth(instruction);
         instrumentation = instrumentation +
@@ -43,6 +45,7 @@ IRDB_SDK::Instruction_t *MemoryAccessHandler::instrument(Instruction_t *instruct
         instrumentationParams[1] = Utils::toHex(baseRegWidth);
     }
     if (operand->hasIndexRegister()) {
+        regCount++;
         auto indexReg = operand->getIndexRegister();
         auto indexRegWidth = disassemblyService->getIndexRegWidth(instruction);
 
@@ -57,8 +60,8 @@ IRDB_SDK::Instruction_t *MemoryAccessHandler::instrument(Instruction_t *instruct
     const auto new_instr = IRDB_SDK::insertAssemblyInstructionsBefore(fileIr, instruction, instrumentation,
                                                                       instrumentationParams);
     auto calls = DisassemblyService::getCallInstructionPosition(new_instr);
-    for (auto index: calls) {
-        new_instr[index]->setTarget(RuntimeLib::checkRegIsInit);
+    for (int index = 0; index < regCount ; index++) {
+        new_instr[calls[index]]->setTarget(RuntimeLib::checkRegIsInit);
     }
     return new_instr.back();
 }
@@ -78,10 +81,6 @@ bool MemoryAccessHandler::isResponsibleFor(IRDB_SDK::Instruction_t *instruction)
     auto decodedInstruction = IRDB_SDK::DecodedInstruction_t::factory(instruction);
     // Lea does not actually access memory.
     if (decodedInstruction->getMnemonic() == "lea") {
-        return false;
-    }
-    // Branching instructions are checked by ControlFlowHandler.
-    if (decodedInstruction->isBranch()){
         return false;
     }
     return hasMemoryOperand(decodedInstruction);
