@@ -18,6 +18,7 @@ ZIPRED_DIRECTORY = EVAL_DIRECTORY + "/zipr_san"
 RESULT_PATH = EVAL_DIRECTORY + "/results"
 TEST_FOLDERS = [name for name in os.listdir(TEST_DIRECTORY)
                 if os.path.isdir(os.path.join(TEST_DIRECTORY, name)) and name.__contains__("Tests")]
+RUNTIME_TEST_FOLDERS = ["PropagationTests", "SinkTests"]
 INSTRUMENTED_LIBCXX_PATH = "/home/franzi/Documents/llvm-project-llvmorg-13.0.1/llvmInstrumentedBuild"
 
 
@@ -46,11 +47,8 @@ def get_env():
 
 
 def get_test_source_files():
-    directories = [name for name in os.listdir(TEST_DIRECTORY)
-                   if os.path.isdir(os.path.join(TEST_DIRECTORY, name)) and name.__contains__("Tests")]
-
     files = []
-    for directory in directories:
+    for directory in TEST_FOLDERS:
         subtest_directory = TEST_DIRECTORY + "/" + directory
         testfiles = [f for f in os.listdir(subtest_directory) if isfile(join(subtest_directory, f))]
         for file in testfiles:
@@ -172,7 +170,7 @@ def measure_dynamic_runtime_performance(binaries, tool: Tool):
 def get_compile_and_sanitization_data():
     # Get source files
     test_sources = get_test_source_files()
-    print(f"Start compilation and sanitization.")
+    print(f"Start compilation and sanitization of {len(get_test_source_files())} binaries.")
 
     # Compilation: Clang vs. Clang & MSan
     build_time_clang = measure_build_time(test_sources, Compile_Type.Regular)
@@ -194,7 +192,7 @@ def get_compile_and_sanitization_data():
 
 
 def get_run_time_performance():
-    print(f"Start run-time performance measurement.")
+    print(f"Start runtime performance measurement.")
 
     # get binaries
     binaries = [join(BIN_DIRECTORY, file) for file in os.listdir(BIN_DIRECTORY)
